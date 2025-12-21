@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import { eq, desc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 
 export async function authenticate(
     prevState: string | undefined,
@@ -78,24 +79,18 @@ export async function createUser(formData: FormData) {
             return { message: "Unauthorized: You must be an Admin" };
         }
 
-        const name = formData.get("name") as string;
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
-        const role = (formData.get("role") as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
-        const qualification = (formData.get("qualification") as string) || null;
-        const specialization = (formData.get("specialization") as string) || null;
-        const mobile1 = (formData.get("mobile1") as string) || null;
-        const mobile2 = (formData.get("mobile2") as string) || null;
-        const address = (formData.get("address") as string) || null;
-        const doj = (formData.get("doj") as string) || null;
-        const endDate = (formData.get("endDate") as string) || null;
+        const rawData = Object.fromEntries(formData.entries());
+        const validatedFields = CreateUserSchema.safeParse(rawData);
 
-        console.log("createUser: Received Data:", { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate });
-
-        if (!name || !email || !password || !role) {
-            console.log("createUser: Missing fields");
-            return { message: "Missing required fields" };
+        if (!validatedFields.success) {
+            console.log("createUser: Validation failed", validatedFields.error.flatten().fieldErrors);
+            const errorMsg = validatedFields.error.issues.map(issue => issue.message).join(". ");
+            return { message: `Validation Error: ${errorMsg}` };
         }
+
+        const { name, email, password, role, qualification, specialization, mobile1, mobile2, address, doj, endDate } = validatedFields.data;
+
+        console.log("createUser: Validated Data:", { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate });
 
         const existingUser = await db.query.users.findFirst({
             where: eq(users.email, email),
@@ -338,22 +333,17 @@ export async function updateUser(userId: string, formData: FormData) {
             return { message: "Unauthorized" };
         }
 
-        const name = formData.get("name") as string;
-        const email = formData.get("email") as string;
-        const role = formData.get("role") as "ADMIN" | "THERAPIST" | "PARENT";
-        const qualification = (formData.get("qualification") as string) || null;
-        const specialization = (formData.get("specialization") as string) || null;
-        const mobile1 = (formData.get("mobile1") as string) || null;
-        const mobile2 = (formData.get("mobile2") as string) || null;
-        const address = (formData.get("address") as string) || null;
-        const doj = (formData.get("doj") as string) || null;
-        const endDate = (formData.get("endDate") as string) || null;
-        const password = formData.get("password") as string;
+        const rawData = Object.fromEntries(formData.entries());
+        const validatedFields = UpdateUserSchema.safeParse(rawData);
 
-        if (!name || !email) return { message: "Missing fields" };
+        if (!validatedFields.success) {
+            const errorMsg = validatedFields.error.issues.map(issue => issue.message).join(". ");
+            return { message: `Validation Error: ${errorMsg}` };
+        }
 
-        const updateData: any = { name, email, qualification, specialization, mobile1, mobile2, address, doj, endDate };
-        if (session.user.role === "ADMIN") {
+        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate, password } = validatedFields.data;
+
+        const updateData: any = { name, email, qualification, specialization, mobile1, mobile2, address, doj, endDate }; if (session.user.role === "ADMIN") {
             if (role) updateData.role = role;
             if (password && password.trim() !== "") {
                 updateData.passwordHash = await bcrypt.hash(password, 10);

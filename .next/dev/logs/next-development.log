@@ -1389,3 +1389,6 @@ params: 1,1,1,1,aaa93845-ed6e-46b6-bc15-65244ca38e14
 [01:26:15.484] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [01:26:16.027] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
 [01:33:48.522] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:55:20.597] Server  LOG      ✓ Compiled in 626ms
+[01:55:30.538] Server  LOG      ✓ Compiled in 302ms
+[01:56:09.827] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
