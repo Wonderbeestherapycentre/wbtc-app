@@ -5,12 +5,7 @@ import { useState, useTransition, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { createCategory, updateCategory } from "@/lib/actions";
 import { toast } from "sonner";
-
-interface Category {
-    id: string;
-    name: string;
-    isSystem: boolean;
-}
+import { Category } from "./CategoryList";
 
 interface CategoryModalProps {
     isOpen: boolean;

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import CategoryModal from "./CategoryModal";
 import ConfirmModal from "@/components/ConfirmModal";
 
-interface Category {
+export interface Category {
     id: string;
     name: string;
     isSystem?: boolean;
