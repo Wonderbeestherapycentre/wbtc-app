@@ -197,9 +197,9 @@ export async function fetchChildren(includeInactive = false) {
     } else if (session.user.role === "THERAPIST") {
         conditions.push(
             sql`EXISTS (
-                SELECT 1 FROM ${childTherapies} 
-                WHERE ${childTherapies.childId} = ${children.id} 
-                AND ${childTherapies.therapistId} = ${session.user.id}
+                SELECT 1 FROM "child_therapies" 
+                WHERE "child_therapies"."child_id" = ${children.id} 
+                AND "child_therapies"."therapist_id" = ${session.user.id}
             )`
         );
     }
@@ -235,9 +235,9 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
     } else if (session.user.role === "THERAPIST") {
         conditions.push(
             sql`EXISTS (
-                SELECT 1 FROM ${childTherapies} 
-                WHERE ${childTherapies.childId} = ${children.id} 
-                AND ${childTherapies.therapistId} = ${session.user.id}
+                SELECT 1 FROM "child_therapies" 
+                WHERE "child_therapies"."child_id" = ${children.id} 
+                AND "child_therapies"."therapist_id" = ${session.user.id}
             )`
         );
     }

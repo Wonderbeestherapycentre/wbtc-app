@@ -4,6 +4,7 @@ import { fetchChild } from "@/lib/data";
 import { ArrowLeft, Calendar, User, Activity, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
+import { auth } from "@/auth";
 
 interface ChildPageProps {
     params: Promise<{
@@ -13,6 +14,7 @@ interface ChildPageProps {
 
 export default async function ChildPage({ params }: ChildPageProps) {
     const { id } = await params;
+    const session = await auth();
 
     const child = await fetchChild(id);
 
@@ -73,17 +75,19 @@ export default async function ChildPage({ params }: ChildPageProps) {
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                {session?.user?.role !== "THERAPIST" && (
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                            <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Parent</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                {child.parent?.name || "Not set"}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Parent</p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                            {child.parent?.name || "Not set"}
-                        </p>
-                    </div>
-                </div>
+                )}
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
                         <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -97,8 +101,8 @@ export default async function ChildPage({ params }: ChildPageProps) {
                 </div>
             </div>
 
-            {/* Parent Details */}
-            {child.parent && (
+            {/* Parent Details - Hidden for Therapists */}
+            {child.parent && session?.user?.role !== "THERAPIST" && (
                 <div className="glass-card rounded-xl p-6">
                     <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
                         <User className="w-5 h-5 text-indigo-600" />

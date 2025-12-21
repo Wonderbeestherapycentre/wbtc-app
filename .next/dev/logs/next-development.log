@@ -1,48 +1,140 @@
-[00:00:00.677] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:00.754] Server  LOG      ✓ Ready in 582ms
-[00:00:06.642] Server  ERROR    ⨯ Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
+[00:00:00.720] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.802] Server  LOG      ✓ Ready in 620ms
+[00:00:06.170] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.962] Server  ERROR    ⨯ Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
                 SELECT 1 FROM "child_therapies" 
                 WHERE "children"."child_id" = "children"."id" 
                 AND "children"."therapist_id" = $5
             )) order by lower("children"."name") asc
 params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:00:06.757] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:06.869] Browser ERROR   uncaughtError: Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
+[00:00:07.086] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:07.201] Browser ERROR   uncaughtError: Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
                 SELECT 1 FROM "child_therapies" 
                 WHERE "children"."child_id" = "children"."id" 
                 AND "children"."therapist_id" = $5
             )) order by lower("children"."name") asc
 params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:00:07.492] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:07.493] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:18.700] Server  WARN     ⚠ Cross origin request detected from 192.168.0.3 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
-Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
-[00:00:18.717] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:18.829] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
-[00:01:00.267] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:00.465] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
-[00:01:22.217] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:22.217] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
-[00:01:27.825] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:35.187] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:35.187] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
-[00:01:53.100] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:53.100] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
-[00:01:58.478] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:04.204] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:04.204] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:04.204] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:06.865] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:06.990] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:06.991] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:06.991] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:02:15.120] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[00:02:15.120] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
-       please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
-       height and width.
-[00:03:07.997] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:03:08.165] Browser ERROR   uncaughtError: TypeError: crypto.randomUUID is not a function
+[00:00:07.744] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:09.790] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:12.957] Server  ERROR    ⨯ Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
+                SELECT 1 FROM "child_therapies" 
+                WHERE "children"."child_id" = "children"."id" 
+                AND "children"."therapist_id" = $5
+            )) order by lower("children"."name") asc
+params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
+[00:00:13.078] Browser ERROR   uncaughtError: Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
+                SELECT 1 FROM "child_therapies" 
+                WHERE "children"."child_id" = "children"."id" 
+                AND "children"."therapist_id" = $5
+            )) order by lower("children"."name") asc
+params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
+[00:01:10.418] Server  ERROR    ⨯ Error: Module [project]/node_modules/next/dist/esm/client/components/layout-router.js [app-ssr] (ecmascript) was instantiated because it was required from module [project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/users/page { GLOBAL_ERROR_MODULE => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", METADATA_0 => "[project]/app/favicon.ico.mjs { IMAGE => \"[project]/app/favicon.ico (static in ecmascript, tag client)\" } [app-rsc] (structured image object, ecmascript, Next.js Server Component)", MODULE_1 => "[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js Server Component)", MODULE_2 => "[project]/node_modules/next/dist/client/components/builtin/not-found.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_3 => "[project]/node_modules/next/dist/client/components/builtin/forbidden.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_4 => "[project]/node_modules/next/dist/client/components/builtin/unauthorized.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_5 => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_6 => "[project]/app/users/page.tsx [app-rsc] (ecmascript, Next.js Server Component)" } [app-rsc] (ecmascript) <locals>, but the module factory is not available.
+[00:01:10.576] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:32.704] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:41.360] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:06.936] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:29.101] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:46.783] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:46.783] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:06:46.783] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:06:46.783] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:08:33.376] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:10:06.149] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:10:34.769] Browser ERROR   uncaughtError: TypeError: Error in input stream
+[00:10:36.445] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:11:19.229] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:12:58.863] Server  LOG      ✓ Compiled in 34ms
+[00:16:12.277] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:23.721] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:25.465] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:25.487] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:53.452] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                          ^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Expected unicode escape
+[00:16:53.452] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                           ^^^^^^^^^^^^^^^^^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Unterminated string constant
+[00:16:53.453] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                          ^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Expected unicode escape
+[00:16:53.453] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                           ^^^^^^^^^^^^^^^^^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Unterminated string constant
+[00:16:53.456] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                          ^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Expected unicode escape
+[00:16:53.456] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                           ^^^^^^^^^^^^^^^^^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Unterminated string constant
+[00:16:54.376] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                          ^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Expected unicode escape
+[00:16:54.376] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
+Parsing ecmascript source code failed
+  76 |                     </div>
+  77 |                 </div>
+> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
+     |                                           ^^^^^^^^^^^^^^^^^
+  79 |                 <div className="flex items-center gap-3">
+  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+
+Unterminated string constant
+[00:17:17.755] Server  LOG      ✓ Compiled in 20ms
+[00:17:49.839] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

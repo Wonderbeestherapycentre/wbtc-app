@@ -16,13 +16,8 @@ const PasswordSchema = z
 export const UserSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100),
     email: z.string().email("Invalid email address"),
-    role: z.enum(["ADMIN", "THERAPIST", "PARENT"], {
-        errorMap: (issue, ctx) => {
-            if (issue.code === 'invalid_enum_value' || issue.code === 'invalid_type') {
-                return { message: 'Please select a user role' };
-            }
-            return { message: ctx.defaultError };
-        }
+    role: z.enum(["ADMIN", "THERAPIST", "PARENT"] as const, {
+        message: "Please select a user role",
     }),
     qualification: emptyStringToNull,
     specialization: emptyStringToNull,

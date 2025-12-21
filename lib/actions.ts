@@ -17,8 +17,10 @@ export async function authenticate(
     formData: FormData,
 ) {
     try {
-        const credentials = Object.fromEntries(formData);
-        await signIn("credentials", { ...credentials, redirectTo: "/dashboard" });
+        const email = formData.get("email") as string || "";
+        const password = formData.get("password") as string || "";
+
+        await signIn("credentials", { email, password, redirectTo: "/dashboard" });
     } catch (error) {
         if (error instanceof AuthError) {
             switch (error.type) {
@@ -80,8 +82,31 @@ export async function createUser(formData: FormData) {
             return { message: "Unauthorized: You must be an Admin" };
         }
 
-        const rawData = Object.fromEntries(formData.entries());
-        const validatedFields = CreateUserSchema.safeParse(rawData);
+        const rawName = formData.get("name") as string || "";
+        const rawEmail = formData.get("email") as string || "";
+        const rawPassword = formData.get("password") as string || "";
+        const rawRole = formData.get("role") as string || "";
+        const rawQualification = formData.get("qualification") as string || "";
+        const rawSpecialization = formData.get("specialization") as string || "";
+        const rawMobile1 = formData.get("mobile1") as string || "";
+        const rawMobile2 = formData.get("mobile2") as string || "";
+        const rawAddress = formData.get("address") as string || "";
+        const rawDoj = formData.get("doj") as string || "";
+        const rawEndDate = formData.get("endDate") as string || "";
+
+        const validatedFields = CreateUserSchema.safeParse({
+            name: rawName,
+            email: rawEmail,
+            password: rawPassword,
+            role: rawRole,
+            qualification: rawQualification,
+            specialization: rawSpecialization,
+            mobile1: rawMobile1,
+            mobile2: rawMobile2,
+            address: rawAddress,
+            doj: rawDoj,
+            endDate: rawEndDate
+        });
 
         if (!validatedFields.success) {
             console.log("createUser: Validation failed", validatedFields.error.flatten().fieldErrors);
@@ -336,8 +361,31 @@ export async function updateUser(userId: string, formData: FormData) {
             return { message: "Unauthorized" };
         }
 
-        const rawData = Object.fromEntries(formData.entries());
-        const validatedFields = UpdateUserSchema.safeParse(rawData);
+        const rawName = formData.get("name") as string || "";
+        const rawEmail = formData.get("email") as string || "";
+        const rawPassword = formData.get("password") as string || "";
+        const rawRole = formData.get("role") as string || "";
+        const rawQualification = formData.get("qualification") as string || "";
+        const rawSpecialization = formData.get("specialization") as string || "";
+        const rawMobile1 = formData.get("mobile1") as string || "";
+        const rawMobile2 = formData.get("mobile2") as string || "";
+        const rawAddress = formData.get("address") as string || "";
+        const rawDoj = formData.get("doj") as string || "";
+        const rawEndDate = formData.get("endDate") as string || "";
+
+        const validatedFields = UpdateUserSchema.safeParse({
+            name: rawName,
+            email: rawEmail,
+            role: rawRole,
+            qualification: rawQualification,
+            specialization: rawSpecialization,
+            mobile1: rawMobile1,
+            mobile2: rawMobile2,
+            address: rawAddress,
+            doj: rawDoj,
+            endDate: rawEndDate,
+            password: rawPassword
+        });
 
         if (!validatedFields.success) {
             console.log("updateUser: Validation failed", validatedFields.error.flatten().fieldErrors);

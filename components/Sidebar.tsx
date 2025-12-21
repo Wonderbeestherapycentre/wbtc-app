@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen, onClose, onAddExpense, role = "ADMIN" 
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Heart, label: "Services", href: "/therapies" },
+        // { icon: Heart, label: "Services", href: "/therapies" },
     ];
 
     const PARENT_NAV = [
