@@ -83,30 +83,6 @@ export const assessments = pgTable("assessments", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 8. Categories (For Expenses/Income - kept from original but simplified)
-export const categories = pgTable("categories", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name").notNull(),
-    type: transactionTypeEnum("type").default("EXPENSE"), // To distinguish Expense vs Income categories
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// 9. Expenses (Finance Module)
-// 9. Expenses (Finance Module)
-export const expenses = pgTable("expenses", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    description: text("description").notNull(),
-    amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
-    date: timestamp("date").notNull(),
-    type: transactionTypeEnum("type").default("EXPENSE").notNull(),
-    categoryId: uuid("category_id").references(() => categories.id),
-
-    // Optional links to entity
-    childId: uuid("child_id").references(() => children.id),
-    recordedBy: uuid("recorded_by").references(() => users.id), // Admin who recorded it
-
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
 // 10. Child Therapies Junction (Many-to-Many)
 export const childTherapies = pgTable("child_therapies", {
@@ -161,10 +137,6 @@ export const sessionsRelations = relations(sessions, ({ one, many }) => ({
     notes: one(sessionNotes, { fields: [sessions.id], references: [sessionNotes.sessionId] }), // 1-to-1 usually
 }));
 
-export const expensesRelations = relations(expenses, ({ one }) => ({
-    category: one(categories, { fields: [expenses.categoryId], references: [categories.id] }),
-    child: one(children, { fields: [expenses.childId], references: [children.id] }),
-}));
 
 
 

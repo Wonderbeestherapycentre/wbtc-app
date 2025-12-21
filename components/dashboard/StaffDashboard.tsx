@@ -10,7 +10,7 @@ export default async function StaffDashboard() {
     const sessions = await fetchSessions(new Date(), undefined, session?.user?.id);
 
     return (
-        <AppLayout role="THERAPIST">
+        <AppLayout role="THERAPIST" user={session?.user}>
             <div className="space-y-6 animate-fade-in">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Dashboard</h2>
@@ -25,7 +25,7 @@ export default async function StaffDashboard() {
                     </div>
                     <div className="divide-y divide-gray-100 dark:divide-neutral-800">
                         {sessions.length > 0 ? (
-                            sessions.map((session) => (
+                            sessions.map((session: any) => (
                                 <div key={session.id} className="p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors flex items-center justify-between">
                                     <div>
                                         <p className="font-medium text-gray-900 dark:text-white">
@@ -36,8 +36,8 @@ export default async function StaffDashboard() {
                                         </p>
                                     </div>
                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${session.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' :
-                                            session.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                                                'bg-gray-100 text-gray-700'
+                                        session.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                                            'bg-gray-100 text-gray-700'
                                         }`}>
                                         {session.status}
                                     </span>

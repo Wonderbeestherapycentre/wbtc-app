@@ -95,14 +95,10 @@ __turbopack_context__.s([
     ()=>fetchChildren,
     "fetchChildrenPaginated",
     ()=>fetchChildrenPaginated,
-    "fetchExpenses",
-    ()=>fetchExpenses,
     "fetchParents",
     ()=>fetchParents,
     "fetchSessions",
     ()=>fetchSessions,
-    "fetchStats",
-    ()=>fetchStats,
     "fetchTherapies",
     ()=>fetchTherapies,
     "fetchTherapists",
@@ -120,152 +116,6 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5
 ;
 ;
 ;
-async function fetchExpenses(limit, filters, page) {
-    const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
-    // In new system, maybe everyone can see? Or just Admins? 
-    // For now allow all authenticated users to see (role checks can happen in UI or here)
-    if (!session?.user) return {
-        data: [],
-        meta: {
-            total: 0,
-            page: 1,
-            limit: 10,
-            totalPages: 0
-        }
-    };
-    const conditions = [];
-    // Role-based access control?
-    // Parents should only see their own fees (Expenses linked to their child)? 
-    // Implementing strict filtering:
-    if (session.user.role === "PARENT") {
-        // Find children of this parent
-        const myChildren = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.children.findMany({
-            where: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["children"].parentId, session.user.id)
-        });
-        const childIds = myChildren.map((c)=>c.id);
-        if (childIds.length === 0) {
-            // No children, see nothing
-            return {
-                data: [],
-                meta: {
-                    total: 0,
-                    page: 1,
-                    limit: 10,
-                    totalPages: 0
-                }
-            };
-        }
-        if (filters?.childId && !childIds.includes(filters.childId)) {
-            return {
-                data: [],
-                meta: {
-                    total: 0,
-                    page: 1,
-                    limit: 10,
-                    totalPages: 0
-                }
-            };
-        }
-    // If no filter, restrict to my children?
-    // For now, let's assume we filter later or logic handles it. 
-    // But strictly:
-    // conditions.push(inArray(expenses.childId, childIds)); // Need to import inArray if used
-    }
-    if (filters?.categoryId && filters.categoryId !== "all") {
-        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].categoryId, filters.categoryId));
-    }
-    if (filters?.childId) {
-        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].childId, filters.childId));
-    }
-    if (filters?.startDate) {
-        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["gte"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].date, filters.startDate));
-    }
-    if (filters?.endDate) {
-        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["lte"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].date, filters.endDate));
-    }
-    if (filters?.type) {
-        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].type, filters.type));
-    }
-    // Get Total Count for Pagination
-    const [countResult] = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].select({
-        count: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$sql$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`count(*)`
-    }).from(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"]).where((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["and"])(...conditions));
-    const totalCount = Number(countResult.count);
-    const pageSize = limit || (page ? 10 : undefined);
-    const offset = page ? (page - 1) * (pageSize || 10) : 0;
-    const data = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.expenses.findMany({
-        where: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["and"])(...conditions),
-        orderBy: [
-            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$select$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["desc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].date),
-            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$select$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["desc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["expenses"].createdAt)
-        ],
-        limit: pageSize,
-        offset: offset,
-        with: {
-            category: true,
-            child: true
-        }
-    });
-    // Map to application Expense type
-    const mappedData = data.map((e)=>({
-            id: e.id,
-            amount: parseFloat(e.amount),
-            date: e.date,
-            description: e.description,
-            category: e.category?.name || "Uncategorized",
-            categoryId: e.categoryId || undefined,
-            childId: e.childId,
-            childName: e.child?.name,
-            type: e.type,
-            userId: e.recordedBy || "system"
-        }));
-    return {
-        data: mappedData,
-        meta: {
-            total: totalCount,
-            page: page || 1,
-            limit: pageSize || totalCount,
-            totalPages: pageSize ? Math.ceil(totalCount / pageSize) : 1
-        }
-    };
-}
-async function fetchStats(startDate, endDate, childId) {
-    // Reusing fetchExpenses logic
-    const { data: all } = await fetchExpenses(undefined, {
-        startDate,
-        endDate,
-        childId
-    });
-    let totalExpenses = 0;
-    let totalIncome = 0;
-    let totalDue = 0;
-    let dueCount = 0;
-    const byCategory = {};
-    const incomeByCategory = {};
-    all.forEach((e)=>{
-        const val = Number(e.amount);
-        const catName = e.category || "Uncategorized";
-        if (e.type === "INCOME") {
-            totalIncome += val;
-            incomeByCategory[catName] = (incomeByCategory[catName] || 0) + val;
-        } else if (e.type === "DUE") {
-            totalDue += val;
-            dueCount++;
-        } else {
-            totalExpenses += val;
-            byCategory[catName] = (byCategory[catName] || 0) + val;
-        }
-    });
-    return {
-        totalExpenses,
-        totalIncome,
-        totalDue,
-        dueCount,
-        balance: totalIncome - totalExpenses,
-        byCategory,
-        incomeByCategory
-    };
-}
 async function fetchUsers() {
     const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
     if (!session?.user) return [];

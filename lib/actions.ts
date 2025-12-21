@@ -3,7 +3,7 @@
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, expenses, categories, children, therapies, sessions, childTherapies } from "./db/schema"; // Removed families, staffs, budgets
+import { users, children, therapies, sessions, childTherapies } from "./db/schema"; // Removed families, staffs, budgets, expenses, categories
 
 import bcrypt from "bcryptjs";
 import { eq, desc, and } from "drizzle-orm";

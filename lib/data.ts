@@ -1,147 +1,8 @@
 import { db } from "./db";
-import { expenses, users, categories, children, therapies, sessions, roleEnum, childTherapies } from "./db/schema";
+import { users, children, therapies, sessions, roleEnum, childTherapies } from "./db/schema";
 
 import { eq, desc, asc, and, gte, lte, sql, ilike } from "drizzle-orm";
 import { auth } from "@/auth";
-
-interface ExpenseFilters {
-    categoryId?: string;
-    childId?: string;
-    startDate?: Date;
-    endDate?: Date;
-    type?: "EXPENSE" | "INCOME" | "DUE";
-}
-
-export async function fetchExpenses(limit?: number, filters?: ExpenseFilters, page?: number) {
-    const session = await auth();
-    // In new system, maybe everyone can see? Or just Admins? 
-    // For now allow all authenticated users to see (role checks can happen in UI or here)
-    if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
-
-    const conditions = [];
-
-    // Role-based access control?
-    // Parents should only see their own fees (Expenses linked to their child)? 
-    // Implementing strict filtering:
-    if (session.user.role === "PARENT") {
-        // Find children of this parent
-        const myChildren = await db.query.children.findMany({
-            where: eq(children.parentId, session.user.id)
-        });
-        const childIds = myChildren.map(c => c.id);
-        if (childIds.length === 0) {
-            // No children, see nothing
-            return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
-        }
-
-        if (filters?.childId && !childIds.includes(filters.childId)) {
-            return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
-        }
-        // If no filter, restrict to my children?
-        // For now, let's assume we filter later or logic handles it. 
-        // But strictly:
-        // conditions.push(inArray(expenses.childId, childIds)); // Need to import inArray if used
-    }
-
-    if (filters?.categoryId && filters.categoryId !== "all") {
-        conditions.push(eq(expenses.categoryId, filters.categoryId));
-    }
-    if (filters?.childId) {
-        conditions.push(eq(expenses.childId, filters.childId));
-    }
-    if (filters?.startDate) {
-        conditions.push(gte(expenses.date, filters.startDate));
-    }
-    if (filters?.endDate) {
-        conditions.push(lte(expenses.date, filters.endDate));
-    }
-    if (filters?.type) {
-        conditions.push(eq(expenses.type, filters.type));
-    }
-
-    // Get Total Count for Pagination
-    const [countResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(expenses)
-        .where(and(...conditions));
-    const totalCount = Number(countResult.count);
-
-    const pageSize = limit || (page ? 10 : undefined);
-    const offset = page ? (page - 1) * (pageSize || 10) : 0;
-
-    const data = await db.query.expenses.findMany({
-        where: and(...conditions),
-        orderBy: [desc(expenses.date), desc(expenses.createdAt)],
-        limit: pageSize,
-        offset: offset,
-        with: {
-            category: true,
-            child: true,
-        }
-    });
-
-    // Map to application Expense type
-    const mappedData = data.map(e => ({
-        id: e.id,
-        amount: parseFloat(e.amount),
-        date: e.date,
-        description: e.description,
-        category: e.category?.name || "Uncategorized",
-        categoryId: e.categoryId || undefined,
-        childId: e.childId,
-        childName: e.child?.name,
-        type: e.type,
-        userId: e.recordedBy || "system",
-    }));
-
-    return {
-        data: mappedData,
-        meta: {
-            total: totalCount,
-            page: page || 1,
-            limit: pageSize || totalCount,
-            totalPages: pageSize ? Math.ceil(totalCount / pageSize) : 1
-        }
-    };
-}
-
-export async function fetchStats(startDate?: Date, endDate?: Date, childId?: string) {
-    // Reusing fetchExpenses logic
-    const { data: all } = await fetchExpenses(undefined, { startDate, endDate, childId });
-
-    let totalExpenses = 0;
-    let totalIncome = 0;
-    let totalDue = 0;
-    let dueCount = 0;
-    const byCategory: Record<string, number> = {};
-    const incomeByCategory: Record<string, number> = {};
-
-    all.forEach(e => {
-        const val = Number(e.amount);
-        const catName = e.category || "Uncategorized";
-
-        if (e.type === "INCOME") {
-            totalIncome += val;
-            incomeByCategory[catName] = (incomeByCategory[catName] || 0) + val;
-        } else if (e.type === "DUE") {
-            totalDue += val;
-            dueCount++;
-        } else {
-            totalExpenses += val;
-            byCategory[catName] = (byCategory[catName] || 0) + val;
-        }
-    });
-
-    return {
-        totalExpenses,
-        totalIncome,
-        totalDue,
-        dueCount,
-        balance: totalIncome - totalExpenses,
-        byCategory,
-        incomeByCategory,
-    };
-}
 
 export async function fetchUsers() {
     const session = await auth();
@@ -152,7 +13,7 @@ export async function fetchUsers() {
         orderBy: [desc(users.createdAt)]
     });
 
-    return allUsers.map(u => ({
+    return allUsers.map((u: any) => ({
         id: u.id,
         name: u.name,
         email: u.email,
@@ -352,7 +213,7 @@ export async function fetchSessions(startDate?: Date, endDate?: Date, therapistI
     });
 
     if (session.user.role === "PARENT") {
-        return data.filter(s => s.child.parentId === session.user.id);
+        return data.filter((s: any) => s.child.parentId === session.user.id);
     }
 
     return data;

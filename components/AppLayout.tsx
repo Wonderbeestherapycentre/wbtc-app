@@ -1,14 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { useExpenses } from "@/lib/context";
 import { Menu, X, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
 
-export default function AppLayout({ children, familyChildren = [], role = "ADMIN" }: { children: React.ReactNode; familyChildren?: any[]; role?: "ADMIN" | "THERAPIST" | "PARENT" }) {
+export default function AppLayout({
+    children,
+    familyChildren = [],
+    role = "ADMIN",
+    user
+}: {
+    children: React.ReactNode;
+    familyChildren?: any[];
+    role?: "ADMIN" | "THERAPIST" | "PARENT";
+    user?: any;
+}) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { currentUser } = useExpenses();
 
     return (
         <div className="h-screen overflow-hidden flex flex-col md:flex-row">
@@ -35,6 +43,7 @@ export default function AppLayout({ children, familyChildren = [], role = "ADMIN
                 isOpen={mobileMenuOpen}
                 onClose={() => setMobileMenuOpen(false)}
                 role={role}
+                user={user}
             />
 
             <main className="flex-1 overflow-y-auto p-2 md:p-8 bg-gray-50/50 dark:bg-neutral-950">

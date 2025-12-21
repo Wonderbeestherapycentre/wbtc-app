@@ -4,15 +4,15 @@ import { fetchChildren } from "@/lib/data";
 import { auth } from "@/auth";
 import { Baby, Users } from "lucide-react";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: { searchParams: any }) {
     const session = await auth();
     const children = await fetchChildren(true);
 
-    const activeChildCount = children.filter(c => c.status === "ACTIVE").length;
-    const inactiveChildCount = children.filter(c => c.status === "INACTIVE").length;
+    const activeChildCount = children.filter((c: any) => c.status === "ACTIVE").length;
+    const inactiveChildCount = children.filter((c: any) => c.status === "INACTIVE").length;
 
     return (
-        <AppLayout familyChildren={children} role="ADMIN">
+        <AppLayout familyChildren={children} role="ADMIN" user={session?.user}>
             <div className="space-y-6 animate-fade-in">
                 {/* Header Section */}
                 <div>

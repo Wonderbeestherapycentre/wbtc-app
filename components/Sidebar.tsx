@@ -13,9 +13,10 @@ interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
     role?: "ADMIN" | "THERAPIST" | "PARENT";
+    user?: any;
 }
 
-export default function Sidebar({ isOpen, onClose, role = "ADMIN" }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: SidebarProps) {
     const pathname = usePathname();
 
     const ADMIN_NAV = [
@@ -116,7 +117,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN" }: SidebarProp
 
                     {/* Footer / User Profile */}
                     <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50">
-                        <UserSwitcher />
+                        <UserSwitcher user={user} />
                     </div>
                 </div>
             </aside>
