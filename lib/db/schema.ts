@@ -33,7 +33,6 @@ export const children = pgTable("children", {
     gender: text("gender"),
     diagnosis: text("diagnosis"),
     parentId: uuid("parent_id").references(() => users.id), // Link to Parent User
-    primaryTherapistId: uuid("primary_therapist_id").references(() => users.id), // Link to Service Provider
     status: text("status", { enum: ["ACTIVE", "INACTIVE"] }).default("ACTIVE").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -122,7 +121,6 @@ export const childTherapies = pgTable("child_therapies", {
 export const usersRelations = relations(users, ({ many }) => ({
     sessionsAsTherapist: many(sessions, { relationName: "therapistSessions" }),
     children: many(children), // Parent's children
-    primaryChildren: many(children, { relationName: "primaryTherapist" }),
     assignedTherapies: many(childTherapies),
 }));
 
@@ -130,11 +128,6 @@ export const childrenRelations = relations(children, ({ one, many }) => ({
     parent: one(users, {
         fields: [children.parentId],
         references: [users.id],
-    }),
-    primaryTherapist: one(users, {
-        fields: [children.primaryTherapistId],
-        references: [users.id],
-        relationName: "primaryTherapist"
     }),
     sessions: many(sessions),
     assessments: many(assessments),

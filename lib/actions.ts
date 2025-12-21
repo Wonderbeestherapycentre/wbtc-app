@@ -10,6 +10,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
+import { ChildSchema } from "./validations/child";
 
 export async function authenticate(
     prevState: string | undefined,
@@ -503,29 +504,45 @@ export async function createChild(formData: FormData) {
 
     const name = formData.get("name") as string;
     const status = (formData.get("status") as "ACTIVE" | "INACTIVE") || "ACTIVE";
-    const dob = (formData.get("dob") as string) || null;
-    const gender = (formData.get("gender") as string) || null;
-    const diagnosis = (formData.get("diagnosis") as string) || null;
-    const parentId = (formData.get("parentId") as string) || null;
+    const dob = (formData.get("dob") as string) || "";
+    const gender = (formData.get("gender") as string) || "";
+    const diagnosis = (formData.get("diagnosis") as string) || "";
+    const parentId = (formData.get("parentId") as string) || "";
 
-    // Parse complex therapy structure
     const therapiesStr = (formData.get("therapies") as string) || "[]";
-    const therapiesList = JSON.parse(therapiesStr) as { therapyId: string, therapistId: string | null }[];
+    const therapiesList = JSON.parse(therapiesStr);
 
-    if (!name) return { message: "Name is required" };
-
-    const [newChild] = await db.insert(children).values({
+    const validatedFields = ChildSchema.safeParse({
         name,
         status,
         dob,
         gender,
         diagnosis,
         parentId,
+        therapies: therapiesList
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Validation Error",
+            errors: validatedFields.error.flatten().fieldErrors
+        };
+    }
+
+    const { name: vName, status: vStatus, dob: vDob, gender: vGender, diagnosis: vDiagnosis, parentId: vParentId, therapies: vTherapies } = validatedFields.data;
+
+    const [newChild] = await db.insert(children).values({
+        name: vName,
+        status: vStatus,
+        dob: vDob,
+        gender: vGender,
+        diagnosis: vDiagnosis,
+        parentId: vParentId,
     }).returning({ id: children.id });
 
-    if (newChild && therapiesList.length > 0) {
+    if (newChild && vTherapies.length > 0) {
         await db.insert(childTherapies).values(
-            therapiesList.map(t => ({
+            vTherapies.map(t => ({
                 childId: newChild.id,
                 therapyId: t.therapyId,
                 therapistId: t.therapistId
@@ -544,32 +561,48 @@ export async function updateChild(id: string, formData: FormData) {
 
     const name = formData.get("name") as string;
     const status = (formData.get("status") as "ACTIVE" | "INACTIVE") || "ACTIVE";
-    const dob = (formData.get("dob") as string) || null;
-    const gender = (formData.get("gender") as string) || null;
-    const diagnosis = (formData.get("diagnosis") as string) || null;
-    const parentId = (formData.get("parentId") as string) || null;
+    const dob = (formData.get("dob") as string) || "";
+    const gender = (formData.get("gender") as string) || "";
+    const diagnosis = (formData.get("diagnosis") as string) || "";
+    const parentId = (formData.get("parentId") as string) || "";
 
-    // Parse complex therapy structure
     const therapiesStr = (formData.get("therapies") as string) || "[]";
-    const therapiesList = JSON.parse(therapiesStr) as { therapyId: string, therapistId: string | null }[];
+    const therapiesList = JSON.parse(therapiesStr);
 
-    if (!name) return { message: "Name is required" };
-
-    await db.update(children).set({
+    const validatedFields = ChildSchema.safeParse({
         name,
         status,
         dob,
         gender,
         diagnosis,
         parentId,
+        therapies: therapiesList
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Validation Error",
+            errors: validatedFields.error.flatten().fieldErrors
+        };
+    }
+
+    const { name: vName, status: vStatus, dob: vDob, gender: vGender, diagnosis: vDiagnosis, parentId: vParentId, therapies: vTherapies } = validatedFields.data;
+
+    await db.update(children).set({
+        name: vName,
+        status: vStatus,
+        dob: vDob,
+        gender: vGender,
+        diagnosis: vDiagnosis,
+        parentId: vParentId,
     }).where(eq(children.id, id));
 
     // Update therapies: Delete all and re-insert (simplest strategy)
     await db.delete(childTherapies).where(eq(childTherapies.childId, id));
 
-    if (therapiesList.length > 0) {
+    if (vTherapies.length > 0) {
         await db.insert(childTherapies).values(
-            therapiesList.map(t => ({
+            vTherapies.map(t => ({
                 childId: id,
                 therapyId: t.therapyId,
                 therapistId: t.therapistId

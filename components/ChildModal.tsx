@@ -44,6 +44,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
     const [assignedTherapies, setAssignedTherapies] = useState<Record<string, string>>({}); // therapyId -> therapistId
     const [selectedTherapyIds, setSelectedTherapyIds] = useState<string[]>([]); // Keep this for easier UI toggling
     const [age, setAge] = useState<string>("");
+    const [errors, setErrors] = useState<Record<string, string[]>>({});
 
     // Calculate age when DOB changes
     useEffect(() => {
@@ -71,6 +72,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 });
                 setAssignedTherapies(assignments);
                 setSelectedTherapyIds(child.therapyTypes?.map(t => t.therapyId) || []);
+                setErrors({});
             } else {
                 setName("");
                 setStatus("ACTIVE");
@@ -80,6 +82,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 setParentId("");
                 setAssignedTherapies({});
                 setSelectedTherapyIds([]);
+                setErrors({});
             }
         }
     }, [isOpen, child]);
@@ -90,11 +93,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!name.trim()) {
-            toast.error("Name is required");
-            return;
-        }
+        setErrors({});
 
         const formData = new FormData();
         formData.append("name", name.trim());
@@ -122,6 +121,9 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
             if (result.message.includes("created") || result.message.includes("updated")) {
                 toast.success(result.message);
                 onClose();
+            } else if (result.errors) {
+                setErrors(result.errors);
+                toast.error("Please fix the errors in the form");
             } else {
                 toast.error(result.message);
             }
@@ -133,7 +135,6 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
             const isSelected = prev.includes(id);
             if (isSelected) {
                 const newState = prev.filter(tid => tid !== id);
-                // Assignment removal is optional if you want them to keep it if they toggle back
                 return newState;
             } else {
                 return [...prev, id];
@@ -186,10 +187,10 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-gray-400"
+                                        className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-gray-400`}
                                         placeholder="e.g. John Doe"
-                                        required
                                     />
+                                    {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name[0]}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -200,21 +201,23 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                         type="date"
                                         value={dob}
                                         onChange={(e) => setDob(e.target.value)}
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                                        className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.dob ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                                     />
+                                    {errors.dob && <p className="text-xs text-red-500 mt-1">{errors.dob[0]}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender</label>
                                     <select
                                         value={gender}
                                         onChange={(e) => setGender(e.target.value)}
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none"
+                                        className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.gender ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                                     >
                                         <option value="">Select Gender</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
                                         <option value="Other">Other</option>
                                     </select>
+                                    {errors.gender && <p className="text-xs text-red-500 mt-1">{errors.gender[0]}</p>}
                                 </div>
                             </div>
                         </div>
@@ -244,13 +247,14 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                     <select
                                         value={parentId}
                                         onChange={(e) => setParentId(e.target.value)}
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none"
+                                        className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.parentId ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                                     >
                                         <option value="">Select Parent...</option>
                                         {parents.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
+                                    {errors.parentId && <p className="text-xs text-red-500 mt-1">{errors.parentId[0]}</p>}
                                 </div>
                             </div>
 
@@ -297,6 +301,12 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                             </div>
                                         );
                                     })}
+                                    {errors.therapies && (
+                                        <div className="flex items-start gap-2 text-red-500 mt-2 bg-red-50 dark:bg-red-900/10 p-2 rounded-lg border border-red-100 dark:border-red-900/30">
+                                            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                            <p className="text-xs font-medium">{errors.therapies[0]}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

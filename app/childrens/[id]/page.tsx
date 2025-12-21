@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation";
-import { fetchChild, fetchExpenses, fetchStats, fetchCategories, fetchChildren } from "@/lib/data";
-import ExpenseList from "@/components/ExpenseList";
-import Pagination from "@/components/Pagination";
-import { ITEMS_PER_PAGE } from "@/lib/constants";
-import { ArrowLeft, TrendingUp, PiggyBank, Calendar, User, Activity } from "lucide-react";
+import { fetchChild } from "@/lib/data";
+
+import { ArrowLeft, Calendar, User, Activity, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -11,31 +9,16 @@ interface ChildPageProps {
     params: Promise<{
         id: string;
     }>;
-    searchParams?: Promise<{
-        page?: string;
-    }>;
 }
 
-export default async function ChildPage({ params, searchParams }: ChildPageProps) {
+export default async function ChildPage({ params }: ChildPageProps) {
     const { id } = await params;
-    const resolvedSearchParams = await searchParams;
-    const page = Number(resolvedSearchParams?.page) || 1;
 
     const child = await fetchChild(id);
 
     if (!child) {
         notFound();
     }
-
-    // Fetch stats specific to this child
-    const stats = await fetchStats(undefined, undefined, id);
-
-    // Fetch expenses specific to this child
-    const { data: expenses, meta } = await fetchExpenses(ITEMS_PER_PAGE, { childId: id }, page);
-
-    // Fetch other data needed for ExpenseList
-    const categories = await fetchCategories();
-    const children = await fetchChildren();
 
     return (
         <div className="space-y-6 px-2 md:px-4 ">
@@ -56,7 +39,7 @@ export default async function ChildPage({ params, searchParams }: ChildPageProps
             </div>
 
             {/* Profile Overview */}
-            <div className="glass-card rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="glass-card rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -85,51 +68,133 @@ export default async function ChildPage({ params, searchParams }: ChildPageProps
                     </div>
                     <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Diagnosis</p>
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[200px]" title={child.diagnosis || ""}>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate" title={child.diagnosis || ""}>
                             {child.diagnosis || "Not set"}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Parent</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {child.parent?.name || "Not set"}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Total Therapies</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {child.therapyTypes?.length || 0}
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid gap-4 md:grid-cols-2">
+            {/* Parent Details */}
+            {child.parent && (
                 <div className="glass-card rounded-xl p-6">
-                    <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <h3 className="tracking-tight text-sm font-medium">Paid Amount</h3>
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                    </div>
-                    <div>
-                        <div className="text-2xl font-bold text-green-600">
-                            ₹{stats.totalIncome.toFixed(2)}
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                        <User className="w-5 h-5 text-indigo-600" />
+                        Parent Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                                <User className="w-4 h-4 text-indigo-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Name</p>
+                                <p className="text-sm font-semibold">{child.parent.name}</p>
+                            </div>
                         </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <Mail className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Email</p>
+                                <p className="text-sm font-semibold">{child.parent.email}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <Phone className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 font-medium uppercase">Mobile</p>
+                                <p className="text-sm font-semibold">
+                                    {child.parent.mobile1}
+                                    {child.parent.mobile2 ? ` / ${child.parent.mobile2}` : ""}
+                                </p>
+                            </div>
+                        </div>
+                        {child.parent.address && (
+                            <div className="flex items-center gap-3 md:col-span-2 lg:col-span-3">
+                                <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                    <MapPin className="w-4 h-4 text-amber-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs text-gray-500 font-medium uppercase">Address</p>
+                                    <p className="text-sm font-semibold">{child.parent.address}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
+            )}
+
+            {/* Assigned Therapies Detailed List */}
+            {child.therapyTypes && child.therapyTypes.length > 0 && (
                 <div className="glass-card rounded-xl p-6">
-                    <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <h3 className="tracking-tight text-sm font-medium">Due Amount</h3>
-                        <PiggyBank className="h-4 w-4 text-orange-500" />
-                    </div>
-                    <div>
-                        <div className="text-2xl font-bold text-orange-600">
-                            ₹{stats.totalDue.toFixed(2)}
-                        </div>
+                    <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <Activity className="w-5 h-5 text-emerald-600" />
+                        Assigned Therapies Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {child.therapyTypes.map((tt: any) => (
+                            <div key={tt.therapyId} className="relative p-6 rounded-2xl bg-white/50 dark:bg-neutral-900/50 border border-gray-100 dark:border-neutral-800 shadow-sm hover:shadow-md transition-all duration-200">
+                                <div className="absolute top-4 right-4 h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">Therapy</p>
+                                        <p className="text-lg font-bold text-gray-900 dark:text-white">{tt.therapy.name}</p>
+                                    </div>
+                                    <div className="pt-4 border-t border-gray-50 dark:border-neutral-800">
+                                        <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Assigned Therapist</p>
+                                        {tt.therapist ? (
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">{tt.therapist.name}</p>
+                                                <div className="flex flex-wrap gap-2 text-xs">
+                                                    {tt.therapist.specialization && (
+                                                        <span className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
+                                                            {tt.therapist.specialization}
+                                                        </span>
+                                                    )}
+                                                    {tt.therapist.qualification && (
+                                                        <span className="px-2 py-1 rounded bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium">
+                                                            {tt.therapist.qualification}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm italic text-gray-400">No therapist assigned</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            )}
 
-            {/* Transactions List */}
-            <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Financial History</h3>
-                <ExpenseList
-                    expenses={expenses}
-                    categories={categories}
-                    familyChildren={children}
-                    defaultChildId={id}
-                />
-
-                <Pagination currentPage={meta.page} totalPages={meta.totalPages} />
-            </div>
         </div>
     );
 }

@@ -3,11 +3,10 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteChild } from "@/lib/actions";
-import { Plus, Pencil, Trash2, Banknote, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import ChildModal from "./ChildModal";
 import ConfirmModal from "./ConfirmModal";
-import ExpenseModal from "./ExpenseModal";
 
 
 interface Child {
@@ -17,9 +16,13 @@ interface Child {
     dob?: string | null;
     gender?: string | null;
     diagnosis?: string | null;
-    parentId?: string | null; // Added
-    primaryTherapistId?: string | null; // Added
-    therapyTypes?: { therapyId: string, therapy: { id: string, name: string } }[]; // Added
+    parentId?: string | null;
+    parent?: { name: string } | null;
+    therapyTypes?: {
+        therapyId: string,
+        therapy: { id: string, name: string },
+        therapist?: { id: string, name: string } | null
+    }[];
 }
 
 interface ChildSettingsProps {
@@ -28,15 +31,21 @@ interface ChildSettingsProps {
     parents?: { id: string; name: string }[];
     therapists?: { id: string; name: string }[];
     therapies?: { id: string; name: string }[];
+    role?: "ADMIN" | "THERAPIST" | "PARENT";
 }
 
-export default function ChildSettings({ children, categories = [], parents = [], therapists = [], therapies = [] }: ChildSettingsProps) {
+export default function ChildSettings({
+    children,
+    categories = [],
+    parents = [],
+    therapists = [],
+    therapies = [],
+    role = "PARENT"
+}: ChildSettingsProps) {
     const [isPending, startTransition] = useTransition();
 
     // Modal states
     const [isChildModalOpen, setIsChildModalOpen] = useState(false);
-    const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
-    const [feeChildId, setFeeChildId] = useState("");
     const [editingChild, setEditingChild] = useState<Child | null>(null);
     const [deletingChild, setDeletingChild] = useState<string | null>(null);
 
@@ -68,9 +77,18 @@ export default function ChildSettings({ children, categories = [], parents = [],
         setIsChildModalOpen(true);
     };
 
-    const handleFeeClick = (childId: string) => {
-        setFeeChildId(childId);
-        setIsFeeModalOpen(true);
+
+
+    const calculateAge = (dob: string | null) => {
+        if (!dob) return null;
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
     };
 
     const generateAvatarColor = (name: string) => {
@@ -103,25 +121,20 @@ export default function ChildSettings({ children, categories = [], parents = [],
                 isPending={isPending}
             />
 
-            <ExpenseModal
-                isOpen={isFeeModalOpen}
-                onClose={() => setIsFeeModalOpen(false)}
-                categories={categories}
-                familyChildren={children}
-                defaultType="INCOME"
-                defaultChildId={feeChildId}
-            />
+
 
             <div className="glass-card rounded-2xl overflow-hidden animate-fade-in p-4 md:p-6">
                 <div className="flex justify-between items-center mb-4 md:mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Family Members</h3>
-                    <button
-                        onClick={handleAddClick}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Child</span>
-                    </button>
+                    {role === "ADMIN" && (
+                        <button
+                            onClick={handleAddClick}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Child</span>
+                        </button>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto -mx-4 px-4 md:-mx-6 md:px-6 pb-4">
@@ -129,8 +142,13 @@ export default function ChildSettings({ children, categories = [], parents = [],
                         <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
                                 <th className="text-left py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
+                                <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Parent</th>
+                                <th className="hidden md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Gender / Age</th>
+                                <th className="hidden xl:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Diagnosis</th>
+                                {role === "ADMIN" && (
+                                    <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Therapist(s)</th>
+                                )}
                                 <th className="hidden md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                <th className="text-center py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Fee</th>
                                 <th className="text-right py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Actions</th>
                             </tr>
                         </thead>
@@ -163,6 +181,37 @@ export default function ChildSettings({ children, categories = [], parents = [],
                                                 </div>
                                             </div>
                                         </td>
+                                        <td className="hidden lg:table-cell py-1 px-3 md:py-2 md:px-6">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                                {child.parent?.name || "N/A"}
+                                            </span>
+                                        </td>
+                                        <td className="hidden md:table-cell py-1 px-3 md:py-2 md:px-6">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                                {child.gender || "N/A"}
+                                                {child.dob && ` / ${calculateAge(child.dob)} yrs`}
+                                            </span>
+                                        </td>
+                                        <td className="hidden xl:table-cell py-1 px-3 md:py-2 md:px-6">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[150px] block" title={child.diagnosis || ""}>
+                                                {child.diagnosis || "N/A"}
+                                            </span>
+                                        </td>
+                                        {role === "ADMIN" && (
+                                            <td className="hidden lg:table-cell py-1 px-3 md:py-2 md:px-6">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {child.therapyTypes && child.therapyTypes.length > 0 ? (
+                                                        child.therapyTypes.map((tt, idx) => (
+                                                            <span key={idx} className="text-xs font-medium px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                                                                {tt.therapist?.name || "N/A"}
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400 italic">None</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                         <td className="hidden md:table-cell py-1 px-3 md:py-2 md:px-6">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${child.status === 'ACTIVE'
                                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
@@ -170,16 +219,6 @@ export default function ChildSettings({ children, categories = [], parents = [],
                                                 }`}>
                                                 {child.status === 'ACTIVE' ? 'Active' : 'Inactive'}
                                             </span>
-                                        </td>
-                                        <td className="py-1 px-1 md:py-2 md:px-6 text-center">
-                                            <button onClick={() => handleFeeClick(child.id)}
-                                                className="inline-flex items-center px-3 py-2  hover:bg-blue-700 hover:text-white text-black text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
-
-                                            >
-                                                <span className="flex items-center gap-1">
-                                                    <Banknote className="w-4 h-4" /> Fee
-                                                </span>
-                                            </button>
                                         </td>
                                         <td className="py-1 px-1 md:py-2 md:px-6 text-right">
                                             <div className="flex items-center justify-end gap-1 md:gap-2">
@@ -190,20 +229,24 @@ export default function ChildSettings({ children, categories = [], parents = [],
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
-                                                <button
-                                                    onClick={() => handleEditClick(child)}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(child.id)}
-                                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {role === "ADMIN" && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEditClick(child)}
+                                                            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
+                                                            title="Edit"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(child.id)}
+                                                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

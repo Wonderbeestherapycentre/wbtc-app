@@ -204,7 +204,6 @@ const children = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
     gender: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$text$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["text"])("gender"),
     diagnosis: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$text$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["text"])("diagnosis"),
     parentId: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$uuid$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["uuid"])("parent_id").references(()=>users.id),
-    primaryTherapistId: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$uuid$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["uuid"])("primary_therapist_id").references(()=>users.id),
     status: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$text$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["text"])("status", {
         enum: [
             "ACTIVE",
@@ -303,9 +302,6 @@ const usersRelations = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_
             relationName: "therapistSessions"
         }),
         children: many(children),
-        primaryChildren: many(children, {
-            relationName: "primaryTherapist"
-        }),
         assignedTherapies: many(childTherapies)
     }));
 const childrenRelations = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$relations$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["relations"])(children, ({ one, many })=>({
@@ -316,15 +312,6 @@ const childrenRelations = (0, __TURBOPACK__imported__module__$5b$project$5d2f$no
             references: [
                 users.id
             ]
-        }),
-        primaryTherapist: one(users, {
-            fields: [
-                children.primaryTherapistId
-            ],
-            references: [
-                users.id
-            ],
-            relationName: "primaryTherapist"
         }),
         sessions: many(sessions),
         assessments: many(assessments),

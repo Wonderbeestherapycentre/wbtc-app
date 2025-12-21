@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { expenses, users, categories, children, therapies, sessions, roleEnum } from "./db/schema";
+import { expenses, users, categories, children, therapies, sessions, roleEnum, childTherapies } from "./db/schema";
 
-import { eq, desc, asc, and, gte, lte, sql } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lte, sql, ilike } from "drizzle-orm";
 import { auth } from "@/auth";
 
 interface ExpenseFilters {
@@ -191,17 +191,24 @@ export async function fetchChildren(includeInactive = false) {
         conditions.push(eq(children.status, "ACTIVE"));
     }
 
-    // Parent restriction?
+    // Role-based restrictions
     if (session.user.role === "PARENT") {
         conditions.push(eq(children.parentId, session.user.id));
+    } else if (session.user.role === "THERAPIST") {
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM ${childTherapies} 
+                WHERE ${childTherapies.childId} = ${children.id} 
+                AND ${childTherapies.therapistId} = ${session.user.id}
+            )`
+        );
     }
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [asc(children.name)],
+        orderBy: [asc(sql`lower(${children.name})`)],
         with: {
             parent: true,
-            primaryTherapist: true,
             therapyTypes: {
                 with: {
                     therapy: true,
@@ -214,7 +221,7 @@ export async function fetchChildren(includeInactive = false) {
     return data;
 }
 
-export async function fetchChildrenPaginated(page: number, limit: number, includeInactive = true) {
+export async function fetchChildrenPaginated(page: number, limit: number, includeInactive = true, search = "") {
     const session = await auth();
     if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
 
@@ -225,6 +232,18 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
 
     if (session.user.role === "PARENT") {
         conditions.push(eq(children.parentId, session.user.id));
+    } else if (session.user.role === "THERAPIST") {
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM ${childTherapies} 
+                WHERE ${childTherapies.childId} = ${children.id} 
+                AND ${childTherapies.therapistId} = ${session.user.id}
+            )`
+        );
+    }
+
+    if (search) {
+        conditions.push(ilike(children.name, `%${search}%`));
     }
 
     // Get Total Count
@@ -238,12 +257,11 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [asc(children.name)],
+        orderBy: [asc(sql`lower(${children.name})`)],
         limit: limit,
         offset: offset,
         with: {
             parent: true,
-            primaryTherapist: true,
             therapyTypes: {
                 with: {
                     therapy: true,
@@ -272,7 +290,6 @@ export async function fetchChild(id: string) {
         where: eq(children.id, id),
         with: {
             parent: true,
-            primaryTherapist: true,
             therapyTypes: {
                 with: {
                     therapy: true,

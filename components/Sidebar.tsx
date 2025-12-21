@@ -21,10 +21,10 @@ export default function Sidebar({ isOpen, onClose, onAddExpense, role = "ADMIN" 
 
     const ADMIN_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
+        // { icon: Calendar, label: "Schedule", href: "/schedule" },
+        // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Clock, label: "Due List", href: "/dues" },
+        // { icon: Clock, label: "Due List", href: "/dues" },
         { icon: Tags, label: "Categories", href: "/categories" },
         { icon: Users, label: "Users", href: "/users" },
         { icon: Heart, label: "Services", href: "/therapies" },
