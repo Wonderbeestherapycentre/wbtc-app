@@ -1424,7 +1424,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                             children: user ? "Edit User" : "Add New User"
                         }, void 0, false, {
                             fileName: "[project]/components/settings/UserModal.tsx",
-                            lineNumber: 73,
+                            lineNumber: 74,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1434,18 +1434,18 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                 className: "w-5 h-5 text-gray-500"
                             }, void 0, false, {
                                 fileName: "[project]/components/settings/UserModal.tsx",
-                                lineNumber: 75,
+                                lineNumber: 76,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/settings/UserModal.tsx",
-                            lineNumber: 74,
+                            lineNumber: 75,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/settings/UserModal.tsx",
-                    lineNumber: 72,
+                    lineNumber: 73,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1462,7 +1462,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Name"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 82,
+                                            lineNumber: 83,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1473,13 +1473,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             placeholder: "John Doe"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 83,
+                                            lineNumber: 84,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 81,
+                                    lineNumber: 82,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1489,7 +1489,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Email"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 92,
+                                            lineNumber: 93,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1501,13 +1501,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             placeholder: "john@example.com"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 93,
+                                            lineNumber: 94,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 91,
+                                    lineNumber: 92,
                                     columnNumber: 25
                                 }, this),
                                 !user && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1517,7 +1517,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Password"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 105,
+                                            lineNumber: 106,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1528,13 +1528,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             placeholder: "••••••••"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 108,
+                                            lineNumber: 109,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 104,
+                                    lineNumber: 105,
                                     columnNumber: 29
                                 }, this),
                                 currentUserRole === "ADMIN" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1544,7 +1544,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Role"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 120,
+                                            lineNumber: 121,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1558,7 +1558,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                                     children: "Admin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                                    lineNumber: 127,
+                                                    lineNumber: 128,
                                                     columnNumber: 37
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1566,7 +1566,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                                     children: "Therapist"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                                    lineNumber: 128,
+                                                    lineNumber: 129,
                                                     columnNumber: 37
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1574,48 +1574,79 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                                     children: "Parent"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                                    lineNumber: 129,
+                                                    lineNumber: 130,
                                                     columnNumber: 37
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 121,
+                                            lineNumber: 122,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 119,
+                                    lineNumber: 120,
                                     columnNumber: 29
                                 }, this),
-                                selectedRole === "THERAPIST" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "animate-fade-in",
+                                selectedRole === "THERAPIST" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                     children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                            className: "block text-sm font-medium mb-1 dark:text-gray-300",
-                                            children: "Qualification / Specialization"
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 136,
-                                            columnNumber: 33
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                            name: "qualification",
-                                            defaultValue: user?.qualification || "",
-                                            placeholder: "e.g. Occupational Therapist, Speech Therapist",
-                                            className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
-                                        }, void 0, false, {
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "animate-fade-in",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    className: "block text-sm font-medium mb-1 dark:text-gray-300",
+                                                    children: "Qualification"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/settings/UserModal.tsx",
+                                                    lineNumber: 138,
+                                                    columnNumber: 37
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    name: "qualification",
+                                                    defaultValue: user?.qualification || "",
+                                                    placeholder: "e.g. B.Sc, M.Sc, PhD",
+                                                    className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/settings/UserModal.tsx",
+                                                    lineNumber: 139,
+                                                    columnNumber: 37
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
                                             lineNumber: 137,
                                             columnNumber: 33
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "animate-fade-in",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    className: "block text-sm font-medium mb-1 dark:text-gray-300",
+                                                    children: "Specialization"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/settings/UserModal.tsx",
+                                                    lineNumber: 147,
+                                                    columnNumber: 37
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    name: "specialization",
+                                                    defaultValue: user?.specialization || "",
+                                                    placeholder: "e.g. Occupational Therapist, Speech Therapist",
+                                                    className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/settings/UserModal.tsx",
+                                                    lineNumber: 148,
+                                                    columnNumber: 37
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/settings/UserModal.tsx",
+                                            lineNumber: 146,
+                                            columnNumber: 33
                                         }, this)
                                     ]
-                                }, void 0, true, {
-                                    fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 135,
-                                    columnNumber: 29
-                                }, this),
+                                }, void 0, true),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1623,7 +1654,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Mobile 1"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 147,
+                                            lineNumber: 159,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1633,13 +1664,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 148,
+                                            lineNumber: 160,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 146,
+                                    lineNumber: 158,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1649,7 +1680,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Mobile 2 (Optional)"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 156,
+                                            lineNumber: 168,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1659,13 +1690,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 157,
+                                            lineNumber: 169,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 155,
+                                    lineNumber: 167,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1676,7 +1707,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "Address"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 166,
+                                            lineNumber: 178,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -1687,13 +1718,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 167,
+                                            lineNumber: 179,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 165,
+                                    lineNumber: 177,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1703,7 +1734,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "DOJ (Joining Date)"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 177,
+                                            lineNumber: 189,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1713,13 +1744,13 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 178,
+                                            lineNumber: 190,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 176,
+                                    lineNumber: 188,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1729,7 +1760,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             children: "End Date"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 186,
+                                            lineNumber: 198,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1739,19 +1770,19 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                             className: "w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserModal.tsx",
-                                            lineNumber: 187,
+                                            lineNumber: 199,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 185,
+                                    lineNumber: 197,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/settings/UserModal.tsx",
-                            lineNumber: 80,
+                            lineNumber: 81,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1764,7 +1795,7 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 197,
+                                    lineNumber: 209,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1774,30 +1805,30 @@ function UserModal({ isOpen, onClose, user, currentUserRole }) {
                                     children: isPending ? "Saving..." : user ? "Save Changes" : "Create User"
                                 }, void 0, false, {
                                     fileName: "[project]/components/settings/UserModal.tsx",
-                                    lineNumber: 204,
+                                    lineNumber: 216,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/settings/UserModal.tsx",
-                            lineNumber: 196,
+                            lineNumber: 208,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/settings/UserModal.tsx",
-                    lineNumber: 79,
+                    lineNumber: 80,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/settings/UserModal.tsx",
-            lineNumber: 71,
+            lineNumber: 72,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/settings/UserModal.tsx",
-        lineNumber: 70,
+        lineNumber: 71,
         columnNumber: 9
     }, this), document.body);
 }
@@ -1985,7 +2016,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                 currentUserRole: currentUserRole
             }, void 0, false, {
                 fileName: "[project]/components/settings/UserList.tsx",
-                lineNumber: 55,
+                lineNumber: 56,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ConfirmModal$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -2001,7 +2032,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                 isPending: isPending
             }, void 0, false, {
                 fileName: "[project]/components/settings/UserList.tsx",
-                lineNumber: 62,
+                lineNumber: 63,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2012,7 +2043,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                         children: "Team & Parents"
                     }, void 0, false, {
                         fileName: "[project]/components/settings/UserList.tsx",
-                        lineNumber: 76,
+                        lineNumber: 77,
                         columnNumber: 17
                     }, this),
                     currentUserRole === "ADMIN" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2026,20 +2057,20 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                 className: "w-4 h-4 mr-2"
                             }, void 0, false, {
                                 fileName: "[project]/components/settings/UserList.tsx",
-                                lineNumber: 85,
+                                lineNumber: 86,
                                 columnNumber: 25
                             }, this),
                             "Add User"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/settings/UserList.tsx",
-                        lineNumber: 78,
+                        lineNumber: 79,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/settings/UserList.tsx",
-                lineNumber: 75,
+                lineNumber: 76,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2056,7 +2087,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                         children: "Name"
                                     }, void 0, false, {
                                         fileName: "[project]/components/settings/UserList.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 96,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -2064,7 +2095,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                         children: "Role"
                                     }, void 0, false, {
                                         fileName: "[project]/components/settings/UserList.tsx",
-                                        lineNumber: 96,
+                                        lineNumber: 97,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -2072,18 +2103,18 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                         children: "Actions"
                                     }, void 0, false, {
                                         fileName: "[project]/components/settings/UserList.tsx",
-                                        lineNumber: 97,
+                                        lineNumber: 98,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/settings/UserList.tsx",
-                                lineNumber: 94,
+                                lineNumber: 95,
                                 columnNumber: 25
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/settings/UserList.tsx",
-                            lineNumber: 93,
+                            lineNumber: 94,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -2104,7 +2135,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                         children: user.name[0]
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/settings/UserList.tsx",
-                                                        lineNumber: 105,
+                                                        lineNumber: 106,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2114,7 +2145,7 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                                 children: user.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                                lineNumber: 112,
+                                                                lineNumber: 113,
                                                                 columnNumber: 45
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2122,32 +2153,35 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                                 children: user.email
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                                lineNumber: 113,
+                                                                lineNumber: 114,
                                                                 columnNumber: 45
                                                             }, this),
-                                                            user.role === 'THERAPIST' && user.qualification && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                            user.role === 'THERAPIST' && (user.qualification || user.specialization) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                 className: "text-xs text-blue-600 dark:text-blue-400 mt-0.5",
-                                                                children: user.qualification
+                                                                children: [
+                                                                    user.qualification,
+                                                                    user.specialization
+                                                                ].filter(Boolean).join(' • ')
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                                lineNumber: 115,
+                                                                lineNumber: 116,
                                                                 columnNumber: 49
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/settings/UserList.tsx",
-                                                        lineNumber: 111,
+                                                        lineNumber: 112,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                lineNumber: 104,
+                                                lineNumber: 105,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserList.tsx",
-                                            lineNumber: 103,
+                                            lineNumber: 104,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2157,12 +2191,12 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                 children: user.role
                                             }, void 0, false, {
                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                lineNumber: 121,
+                                                lineNumber: 124,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserList.tsx",
-                                            lineNumber: 120,
+                                            lineNumber: 123,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2180,12 +2214,12 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                             className: "w-4 h-4"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/settings/UserList.tsx",
-                                                            lineNumber: 140,
+                                                            lineNumber: 143,
                                                             columnNumber: 49
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/settings/UserList.tsx",
-                                                        lineNumber: 133,
+                                                        lineNumber: 136,
                                                         columnNumber: 45
                                                     }, this),
                                                     currentUserRole === "ADMIN" && currentUserId !== user.id && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2196,51 +2230,51 @@ function UserList({ users, currentUserRole, currentUserId }) {
                                                             className: "w-4 h-4"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/settings/UserList.tsx",
-                                                            lineNumber: 148,
+                                                            lineNumber: 151,
                                                             columnNumber: 53
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/settings/UserList.tsx",
-                                                        lineNumber: 143,
+                                                        lineNumber: 146,
                                                         columnNumber: 49
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/settings/UserList.tsx",
-                                                lineNumber: 132,
+                                                lineNumber: 135,
                                                 columnNumber: 41
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/settings/UserList.tsx",
-                                            lineNumber: 130,
+                                            lineNumber: 133,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, user.id, true, {
                                     fileName: "[project]/components/settings/UserList.tsx",
-                                    lineNumber: 102,
+                                    lineNumber: 103,
                                     columnNumber: 29
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/components/settings/UserList.tsx",
-                            lineNumber: 100,
+                            lineNumber: 101,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/settings/UserList.tsx",
-                    lineNumber: 92,
+                    lineNumber: 93,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/settings/UserList.tsx",
-                lineNumber: 91,
+                lineNumber: 92,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/settings/UserList.tsx",
-        lineNumber: 54,
+        lineNumber: 55,
         columnNumber: 9
     }, this);
 }

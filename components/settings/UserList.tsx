@@ -13,6 +13,7 @@ interface User {
     role: "ADMIN" | "THERAPIST" | "PARENT";
     color?: string | null;
     qualification?: string | null;
+    specialization?: string | null;
     mobile1?: string | null;
     mobile2?: string | null;
     address?: string | null;
@@ -111,8 +112,10 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                                         <div>
                                             <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
                                             <p className="text-sm text-gray-500">{user.email}</p>
-                                            {user.role === 'THERAPIST' && user.qualification && (
-                                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">{user.qualification}</p>
+                                            {user.role === 'THERAPIST' && (user.qualification || user.specialization) && (
+                                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+                                                    {[user.qualification, user.specialization].filter(Boolean).join(' • ')}
+                                                </p>
                                             )}
                                         </div>
                                     </div>
