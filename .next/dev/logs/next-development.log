@@ -1392,3 +1392,78 @@ params: 1,1,1,1,aaa93845-ed6e-46b6-bc15-65244ca38e14
 [01:55:20.597] Server  LOG      ✓ Compiled in 626ms
 [01:55:30.538] Server  LOG      ✓ Compiled in 302ms
 [01:56:09.827] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:06:28.859] Server  LOG      ✓ Compiled in 280ms
+[02:06:54.931] Server  LOG      ✓ Compiled in 103ms
+[02:07:10.305] Server  LOG      ✓ Compiled in 30ms
+[02:07:38.057] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:07:48.051] Server  LOG     createUser: Session User: {}
+[02:07:48.054] Server  LOG     createUser: Validation failed {}
+[02:08:04.391] Server  LOG     createUser: Session User: {}
+[02:08:04.392] Server  LOG     createUser: Validation failed {}
+[02:08:13.298] Server  LOG     createUser: Session User: {}
+[02:08:13.298] Server  LOG     createUser: Validation failed {}
+[02:08:20.109] Server  LOG     createUser: Session User: {}
+[02:08:20.110] Server  LOG     createUser: Validation failed {}
+[02:08:23.334] Server  LOG     createUser: Session User: {}
+[02:08:23.334] Server  LOG     createUser: Validated Data: {}
+[02:08:24.849] Server  ERROR   Create User Error: Error: Failed query: insert into "users" ("id", "name", "email", "password_hash", "role", "mobile1", "mobile2", "address", "doj", "end_date", "qualification", "specialization", "created_at") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, default, default, default)
+params: aw,sd@fdf.com,$2b$10$2L7tImCvFpBA1T6e07i5rutAOhSa0b3foedM1MEAqSVnhIeG.m8ZC,PARENT,,,,,
+[02:08:37.957] Server  LOG     createUser: Session User: {}
+[02:08:37.957] Server  LOG     createUser: Validated Data: {}
+[02:08:40.469] Server  ERROR   Create User Error: Error: Failed query: insert into "users" ("id", "name", "email", "password_hash", "role", "mobile1", "mobile2", "address", "doj", "end_date", "qualification", "specialization", "created_at") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, default, default, default)
+params: aw,sd@fdf.com,$2b$10$nBkvCI28/bGPaEfwI4PTwu8ZOBAmurOaD9PNKBDq4glU1zgTV1fua,PARENT,9876543232,8989898987,,,
+[02:08:59.656] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:09:17.671] Server  LOG     createUser: Session User: {}
+[02:09:17.671] Server  LOG     createUser: Validated Data: {}
+[02:09:34.433] Server  LOG     createUser: Session User: {}
+[02:09:34.434] Server  LOG     createUser: Validation failed {}
+[02:10:23.440] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:10:31.795] Server  LOG     createUser: Session User: {}
+[02:10:31.796] Server  LOG     createUser: Validated Data: {}
+[02:10:38.332] Server  LOG     createUser: Session User: {}
+[02:10:38.332] Server  LOG     createUser: Validated Data: {}
+[02:10:39.771] Server  ERROR   Create User Error: Error: Failed query: insert into "users" ("id", "name", "email", "password_hash", "role", "mobile1", "mobile2", "address", "doj", "end_date", "qualification", "specialization", "created_at") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, default, default, default)
+params: ss,wonderbeestherapycentre+56@gmail.com,$2b$10$zAZIFoJNlvFjSF1RoDCqrep/oh1ht34RLPFJRFeGOcgDYBhOBZVmC,PARENT,,,,,
+[02:11:10.272] Server  LOG      ✓ Compiled in 45ms
+[02:11:53.275] Server  LOG     createUser: Session User: {}
+[02:11:53.276] Server  LOG     createUser: Validated Data: {}
+[02:11:59.444] Server  LOG     createUser: Session User: {}
+[02:11:59.445] Server  LOG     createUser: Validation failed {}
+[02:12:05.760] Server  LOG     createUser: Session User: {}
+[02:12:05.760] Server  LOG     createUser: Validated Data: {}
+[02:12:15.268] Server  LOG     createUser: Session User: {}
+[02:12:15.269] Server  LOG     createUser: Validated Data: {}
+[02:12:45.514] Server  LOG     createUser: Session User: {}
+[02:12:45.514] Server  LOG     createUser: Validation failed {}
+[02:14:52.071] Server  LOG      ✓ Compiled in 63ms
+[02:15:28.260] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:15:31.051] Server  LOG     createUser: Session User: {}
+[02:15:31.053] Server  LOG     createUser: Validation failed {}
+[02:15:40.054] Server  LOG     createUser: Session User: {}
+[02:15:40.055] Server  LOG     createUser: Validation failed {}
+[02:16:58.241] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:17:01.584] Server  LOG     createUser: Session User: {}
+[02:17:01.586] Server  LOG     createUser: Validation failed {}
+[02:17:05.540] Server  LOG     createUser: Session User: {}
+[02:17:05.541] Server  LOG     createUser: Validation failed {}
+[02:17:14.101] Server  LOG     createUser: Session User: {}
+[02:17:14.102] Server  LOG     createUser: Validation failed {}
+[02:17:19.280] Server  LOG     createUser: Session User: {}
+[02:17:19.281] Server  LOG     createUser: Validation failed {}
+[02:20:01.872] Server  LOG      ✓ Compiled in 56ms
+[02:20:35.145] Server  LOG     createUser: Session User: {}
+[02:20:35.146] Server  LOG     createUser: Validation failed {}
+[02:20:39.457] Server  LOG     createUser: Session User: {}
+[02:20:39.458] Server  LOG     createUser: Validation failed {}
+[02:20:45.512] Server  LOG     createUser: Session User: {}
+[02:20:45.513] Server  LOG     createUser: Validation failed {}
+[02:20:50.493] Server  LOG     createUser: Session User: {}
+[02:20:50.494] Server  LOG     createUser: Validation failed {}
+[02:21:02.816] Server  LOG     updateUser: Validation failed {}
+[02:22:21.461] Server  LOG      ✓ Compiled in 43ms
+[02:22:37.273] Server  LOG      ✓ Compiled in 53ms
+[02:22:49.333] Server  LOG      ✓ Compiled in 32ms
+[02:22:52.384] Server  ERROR    ⨯ Error: Module [project]/lib/context.tsx [app-ssr] (ecmascript) was instantiated because it was required from module [project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/dashboard/page { GLOBAL_ERROR_MODULE => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", METADATA_0 => "[project]/app/favicon.ico.mjs { IMAGE => \"[project]/app/favicon.ico (static in ecmascript, tag client)\" } [app-rsc] (structured image object, ecmascript, Next.js Server Component)", MODULE_1 => "[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js Server Component)", MODULE_2 => "[project]/node_modules/next/dist/client/components/builtin/not-found.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_3 => "[project]/node_modules/next/dist/client/components/builtin/forbidden.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_4 => "[project]/node_modules/next/dist/client/components/builtin/unauthorized.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_5 => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_6 => "[project]/app/dashboard/page.tsx [app-rsc] (ecmascript, Next.js Server Component)" } [app-rsc] (ecmascript) <locals>, but the module factory is not available.
+[02:22:52.843] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:22:56.519] Server  LOG     createUser: Session User: {}
+[02:22:56.521] Server  LOG     createUser: Validation failed {}

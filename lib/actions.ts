@@ -84,8 +84,10 @@ export async function createUser(formData: FormData) {
 
         if (!validatedFields.success) {
             console.log("createUser: Validation failed", validatedFields.error.flatten().fieldErrors);
-            const errorMsg = validatedFields.error.issues.map(issue => issue.message).join(". ");
-            return { message: `Validation Error: ${errorMsg}` };
+            return {
+                message: "Validation Error",
+                errors: validatedFields.error.flatten().fieldErrors
+            };
         }
 
         const { name, email, password, role, qualification, specialization, mobile1, mobile2, address, doj, endDate } = validatedFields.data;
@@ -337,8 +339,11 @@ export async function updateUser(userId: string, formData: FormData) {
         const validatedFields = UpdateUserSchema.safeParse(rawData);
 
         if (!validatedFields.success) {
-            const errorMsg = validatedFields.error.issues.map(issue => issue.message).join(". ");
-            return { message: `Validation Error: ${errorMsg}` };
+            console.log("updateUser: Validation failed", validatedFields.error.flatten().fieldErrors);
+            return {
+                message: "Validation Error",
+                errors: validatedFields.error.flatten().fieldErrors
+            };
         }
 
         const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate, password } = validatedFields.data;

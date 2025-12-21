@@ -31,28 +31,31 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
 
-    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT">(user?.role || "PARENT");
+    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "">(user?.role || "");
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
     useEffect(() => {
+        setFieldErrors({});
         if (user?.role) {
             setSelectedRole(user.role);
         } else {
-            setSelectedRole("PARENT");
+            setSelectedRole("");
         }
-    }, [user]);
+    }, [user, isOpen]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        setFieldErrors({});
 
         startTransition(async () => {
-            const result = user
+            const result: any = user
                 ? await updateUser(user.id, formData)
                 : await createUser(formData);
 
@@ -60,6 +63,9 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                 toast.success(result.message);
                 onClose();
             } else {
+                if (result?.errors) {
+                    setFieldErrors(result.errors);
+                }
                 toast.error(result.message);
             }
         });
@@ -77,17 +83,19 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
                             <input
                                 name="name"
                                 defaultValue={user?.name || ""}
-                                required
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                 placeholder="John Doe"
                             />
+                            {fieldErrors.name && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.name[0]}</p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email</label>
@@ -95,10 +103,12 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="email"
                                 type="email"
                                 defaultValue={user?.email || ""}
-                                required
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.email ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                 placeholder="john@example.com"
                             />
+                            {fieldErrors.email && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.email[0]}</p>
+                            )}
                         </div>
 
                         {!user && (
@@ -109,10 +119,12 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 <input
                                     name="password"
                                     type="password"
-                                    required
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.password ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                     placeholder="••••••••"
                                 />
+                                {fieldErrors.password && (
+                                    <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.password[0]}</p>
+                                )}
                             </div>
                         )}
 
@@ -123,12 +135,16 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                     name="role"
                                     value={selectedRole}
                                     onChange={(e) => setSelectedRole(e.target.value as any)}
-                                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.role ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                 >
+                                    <option value="" disabled>Select Role</option>
                                     <option value="ADMIN">Admin</option>
                                     <option value="THERAPIST">Therapist</option>
                                     <option value="PARENT">Parent</option>
                                 </select>
+                                {fieldErrors.role && (
+                                    <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.role[0]}</p>
+                                )}
                             </div>
                         )}
 
@@ -140,8 +156,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                         name="qualification"
                                         defaultValue={user?.qualification || ""}
                                         placeholder="e.g. B.Sc, M.Sc, PhD"
-                                        className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.qualification ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                     />
+                                    {fieldErrors.qualification && (
+                                        <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.qualification[0]}</p>
+                                    )}
                                 </div>
                                 <div className="animate-fade-in">
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialization</label>
@@ -149,8 +168,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                         name="specialization"
                                         defaultValue={user?.specialization || ""}
                                         placeholder="e.g. Occupational Therapist, Speech Therapist"
-                                        className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.specialization ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                                     />
+                                    {fieldErrors.specialization && (
+                                        <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.specialization[0]}</p>
+                                    )}
                                 </div>
                             </>
                         )}
@@ -161,8 +183,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="mobile1"
                                 defaultValue={user?.mobile1 || ""}
                                 placeholder="PhoneNumber"
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile1 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                             />
+                            {fieldErrors.mobile1 && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.mobile1[0]}</p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Mobile 2 (Optional)</label>
@@ -170,8 +195,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="mobile2"
                                 defaultValue={user?.mobile2 || ""}
                                 placeholder="PhoneNumber"
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile2 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                             />
+                            {fieldErrors.mobile2 && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.mobile2[0]}</p>
+                            )}
                         </div>
 
                         <div className="md:col-span-2">
@@ -191,8 +219,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="doj"
                                 type="date"
                                 defaultValue={user?.doj || ""}
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.doj ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                             />
+                            {fieldErrors.doj && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.doj[0]}</p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">End Date</label>
@@ -200,8 +231,11 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="endDate"
                                 type="date"
                                 defaultValue={user?.endDate || ""}
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.endDate ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                             />
+                            {fieldErrors.endDate && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.endDate[0]}</p>
+                            )}
                         </div>
                     </div>
 
