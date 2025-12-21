@@ -15,36 +15,6 @@
       "exportedName": "deleteTherapy",
       "filename": "lib/actions.ts"
     },
-    "60c6e29ece8d1f4f6154f69defb223a13c651b4b10": {
-      "workers": {
-        "app/therapies/page": {
-          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "addExpenseAction",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/therapies/page": "action-browser"
-      },
-      "exportedName": "addExpenseAction",
-      "filename": "lib/actions.ts"
-    },
-    "60a0e6c1c04b9d54250546559c6761899044267282": {
-      "workers": {
-        "app/therapies/page": {
-          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "updateExpense",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/therapies/page": "action-browser"
-      },
-      "exportedName": "updateExpense",
-      "filename": "lib/actions.ts"
-    },
     "4004a39d53f9f82adaca5d47cb1472f70093f96d99": {
       "workers": {
         "app/therapies/page": {

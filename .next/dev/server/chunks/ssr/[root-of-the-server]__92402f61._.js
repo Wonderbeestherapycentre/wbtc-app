@@ -288,7 +288,11 @@ const childTherapies = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_
     therapyId: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$uuid$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["uuid"])("therapy_id").references(()=>therapies.id, {
         onDelete: "cascade"
     }).notNull(),
-    therapistId: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$uuid$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["uuid"])("therapist_id").references(()=>users.id)
+    therapistId: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$uuid$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["uuid"])("therapist_id").references(()=>users.id),
+    feePerSession: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$pg$2d$core$2f$columns$2f$numeric$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["decimal"])("fee_per_session", {
+        precision: 10,
+        scale: 2
+    })
 }, (t)=>({
         pk: {
             columns: [

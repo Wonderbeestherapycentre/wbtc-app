@@ -29,7 +29,7 @@ export const UserSchema = z.object({
 });
 
 export const CreateUserSchema = UserSchema.extend({
-    password: PasswordSchema,
+    password: PasswordSchema.optional().or(z.literal("")).transform(v => v === "" ? undefined : v),
 });
 
 export const UpdateUserSchema = UserSchema.extend({

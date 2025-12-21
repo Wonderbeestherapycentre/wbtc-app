@@ -167,21 +167,6 @@ export async function fetchUsers() {
     }));
 }
 
-export async function fetchCategories() {
-    const session = await auth();
-    if (!session?.user) return [];
-
-    const data = await db.query.categories.findMany({
-        orderBy: [desc(categories.name)]
-    });
-
-    return data.map(c => ({
-        id: c.id,
-        name: c.name,
-        type: c.type
-    }));
-}
-
 export async function fetchChildren(includeInactive = false) {
     const session = await auth();
     if (!session?.user) return [];
@@ -206,7 +191,7 @@ export async function fetchChildren(includeInactive = false) {
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [asc(sql`lower(${children.name})`)],
+        orderBy: [desc(children.createdAt)],
         with: {
             parent: true,
             therapyTypes: {
@@ -257,7 +242,7 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [asc(sql`lower(${children.name})`)],
+        orderBy: [desc(children.createdAt)],
         limit: limit,
         offset: offset,
         with: {

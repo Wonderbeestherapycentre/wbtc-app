@@ -59,7 +59,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                 ? await updateUser(user.id, formData)
                 : await createUser(formData);
 
-            if (result?.message === "User updated" || result?.message === "User created") {
+            if (result?.message?.includes("User updated") || result?.message?.includes("User created")) {
                 toast.success(result.message);
                 onClose();
             } else {
@@ -91,7 +91,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 name="name"
                                 defaultValue={user?.name || ""}
                                 className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
-                                placeholder="John Doe"
+                                placeholder="vellies"
                             />
                             {fieldErrors.name && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.name[0]}</p>
@@ -104,29 +104,12 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 type="email"
                                 defaultValue={user?.email || ""}
                                 className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.email ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
-                                placeholder="john@example.com"
+                                placeholder="vellies@example.com"
                             />
                             {fieldErrors.email && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.email[0]}</p>
                             )}
                         </div>
-
-                        {!user && (
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">
-                                    Password
-                                </label>
-                                <input
-                                    name="password"
-                                    type="password"
-                                    className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.password ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
-                                    placeholder="••••••••"
-                                />
-                                {fieldErrors.password && (
-                                    <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.password[0]}</p>
-                                )}
-                            </div>
-                        )}
 
                         {currentUserRole === "ADMIN" && (
                             <div>

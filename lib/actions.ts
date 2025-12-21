@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
+import { generateSecurePassword } from "./utils/password";
 
 export async function authenticate(
     prevState: string | undefined,
@@ -116,9 +117,14 @@ export async function createUser(formData: FormData) {
             };
         }
 
-        const { name, email, password, role, qualification, specialization, mobile1, mobile2, address, doj, endDate } = validatedFields.data;
+        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate } = validatedFields.data;
+        let { password } = validatedFields.data;
 
-        console.log("createUser: Validated Data:", { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate });
+        if (!password) {
+            password = generateSecurePassword();
+        }
+
+        console.log("createUser: Validated Data:", { name, email, role, password: "[REDACTED]", qualification, specialization, mobile1, mobile2, address, doj, endDate });
 
         const existingUser = await db.query.users.findFirst({
             where: eq(users.email, email),
@@ -142,78 +148,29 @@ export async function createUser(formData: FormData) {
             endDate,
         });
 
+        // Send credentials email
+        try {
+            const { sendCredentialsEmail } = await import('./email');
+            const emailResult = await sendCredentialsEmail(email, name, email, password);
+
+            if (!emailResult.success) {
+                console.error('Failed to send credentials email:', emailResult.error);
+            }
+        } catch (emailError) {
+            console.error('Error sending credentials email:', emailError);
+            // Continue even if email fails - user is still created
+        }
+
         revalidatePath("/settings");
         revalidatePath("/users");
-        return { message: "User created" };
+        return { message: "User created and credentials sent via email" };
     } catch (error: any) {
         console.error("Create User Error:", error);
         return { message: error.message || "Failed to create user" };
     }
 }
 
-export async function addExpenseAction(prevState: any, formData: FormData) {
-    const session = await auth();
-    if (!session?.user) return { message: "Unauthorized" };
-    // Only Admin can add expenses? Or Therapist?
-    // Let's allow Admin and maybe Therapist.
-    if (session.user.role === "PARENT") return { message: "Unauthorized" };
 
-
-    const amount = parseFloat(formData.get("amount") as string);
-    const description = (formData.get("description") as string) || "";
-    const dateStr = formData.get("date") as string;
-    const type = (formData.get("type") as "EXPENSE" | "INCOME" | "DUE") || "EXPENSE";
-    const childId = (formData.get("childId") as string) || null;
-    // staffId removed. type is enough? Or maybe recordedBy?
-
-
-    if (!amount || !dateStr) {
-        return { message: "Missing fields" };
-    }
-
-    if (!formData.get("categoryId")) {
-        return { message: "Category is required" };
-    }
-
-    await db.insert(expenses).values({
-        // userId: session.user.id, // Removed userId constraint from schema? No, keep it as 'recorded by' if needed? 
-        // Schema definition: "userId" removed? Let's check schema.ts content I wrote.
-        // I kept 'expense' table but refactoring.
-        // Wait, I changed 'userId' to 'recordedBy' (optional) in my thought, but let's check what I actually wrote.
-        // I wrote: recordedBy: uuid("recorded_by").references(() => users.id), // Admin who recorded it
-
-        description,
-        amount: amount.toString(),
-        date: new Date(dateStr),
-        type: type,
-        categoryId: (formData.get("categoryId") as string),
-        childId: childId,
-        recordedBy: session.user.id
-    });
-
-    revalidatePath("/dashboard");
-    revalidatePath("/expenses");
-    return { message: "Transaction added" };
-}
-
-export async function markDueAsPaid(id: string) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
-
-    const expense = await db.query.expenses.findFirst({
-        where: eq(expenses.id, id)
-    });
-
-    if (!expense) return { message: "Record not found" };
-
-    await db.update(expenses).set({
-        type: "INCOME"
-    }).where(eq(expenses.id, id));
-
-    revalidatePath("/dashboard");
-    revalidatePath("/expenses");
-    return { message: "Payment marked as paid" };
-}
 
 export async function deleteUser(userId: string) {
     const session = await auth();
@@ -417,93 +374,9 @@ export async function updateUser(userId: string, formData: FormData) {
     }
 }
 
-// --- Category Actions ---
-export async function createCategory(formData: FormData) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
-
-    const name = formData.get("name") as string;
-    if (!name) return { message: "Name is required" };
-
-    await db.insert(categories as any).values({
-        name,
-        // familyId removed
-    });
-
-    revalidatePath("/settings");
-    return { message: "Category created" };
-}
-
-export async function updateCategory(id: string, formData: FormData) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
-
-    const name = formData.get("name") as string;
-    if (!name) return { message: "Name is required" };
-
-    await db.update(categories).set({ name }).where(eq(categories.id, id));
-    revalidatePath("/settings");
-    revalidatePath("/");
-    revalidatePath("/expenses");
-    return { message: "Category updated" };
-}
-
-export async function deleteCategory(id: string) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
-
-    try {
-        await db.delete(categories).where(eq(categories.id, id));
-    } catch (e) {
-        return { message: "Cannot delete category in use" };
-    }
-
-    revalidatePath("/settings");
-    revalidatePath("/");
-    revalidatePath("/expenses");
-    return { message: "Category deleted" };
-}
 
 // --- Expense Actions --- (Update/Delete)
-export async function deleteExpense(id: string) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
 
-    // Parent can't delete? Yes.
-
-    await db.delete(expenses).where(eq(expenses.id, id));
-    revalidatePath("/");
-    revalidatePath("/expenses");
-    return { message: "Expense deleted" };
-}
-
-export async function updateExpense(id: string, formData: FormData) {
-    const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
-
-    const amount = parseFloat(formData.get("amount") as string);
-    const description = (formData.get("description") as string) || "";
-    const dateStr = formData.get("date") as string;
-    const categoryId = formData.get("categoryId") as string;
-
-    if (!amount || !dateStr || !categoryId) {
-        return { message: "Missing fields" };
-    }
-
-    await db.update(expenses).set({
-        amount: amount.toString(),
-        description,
-        date: new Date(dateStr),
-        categoryId: categoryId,
-        childId: (formData.get("childId") as string) || null,
-        type: (formData.get("type") as "EXPENSE" | "INCOME" | "DUE") || "EXPENSE",
-
-    }).where(eq(expenses.id, id));
-
-    revalidatePath("/");
-    revalidatePath("/expenses");
-    return { message: "Transaction updated" };
-}
 
 export async function updatePassword(prevState: any, formData: FormData) {
     const session = await auth();
@@ -579,6 +452,36 @@ export async function createChild(formData: FormData) {
 
     const { name: vName, status: vStatus, dob: vDob, gender: vGender, diagnosis: vDiagnosis, parentId: vParentId, therapies: vTherapies } = validatedFields.data;
 
+    // Validate that all therapies have a therapist assigned
+    if (vTherapies && vTherapies.length > 0) {
+        const therapiesWithoutTherapist = vTherapies.filter(
+            t => !t.therapistId || t.therapistId === ""
+        );
+
+        if (therapiesWithoutTherapist.length > 0) {
+            return {
+                message: "Validation failed",
+                errors: {
+                    therapies: ["All selected therapies must have a therapist assigned"]
+                }
+            };
+        }
+
+        // Validate that all therapies have a session fee
+        const therapiesWithoutFee = vTherapies.filter(
+            t => !t.feePerSession || t.feePerSession === ""
+        );
+
+        if (therapiesWithoutFee.length > 0) {
+            return {
+                message: "Validation failed",
+                errors: {
+                    therapies: ["All selected therapies must have a session fee"]
+                }
+            };
+        }
+    }
+
     const [newChild] = await db.insert(children).values({
         name: vName,
         status: vStatus,
@@ -593,7 +496,8 @@ export async function createChild(formData: FormData) {
             vTherapies.map(t => ({
                 childId: newChild.id,
                 therapyId: t.therapyId,
-                therapistId: t.therapistId
+                therapistId: t.therapistId,
+                feePerSession: t.feePerSession
             }))
         );
     }
@@ -636,6 +540,36 @@ export async function updateChild(id: string, formData: FormData) {
 
     const { name: vName, status: vStatus, dob: vDob, gender: vGender, diagnosis: vDiagnosis, parentId: vParentId, therapies: vTherapies } = validatedFields.data;
 
+    // Validate that all therapies have a therapist assigned
+    if (vTherapies && vTherapies.length > 0) {
+        const therapiesWithoutTherapist = vTherapies.filter(
+            t => !t.therapistId || t.therapistId === ""
+        );
+
+        if (therapiesWithoutTherapist.length > 0) {
+            return {
+                message: "Validation failed",
+                errors: {
+                    therapies: ["All selected therapies must have a therapist assigned"]
+                }
+            };
+        }
+
+        // Validate that all therapies have a session fee
+        const therapiesWithoutFee = vTherapies.filter(
+            t => !t.feePerSession || t.feePerSession === ""
+        );
+
+        if (therapiesWithoutFee.length > 0) {
+            return {
+                message: "Validation failed",
+                errors: {
+                    therapies: ["All selected therapies must have a session fee"]
+                }
+            };
+        }
+    }
+
     await db.update(children).set({
         name: vName,
         status: vStatus,
@@ -653,7 +587,8 @@ export async function updateChild(id: string, formData: FormData) {
             vTherapies.map(t => ({
                 childId: id,
                 therapyId: t.therapyId,
-                therapistId: t.therapistId
+                therapistId: t.therapistId,
+                feePerSession: t.feePerSession
             }))
         );
     }

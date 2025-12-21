@@ -106,11 +106,11 @@ export default function RegisterPage() {
                 <form action={dispatch} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Full Name</label>
-                        <input name="name" type="text" required placeholder="John Doe" className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                        <input name="name" type="text" required placeholder="vellies" className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Email</label>
-                        <input name="email" type="email" required placeholder="john@example.com" className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                        <input name="email" type="email" required placeholder="vellies@example.com" className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Password</label>

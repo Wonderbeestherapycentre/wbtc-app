@@ -12,11 +12,10 @@ import Link from "next/link";
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
-    onAddExpense: () => void;
     role?: "ADMIN" | "THERAPIST" | "PARENT";
 }
 
-export default function Sidebar({ isOpen, onClose, onAddExpense, role = "ADMIN" }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, role = "ADMIN" }: SidebarProps) {
     const pathname = usePathname();
 
     const ADMIN_NAV = [
@@ -24,8 +23,7 @@ export default function Sidebar({ isOpen, onClose, onAddExpense, role = "ADMIN" 
         // { icon: Calendar, label: "Schedule", href: "/schedule" },
         // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
-        // { icon: Clock, label: "Due List", href: "/dues" },
-        { icon: Tags, label: "Categories", href: "/categories" },
+        // { icon: Clock, label: "Due List", href: "/dues\" },
         { icon: Users, label: "Users", href: "/users" },
         { icon: Heart, label: "Services", href: "/therapies" },
     ];

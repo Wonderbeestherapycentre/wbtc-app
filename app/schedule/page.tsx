@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
-import { fetchSessions, fetchCategories } from "@/lib/data";
+import { fetchSessions } from "@/lib/data";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 
 export default async function SchedulePage() {
@@ -8,7 +8,6 @@ export default async function SchedulePage() {
     const currentUserRole = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
     const userId = session?.user?.id || "";
 
-    const categories = await fetchCategories();
 
     // Fetch sessions for range (e.g. current month? or just all recent).
     // Weekly calendar needs specific range but for now fetch all and filter in UI component?
@@ -23,7 +22,7 @@ export default async function SchedulePage() {
     const sessions = await fetchSessions(startDate, endDate);
 
     return (
-        <AppLayout categories={categories} role={currentUserRole}>
+        <AppLayout role={currentUserRole}>
             <div className="space-y-6 animate-fade-in pb-10">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h2>

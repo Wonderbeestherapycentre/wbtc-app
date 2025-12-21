@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import { fetchCategories, fetchChildren, fetchChildrenPaginated, fetchParents, fetchTherapists, fetchTherapies } from "@/lib/data";
+import { fetchChildren, fetchChildrenPaginated, fetchParents, fetchTherapists, fetchTherapies } from "@/lib/data";
 import ChildSettings from "@/components/ChildSettings";
 import Pagination from "@/components/Pagination";
 import SearchInput from "@/components/SearchInput";
@@ -15,7 +15,7 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
     const page = Number(params?.page) || 1;
     const search = params?.search || "";
 
-    const categories = await fetchCategories();
+
     const parents = await fetchParents();
     const therapists = await fetchTherapists();
     const therapies = await fetchTherapies(true);
@@ -27,7 +27,7 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
     const { data: childrenList, meta } = await fetchChildrenPaginated(page, ITEMS_PER_PAGE, true, search);
 
     return (
-        <AppLayout categories={categories} familyChildren={activeChildren} role={role}>
+        <AppLayout familyChildren={activeChildren} role={session?.user?.role as any}>
             <div className="space-y-6 animate-fade-in">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
@@ -39,7 +39,6 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
 
                 <ChildSettings
                     children={childrenList as any}
-                    categories={categories}
                     parents={parents}
                     therapists={therapists}
                     therapies={therapies as any}

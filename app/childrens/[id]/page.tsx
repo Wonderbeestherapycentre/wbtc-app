@@ -192,6 +192,33 @@ export default async function ChildPage({ params }: ChildPageProps) {
                                             <p className="text-sm italic text-gray-400">No therapist assigned</p>
                                         )}
                                     </div>
+                                    {session?.user?.role === "ADMIN" && (
+                                        <div className="pt-4 border-t border-gray-50 dark:border-neutral-800">
+                                            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Fee Structure</p>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">Original Fee:</span>
+                                                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                        ₹{tt.therapy.chargePerSession || 'N/A'}
+                                                    </span>
+                                                </div>
+                                                {tt.feePerSession && tt.feePerSession !== tt.therapy.chargePerSession && (
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">Custom Fee:</span>
+                                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                                                            ₹{tt.feePerSession}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-neutral-700">
+                                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Payable:</span>
+                                                    <span className="text-base font-bold text-gray-900 dark:text-white">
+                                                        ₹{tt.feePerSession || tt.therapy.chargePerSession || 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

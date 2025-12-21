@@ -95,6 +95,8 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                         <tr>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                            <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone 1</th>
+                            <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">DOJ</th>
                             <th className="text-right py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -129,6 +131,16 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                                         }`}>
                                         {user.role}
                                     </span>
+                                </td>
+                                <td className="py-4 px-6">
+                                    <p className="text-sm text-gray-900 dark:text-white">
+                                        {user.mobile1 || '-'}
+                                    </p>
+                                </td>
+                                <td className="py-4 px-6">
+                                    <p className="text-sm text-gray-900 dark:text-white">
+                                        {user.doj ? new Date(user.doj).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                    </p>
                                 </td>
                                 <td className="py-4 px-6 text-right">
                                     {(currentUserRole === "ADMIN" || currentUserId === user.id) && (

@@ -1,140 +1,68 @@
-[00:00:00.720] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:00.802] Server  LOG      ✓ Ready in 620ms
-[00:00:06.170] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:06.962] Server  ERROR    ⨯ Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
-                SELECT 1 FROM "child_therapies" 
-                WHERE "children"."child_id" = "children"."id" 
-                AND "children"."therapist_id" = $5
-            )) order by lower("children"."name") asc
-params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:00:07.086] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:07.201] Browser ERROR   uncaughtError: Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
-                SELECT 1 FROM "child_therapies" 
-                WHERE "children"."child_id" = "children"."id" 
-                AND "children"."therapist_id" = $5
-            )) order by lower("children"."name") asc
-params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:00:07.744] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:09.790] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:12.957] Server  ERROR    ⨯ Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
-                SELECT 1 FROM "child_therapies" 
-                WHERE "children"."child_id" = "children"."id" 
-                AND "children"."therapist_id" = $5
-            )) order by lower("children"."name") asc
-params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:00:13.078] Browser ERROR   uncaughtError: Error: Failed query: select "children"."id", "children"."name", "children"."dob", "children"."gender", "children"."diagnosis", "children"."parent_id", "children"."status", "children"."created_at", "children_parent"."data" as "parent", "children_therapyTypes"."data" as "therapyTypes" from "children" "children" left join lateral (select json_build_array("children_parent"."id", "children_parent"."name", "children_parent"."email", "children_parent"."password_hash", "children_parent"."role", "children_parent"."mobile1", "children_parent"."mobile2", "children_parent"."address", "children_parent"."doj", "children_parent"."end_date", "children_parent"."qualification", "children_parent"."specialization", "children_parent"."created_at") as "data" from (select * from "users" "children_parent" where "children_parent"."id" = "children"."parent_id" limit $1) "children_parent") "children_parent" on true left join lateral (select coalesce(json_agg(json_build_array("children_therapyTypes"."child_id", "children_therapyTypes"."therapy_id", "children_therapyTypes"."therapist_id", "children_therapyTypes_therapy"."data", "children_therapyTypes_therapist"."data")), '[]'::json) as "data" from "child_therapies" "children_therapyTypes" left join lateral (select json_build_array("children_therapyTypes_therapy"."id", "children_therapyTypes_therapy"."name", "children_therapyTypes_therapy"."description", "children_therapyTypes_therapy"."charge_per_session", "children_therapyTypes_therapy"."status", "children_therapyTypes_therapy"."default_duration_minutes", "children_therapyTypes_therapy"."created_at") as "data" from (select * from "therapies" "children_therapyTypes_therapy" where "children_therapyTypes_therapy"."id" = "children_therapyTypes"."therapy_id" limit $2) "children_therapyTypes_therapy") "children_therapyTypes_therapy" on true left join lateral (select json_build_array("children_therapyTypes_therapist"."id", "children_therapyTypes_therapist"."name", "children_therapyTypes_therapist"."email", "children_therapyTypes_therapist"."password_hash", "children_therapyTypes_therapist"."role", "children_therapyTypes_therapist"."mobile1", "children_therapyTypes_therapist"."mobile2", "children_therapyTypes_therapist"."address", "children_therapyTypes_therapist"."doj", "children_therapyTypes_therapist"."end_date", "children_therapyTypes_therapist"."qualification", "children_therapyTypes_therapist"."specialization", "children_therapyTypes_therapist"."created_at") as "data" from (select * from "users" "children_therapyTypes_therapist" where "children_therapyTypes_therapist"."id" = "children_therapyTypes"."therapist_id" limit $3) "children_therapyTypes_therapist") "children_therapyTypes_therapist" on true where "children_therapyTypes"."child_id" = "children"."id") "children_therapyTypes" on true where ("children"."status" = $4 and EXISTS (
-                SELECT 1 FROM "child_therapies" 
-                WHERE "children"."child_id" = "children"."id" 
-                AND "children"."therapist_id" = $5
-            )) order by lower("children"."name") asc
-params: 1,1,1,ACTIVE,827b49eb-b17b-40cd-9deb-e7c5c698a6a8
-[00:01:10.418] Server  ERROR    ⨯ Error: Module [project]/node_modules/next/dist/esm/client/components/layout-router.js [app-ssr] (ecmascript) was instantiated because it was required from module [project]/node_modules/next/dist/esm/build/templates/app-page.js?page=/users/page { GLOBAL_ERROR_MODULE => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", METADATA_0 => "[project]/app/favicon.ico.mjs { IMAGE => \"[project]/app/favicon.ico (static in ecmascript, tag client)\" } [app-rsc] (structured image object, ecmascript, Next.js Server Component)", MODULE_1 => "[project]/app/layout.tsx [app-rsc] (ecmascript, Next.js Server Component)", MODULE_2 => "[project]/node_modules/next/dist/client/components/builtin/not-found.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_3 => "[project]/node_modules/next/dist/client/components/builtin/forbidden.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_4 => "[project]/node_modules/next/dist/client/components/builtin/unauthorized.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_5 => "[project]/node_modules/next/dist/client/components/builtin/global-error.js [app-rsc] (ecmascript, Next.js Server Component)", MODULE_6 => "[project]/app/users/page.tsx [app-rsc] (ecmascript, Next.js Server Component)" } [app-rsc] (ecmascript) <locals>, but the module factory is not available.
-[00:01:10.576] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:32.704] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:41.360] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:05:06.936] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:29.101] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:46.783] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:46.783] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:06:46.783] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:06:46.783] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[00:08:33.376] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:10:06.149] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:10:34.769] Browser ERROR   uncaughtError: TypeError: Error in input stream
-[00:10:36.445] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:11:19.229] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:12:58.863] Server  LOG      ✓ Compiled in 34ms
-[00:16:12.277] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:16:23.721] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:16:25.465] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:16:25.487] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:16:53.452] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                          ^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Expected unicode escape
-[00:16:53.452] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                           ^^^^^^^^^^^^^^^^^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Unterminated string constant
-[00:16:53.453] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                          ^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Expected unicode escape
-[00:16:53.453] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                           ^^^^^^^^^^^^^^^^^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Unterminated string constant
-[00:16:53.456] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                          ^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Expected unicode escape
-[00:16:53.456] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                           ^^^^^^^^^^^^^^^^^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Unterminated string constant
-[00:16:54.376] Browser ERROR   ./app/childrens/[id]/page.tsx:78:42
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                          ^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Expected unicode escape
-[00:16:54.376] Browser ERROR   ./app/childrens/[id]/page.tsx:78:43
-Parsing ecmascript source code failed
-  76 |                     </div>
-  77 |                 </div>
-> 78 |                 {session?.user?.role !== \"THERAPIST\" && (
-     |                                           ^^^^^^^^^^^^^^^^^
-  79 |                 <div className="flex items-center gap-3">
-  80 |                     <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-  81 |                         <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-
-Unterminated string constant
-[00:17:17.755] Server  LOG      ✓ Compiled in 20ms
-[00:17:49.839] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:00.682] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.767] Server  LOG      ✓ Ready in 612ms
+[00:00:04.147] Server  LOG      ✓ Compiled in 23ms
+[00:00:04.670] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:04.739] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:04.896] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:04.961] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.075] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:30.108] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:49.724] Server  LOG     createUser: Session User: {}
+[00:00:49.727] Server  LOG     createUser: Validated Data: {}
+[00:01:31.314] Server  LOG     createUser: Session User: {}
+[00:01:31.315] Server  LOG     createUser: Validated Data: {}
+[00:01:37.730] Server  LOG     createUser: Session User: {}
+[00:01:37.731] Server  LOG     createUser: Validated Data: {}
+[00:02:44.123] Server  LOG      ✓ Compiled in 29ms
+[00:04:15.366] Server  LOG      ✓ Compiled in 63ms
+[00:05:09.589] Server  LOG      ✓ Compiled in 35ms
+[00:05:32.975] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:06.929] Server  LOG      ✓ Compiled in 148ms
+[00:06:08.815] Server  LOG      ✓ Compiled in 21ms
+[00:06:18.758] Server  LOG      ✓ Compiled in 16ms
+[00:06:29.447] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:01.666] Server  LOG      ✓ Compiled in 28ms
+[00:07:08.647] Server  LOG      ✓ Compiled in 19ms
+[00:07:32.567] Server  LOG     createUser: Session User: {}
+[00:07:32.568] Server  LOG     createUser: Validation failed {}
+[00:08:06.879] Server  LOG      ✓ Compiled in 16ms
+[00:08:36.577] Server  LOG     createUser: Session User: {}
+[00:08:36.578] Server  LOG     createUser: Validated Data: {}
+[00:08:41.561] Server  LOG     createUser: Session User: {}
+[00:08:41.562] Server  LOG     createUser: Validated Data: {}
+[00:09:23.520] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:09:40.859] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:09:40.859] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:09:40.859] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:09:45.090] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:09:45.235] Browser WARN    Image with src "/_next/static/media/3.7385f922.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:09:45.235] Browser WARN    Image with src "/_next/static/media/2.2463ecb4.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:09:45.235] Browser WARN    Image with src "/_next/static/media/1.22f53915.jpeg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[00:10:40.329] Server  LOG     Invalid credentials
+[00:10:40.329] Server  ERROR   [auth][error] CredentialsSignin: Read more at https://errors.authjs.dev#credentialssignin
+[00:10:40.331] Server  ERROR       at Module.callback (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_@auth_core_e00e322b._.js:4314:30)
+    at async AuthInternal (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_@auth_core_e00e322b._.js:5148:24)
+    at async Auth (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_@auth_core_e00e322b._.js:5370:34)
+    at async signIn (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_5e2b4992._.js:4219:17)
+    at async authenticate (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/_cd458bb6._.js:175:9)
+    at async executeActionAndPrepareForRender (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:3143)
+    at async /Users/vc/antigravity/wbtc-app/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:958
+    at async handleAction (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:34:23875)
+    at async renderToHTMLOrFlightImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:41:41714)
+    at async doRender (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_next_dist_2f87da1c._.js:8075:28)
+    at async AppPageRouteModule.handleResponse (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:43:63162)
+    at async handleResponse (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_next_dist_2f87da1c._.js:8281:32)
+    at async handler (/Users/vc/antigravity/wbtc-app/.next/dev/server/chunks/ssr/node_modules_next_dist_2f87da1c._.js:8652:20)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/base-server.js:912:17)
+    at async /Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/dev/next-dev-server.js:382:20
+    at async Span.traceAsyncFn (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/dev/next-dev-server.js:378:24)
+    at async invokeRender (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/Users/vc/antigravity/wbtc-app/node_modules/next/dist/server/lib/start-server.js:226:13)

@@ -21,13 +21,14 @@ interface ChildModalProps {
         therapyTypes?: {
             therapyId: string,
             therapistId?: string | null,
+            feePerSession?: string | null,
             therapy: { id: string, name: string },
             therapist?: { id: string, name: string } | null
         }[];
     } | null;
     parents?: { id: string; name: string }[];
     therapists?: { id: string; name: string }[];
-    therapies?: { id: string; name: string }[];
+    therapies?: { id: string; name: string; chargePerSession?: string | null }[];
 }
 
 export default function ChildModal({ isOpen, onClose, child, parents = [], therapists = [], therapies = [] }: ChildModalProps) {
@@ -42,6 +43,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
     const [diagnosis, setDiagnosis] = useState("");
     const [parentId, setParentId] = useState("");
     const [assignedTherapies, setAssignedTherapies] = useState<Record<string, string>>({}); // therapyId -> therapistId
+    const [therapyFees, setTherapyFees] = useState<Record<string, string>>({}); // therapyId -> feePerSession
     const [selectedTherapyIds, setSelectedTherapyIds] = useState<string[]>([]); // Keep this for easier UI toggling
     const [age, setAge] = useState<string>("");
     const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -67,10 +69,14 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 setDiagnosis(child.diagnosis || "");
                 setParentId(child.parentId || "");
                 const assignments: Record<string, string> = {};
+                const fees: Record<string, string> = {};
                 child.therapyTypes?.forEach(t => {
                     assignments[t.therapyId] = t.therapistId || "";
+                    // Use custom fee if set, otherwise empty (will show placeholder with default)
+                    fees[t.therapyId] = t.feePerSession ? String(t.feePerSession) : "";
                 });
                 setAssignedTherapies(assignments);
+                setTherapyFees(fees);
                 setSelectedTherapyIds(child.therapyTypes?.map(t => t.therapyId) || []);
                 setErrors({});
             } else {
@@ -81,6 +87,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 setDiagnosis("");
                 setParentId("");
                 setAssignedTherapies({});
+                setTherapyFees({});
                 setSelectedTherapyIds([]);
                 setErrors({});
             }
@@ -95,6 +102,42 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
         e.preventDefault();
         setErrors({});
 
+        // Validate that all selected therapies have a therapist assigned
+        const therapiesWithoutTherapist = selectedTherapyIds.filter(
+            tid => !assignedTherapies[tid] || assignedTherapies[tid] === ""
+        );
+
+        if (therapiesWithoutTherapist.length > 0) {
+            const therapyNames = therapiesWithoutTherapist
+                .map(tid => therapies.find(t => t.id === tid)?.name)
+                .filter(Boolean)
+                .join(", ");
+
+            setErrors({
+                therapies: [`Please assign a therapist for: ${therapyNames}`]
+            });
+            toast.error("Please assign therapists to all selected therapies");
+            return;
+        }
+
+        // Validate that all selected therapies have a session fee
+        const therapiesWithoutFee = selectedTherapyIds.filter(
+            tid => !therapyFees[tid] || therapyFees[tid] === ""
+        );
+
+        if (therapiesWithoutFee.length > 0) {
+            const therapyNames = therapiesWithoutFee
+                .map(tid => therapies.find(t => t.id === tid)?.name)
+                .filter(Boolean)
+                .join(", ");
+
+            setErrors({
+                therapies: [`Please set a session fee for: ${therapyNames}`]
+            });
+            toast.error("Please set session fees for all selected therapies");
+            return;
+        }
+
         const formData = new FormData();
         formData.append("name", name.trim());
         formData.append("status", status);
@@ -103,10 +146,11 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
         if (diagnosis) formData.append("diagnosis", diagnosis);
         if (parentId) formData.append("parentId", parentId);
 
-        // Pass therapies as JSON string: { therapyId, therapistId }[]
+        // Pass therapies as JSON string: { therapyId, therapistId, feePerSession }[]
         const therapiesToSubmit = selectedTherapyIds.map(tid => ({
             therapyId: tid,
-            therapistId: assignedTherapies[tid] || null
+            therapistId: assignedTherapies[tid] || null,
+            feePerSession: therapyFees[tid] || null
         }));
         formData.append("therapies", JSON.stringify(therapiesToSubmit));
 
@@ -134,9 +178,25 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
         setSelectedTherapyIds(prev => {
             const isSelected = prev.includes(id);
             if (isSelected) {
+                // Remove therapy from selection
                 const newState = prev.filter(tid => tid !== id);
+                // Also remove the fee for this therapy
+                setTherapyFees(prevFees => {
+                    const newFees = { ...prevFees };
+                    delete newFees[id];
+                    return newFees;
+                });
                 return newState;
             } else {
+                // Add therapy to selection
+                // Auto-populate with default fee from therapy
+                const therapy = therapies.find(t => t.id === id);
+                if (therapy?.chargePerSession) {
+                    setTherapyFees(prevFees => ({
+                        ...prevFees,
+                        [id]: String(therapy.chargePerSession)
+                    }));
+                }
                 return [...prev, id];
             }
         });
@@ -188,7 +248,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-gray-400`}
-                                        placeholder="e.g. John Doe"
+                                        placeholder="e.g. vellies"
                                     />
                                     {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name[0]}</p>}
                                 </div>
@@ -282,7 +342,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                                 </div>
 
                                                 {isSelected && (
-                                                    <div className="pl-8 pr-2 animate-in slide-in-from-top-1 duration-200">
+                                                    <div className="pl-8 pr-2 space-y-2 animate-in slide-in-from-top-1 duration-200">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                                                             <select
@@ -295,6 +355,20 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                                                     <option key={ther.id} value={ther.id}>{ther.name}</option>
                                                                 ))}
                                                             </select>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                                                            <div className="flex-1 flex items-center gap-2">
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">₹</span>
+                                                                <input
+                                                                    type="number"
+                                                                    placeholder={`Fee per session (default: ${t.chargePerSession || 'N/A'})`}
+                                                                    value={therapyFees[t.id] || ""}
+                                                                    onChange={(e) => setTherapyFees(prev => ({ ...prev, [t.id]: e.target.value }))}
+                                                                    className="flex-1 px-3 py-1.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                                                                />
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">per session</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )}

@@ -10,6 +10,7 @@ export const ChildSchema = z.object({
     therapies: z.array(z.object({
         therapyId: z.string().min(1, "Therapy ID is required"),
         therapistId: z.string().min(1, "Therapist is required for selected therapy").nullable(),
+        feePerSession: z.string().nullable().optional(),
     })).min(1, "At least one therapy must be assigned").refine(
         (therapies) => therapies.every(t => t.therapistId !== null && t.therapistId !== ""),
         { message: "All selected therapies must have a therapist assigned" }

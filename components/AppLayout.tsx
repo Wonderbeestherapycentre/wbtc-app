@@ -5,22 +5,13 @@ import { useExpenses } from "@/lib/context";
 import { Menu, X, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
-import ExpenseModal from "./ExpenseModal";
 
-interface Category {
-    id: string;
-    name: string;
-}
-
-export default function AppLayout({ children, categories = [], familyChildren = [], role = "ADMIN" }: { children: React.ReactNode; categories?: Category[]; familyChildren?: any[]; role?: "ADMIN" | "THERAPIST" | "PARENT" }) {
+export default function AppLayout({ children, familyChildren = [], role = "ADMIN" }: { children: React.ReactNode; familyChildren?: any[]; role?: "ADMIN" | "THERAPIST" | "PARENT" }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
     const { currentUser } = useExpenses();
 
     return (
         <div className="h-screen overflow-hidden flex flex-col md:flex-row">
-            <ExpenseModal isOpen={isAddExpenseOpen} onClose={() => setIsAddExpenseOpen(false)} categories={categories} familyChildren={familyChildren} />
-
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-50">
                 <div className="flex items-center gap-3">
@@ -43,7 +34,6 @@ export default function AppLayout({ children, categories = [], familyChildren = 
             <Sidebar
                 isOpen={mobileMenuOpen}
                 onClose={() => setMobileMenuOpen(false)}
-                onAddExpense={() => setIsAddExpenseOpen(true)}
                 role={role}
             />
 

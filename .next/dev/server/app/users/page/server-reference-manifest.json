@@ -15,36 +15,6 @@
       "exportedName": "deleteUser",
       "filename": "lib/actions.ts"
     },
-    "60c6e29ece8d1f4f6154f69defb223a13c651b4b10": {
-      "workers": {
-        "app/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "addExpenseAction",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/users/page": "action-browser"
-      },
-      "exportedName": "addExpenseAction",
-      "filename": "lib/actions.ts"
-    },
-    "60a0e6c1c04b9d54250546559c6761899044267282": {
-      "workers": {
-        "app/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "updateExpense",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/users/page": "action-browser"
-      },
-      "exportedName": "updateExpense",
-      "filename": "lib/actions.ts"
-    },
     "60dab743dadaa0aec5f2b671f90143f38c498e0f58": {
       "workers": {
         "app/users/page": {

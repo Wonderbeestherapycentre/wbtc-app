@@ -1,7 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { auth } from "@/auth";
-import { fetchCategories, fetchChildren } from "@/lib/data";
+import { fetchChildren } from "@/lib/data";
 import { User, Mail, Shield, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -12,7 +12,7 @@ export default async function ProfilePage() {
     const session = await auth();
     if (!session?.user) redirect("/");
 
-    const categories = await fetchCategories();
+
     const children = await fetchChildren();
 
     // Fetch full user details (e.g. family name)
@@ -23,7 +23,7 @@ export default async function ProfilePage() {
     if (!user) redirect("/");
 
     return (
-        <AppLayout categories={categories} familyChildren={children} role={session?.user?.role as any}>
+        <AppLayout familyChildren={children} role={session?.user?.role as any}>
 
             <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
 

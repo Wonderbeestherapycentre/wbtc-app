@@ -113,6 +113,7 @@ export const childTherapies = pgTable("child_therapies", {
     childId: uuid("child_id").references(() => children.id, { onDelete: "cascade" }).notNull(),
     therapyId: uuid("therapy_id").references(() => therapies.id, { onDelete: "cascade" }).notNull(),
     therapistId: uuid("therapist_id").references(() => users.id), // Specific therapist for this therapy
+    feePerSession: decimal("fee_per_session", { precision: 10, scale: 2 }), // Custom fee for this child (can differ from therapy's default charge)
 }, (t) => ({
     pk: { columns: [t.childId, t.therapyId] },
 }));

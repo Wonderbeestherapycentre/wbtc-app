@@ -27,7 +27,6 @@ interface Child {
 
 interface ChildSettingsProps {
     children: Child[];
-    categories?: { id: string; name: string }[];
     parents?: { id: string; name: string }[];
     therapists?: { id: string; name: string }[];
     therapies?: { id: string; name: string }[];
@@ -36,7 +35,6 @@ interface ChildSettingsProps {
 
 export default function ChildSettings({
     children,
-    categories = [],
     parents = [],
     therapists = [],
     therapies = [],

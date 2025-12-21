@@ -8,6 +8,13 @@
       "when": 1765820475468,
       "tag": "0000_rare_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766308772672,
+      "tag": "0001_next_sentinel",
+      "breakpoints": true
     }
   ]
 }
