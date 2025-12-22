@@ -27,7 +27,7 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
     const { data: childrenList, meta } = await fetchChildrenPaginated(page, ITEMS_PER_PAGE, true, search);
 
     return (
-        <AppLayout familyChildren={activeChildren} role={session?.user?.role as any}>
+        <AppLayout familyChildren={activeChildren} role={session?.user?.role as any} user={session?.user}>
             <div className="space-y-6 animate-fade-in">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>

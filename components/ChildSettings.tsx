@@ -11,6 +11,7 @@ import ConfirmModal from "./ConfirmModal";
 
 interface Child {
     id: string;
+    caseNumber?: string | null;
     name: string;
     status: "ACTIVE" | "INACTIVE";
     dob?: string | null;
@@ -140,6 +141,7 @@ export default function ChildSettings({
                         <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
                                 <th className="text-left py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
+                                <th className="text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Case ID</th>
                                 <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Parent</th>
                                 <th className="hidden md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Gender / Age</th>
                                 <th className="hidden xl:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Diagnosis</th>
@@ -178,6 +180,11 @@ export default function ChildSettings({
                                                     </span>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="py-1 px-3 md:py-2 md:px-6">
+                                            <span className="text-sm font-mono text-gray-600 dark:text-gray-300">
+                                                {child.caseNumber || "-"}
+                                            </span>
                                         </td>
                                         <td className="hidden lg:table-cell py-1 px-3 md:py-2 md:px-6">
                                             <span className="text-sm text-gray-600 dark:text-gray-300">

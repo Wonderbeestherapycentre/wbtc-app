@@ -59,14 +59,20 @@ __turbopack_context__.s([
     ()=>fetchChildren,
     "fetchChildrenPaginated",
     ()=>fetchChildrenPaginated,
+    "fetchGoals",
+    ()=>fetchGoals,
     "fetchParents",
     ()=>fetchParents,
+    "fetchSessionNotes",
+    ()=>fetchSessionNotes,
     "fetchSessions",
     ()=>fetchSessions,
     "fetchTherapies",
     ()=>fetchTherapies,
     "fetchTherapists",
     ()=>fetchTherapists,
+    "fetchUser",
+    ()=>fetchUser,
     "fetchUsers",
     ()=>fetchUsers
 ]);
@@ -87,7 +93,10 @@ async function fetchUsers() {
     const allUsers = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.users.findMany({
         orderBy: [
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$select$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["desc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["users"].createdAt)
-        ]
+        ],
+        with: {
+            children: true
+        }
     });
     return allUsers.map((u)=>({
             id: u.id,
@@ -100,8 +109,39 @@ async function fetchUsers() {
             mobile2: u.mobile2,
             address: u.address,
             doj: u.doj,
-            endDate: u.endDate
+            endDate: u.endDate,
+            children: u.children || [] // Include children
         }));
+}
+async function fetchUser(id) {
+    const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
+    if (!session?.user) return null;
+    try {
+        const user = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.users.findFirst({
+            where: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["users"].id, id),
+            with: {
+                children: true
+            }
+        });
+        if (!user) return null;
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            qualification: user.qualification,
+            specialization: user.specialization,
+            mobile1: user.mobile1,
+            mobile2: user.mobile2,
+            address: user.address,
+            doj: user.doj,
+            endDate: user.endDate,
+            children: user.children || []
+        };
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
 }
 async function fetchChildren(includeInactive = false) {
     const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
@@ -277,6 +317,62 @@ async function fetchSessions(startDate, endDate, therapistId) {
     }
     return data;
 }
+async function fetchGoals(childId) {
+    const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
+    if (!session?.user) return [];
+    const conditions = [];
+    if (childId) {
+        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["goals"].childId, childId));
+    }
+    if (session.user.role === "PARENT") {
+        conditions.push(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$sql$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`EXISTS (
+                SELECT 1 FROM "children" 
+                WHERE "children"."id" = "goals"."child_id" 
+                AND "children"."parent_id" = ${session.user.id}
+            )`);
+    } else if (session.user.role === "THERAPIST") {
+        if (!childId) {
+            conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["goals"].therapistId, session.user.id));
+        }
+    }
+    const data = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.goals.findMany({
+        where: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["and"])(...conditions),
+        orderBy: [
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$select$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["desc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["goals"].createdAt)
+        ],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true
+        }
+    });
+    return data;
+}
+async function fetchSessionNotes() {
+    const session = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$auth$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["auth"])();
+    if (!session?.user) return [];
+    const conditions = [];
+    // Therapists see only their own notes
+    if (session.user.role === "THERAPIST") {
+        conditions.push((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["eq"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sessionNotes"].therapistId, session.user.id));
+    } else if (session.user.role === "PARENT") {
+        // Parents shouldn't access this, but just in case filter by their children
+        conditions.push(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$sql$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sql"]`${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sessionNotes"].childId} IN (SELECT id FROM ${__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["children"]} WHERE parent_id = ${session.user.id})`);
+    }
+    // Admins see all
+    const data = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$index$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["db"].query.sessionNotes.findMany({
+        where: conditions.length > 0 ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$conditions$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["and"])(...conditions) : undefined,
+        orderBy: [
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$drizzle$2d$orm$2f$sql$2f$expressions$2f$select$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["desc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2f$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["sessionNotes"].date)
+        ],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true
+        }
+    });
+    return data;
+}
 }),
 "[project]/components/therapy/TherapyList.tsx [app-rsc] (client reference proxy) <module evaluation>", ((__turbopack_context__) => {
 "use strict";
@@ -346,6 +442,7 @@ async function TherapiesPage() {
     if (currentUserRole !== "ADMIN" && currentUserRole !== "THERAPIST") (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])("/dashboard");
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$AppLayout$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
         role: session?.user?.role,
+        user: session?.user,
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "space-y-6 animate-fade-in pb-10",
             children: [

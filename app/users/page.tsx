@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
-import { fetchUsers } from "@/lib/data";
+import { fetchUsers, fetchChildren, fetchTherapies } from "@/lib/data";
 import UserList from "@/components/settings/UserList";
 import { redirect } from "next/navigation";
 
@@ -12,10 +12,12 @@ export default async function UsersPage() {
     if (currentUserRole !== "ADMIN") redirect("/dashboard");
 
     const users = await fetchUsers();
+    const children = await fetchChildren(true); // Fetch all children, including inactive for admin reference if needed
+    const therapies = await fetchTherapies(true); // Fetch all therapies for specialization selection
 
 
     return (
-        <AppLayout role={session?.user?.role as any}>
+        <AppLayout role={session?.user?.role as any} user={session?.user}>
             <div className="space-y-6 animate-fade-in pb-10">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h2>
@@ -24,6 +26,8 @@ export default async function UsersPage() {
 
                 <UserList
                     users={users as any}
+                    allChildren={children as any}
+                    therapies={therapies as any}
                     currentUserRole={currentUserRole}
                     currentUserId={session?.user?.id || ""}
                 />

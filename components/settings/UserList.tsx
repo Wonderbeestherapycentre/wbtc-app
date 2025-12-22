@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Edit2, Trash2, Plus } from "lucide-react";
+import { Edit2, Trash2, Plus, Eye } from "lucide-react";
+import Link from "next/link";
 import { deleteUser } from "@/lib/actions";
 import UserModal from "./UserModal";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -19,15 +20,18 @@ interface User {
     address?: string | null;
     doj?: string | null;
     endDate?: string | null;
+    children?: { id: string; name: string }[];
 }
 
 interface UserListProps {
     users: User[];
     currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
     currentUserId: string;
+    allChildren?: { id: string; name: string; caseNumber?: string; parent?: { id: string; name: string } | null }[];
+    therapies?: { id: string; name: string; status: string }[];
 }
 
-export default function UserList({ users, currentUserRole, currentUserId }: UserListProps) {
+export default function UserList({ users, currentUserRole, currentUserId, allChildren = [], therapies = [] }: UserListProps) {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -58,6 +62,8 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                 onClose={() => setIsModalOpen(false)}
                 user={editingUser}
                 currentUserRole={currentUserRole}
+                allChildren={allChildren}
+                therapies={therapies}
             />
 
             <ConfirmModal
@@ -116,7 +122,15 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                                             <p className="text-sm text-gray-500">{user.email}</p>
                                             {user.role === 'THERAPIST' && (user.qualification || user.specialization) && (
                                                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                                                    {[user.qualification, user.specialization].filter(Boolean).join(' • ')}
+                                                    {[
+                                                        user.qualification,
+                                                        user.specialization ? (therapies.find(t => t.id === user.specialization)?.name || user.specialization) : null
+                                                    ].filter(Boolean).join(' • ')}
+                                                </p>
+                                            )}
+                                            {user.role === 'PARENT' && user.children && user.children.length > 0 && (
+                                                <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">
+                                                    Children: {user.children.map(c => c.name).join(', ')}
                                                 </p>
                                             )}
                                         </div>
@@ -145,6 +159,13 @@ export default function UserList({ users, currentUserRole, currentUserId }: User
                                 <td className="py-4 px-6 text-right">
                                     {(currentUserRole === "ADMIN" || currentUserId === user.id) && (
                                         <div className="flex items-center justify-end gap-2">
+                                            <Link
+                                                href={`/users/${user.id}`}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
+                                                title="View Details"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </Link>
                                             <button
                                                 onClick={() => {
                                                     setEditingUser(user);

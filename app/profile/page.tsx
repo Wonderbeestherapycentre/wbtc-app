@@ -23,7 +23,7 @@ export default async function ProfilePage() {
     if (!user) redirect("/");
 
     return (
-        <AppLayout familyChildren={children} role={session?.user?.role as any}>
+        <AppLayout familyChildren={children} role={session?.user?.role as any} user={session?.user}>
 
             <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
 

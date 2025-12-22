@@ -34,6 +34,7 @@ export const children = pgTable("children", {
     diagnosis: text("diagnosis"),
     parentId: uuid("parent_id").references(() => users.id), // Link to Parent User
     status: text("status", { enum: ["ACTIVE", "INACTIVE"] }).default("ACTIVE").notNull(),
+    caseNumber: text("case_number").unique(), // Dynamic ID like WBC000001
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -63,12 +64,17 @@ export const sessions = pgTable("sessions", {
 // 6. Session Notes (Documentation)
 export const sessionNotes = pgTable("session_notes", {
     id: uuid("id").defaultRandom().primaryKey(),
-    sessionId: uuid("session_id").references(() => sessions.id, { onDelete: "cascade" }).notNull(),
-    goalsAddressed: text("goals_addressed"),
-    activities: text("activities"),
+    childId: uuid("child_id").references(() => children.id).notNull(),
+    therapyId: uuid("therapy_id").references(() => therapies.id).notNull(),
+    therapistId: uuid("therapist_id").references(() => users.id).notNull(),
+    date: date("date").notNull(),
+    sessionId: uuid("session_id").references(() => sessions.id, { onDelete: "cascade" }), // Optional link to session
+    goalsAddressed: text("goals_addressed"), // JSON stringified array of goal IDs
+    activities: text("activities"), // JSON stringified array of {description: string, prompt: string}
     response: text("response"),
     remarks: text("remarks"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // 7. Assessments
@@ -93,6 +99,21 @@ export const childTherapies = pgTable("child_therapies", {
 }, (t) => ({
     pk: { columns: [t.childId, t.therapyId] },
 }));
+
+// 8. Goals (Therapy Objectives)
+export const goals = pgTable("goals", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    childId: uuid("child_id").references(() => children.id).notNull(),
+    therapyId: uuid("therapy_id").references(() => therapies.id).notNull(),
+    therapistId: uuid("therapist_id").references(() => users.id).notNull(),
+    title: text("title").notNull(),
+    objectives: text("objectives"), // JSON array stringified or simple text
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    status: text("status", { enum: ["IN_PROGRESS", "COMPLETED", "ARCHIVED"] }).default("IN_PROGRESS").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -134,7 +155,20 @@ export const sessionsRelations = relations(sessions, ({ one, many }) => ({
     child: one(children, { fields: [sessions.childId], references: [children.id] }),
     therapist: one(users, { fields: [sessions.therapistId], references: [users.id], relationName: "therapistSessions" }),
     therapy: one(therapies, { fields: [sessions.therapyId], references: [therapies.id] }),
-    notes: one(sessionNotes, { fields: [sessions.id], references: [sessionNotes.sessionId] }), // 1-to-1 usually
+    notes: many(sessionNotes), // Can have multiple notes
+}));
+
+export const sessionNotesRelations = relations(sessionNotes, ({ one }) => ({
+    child: one(children, { fields: [sessionNotes.childId], references: [children.id] }),
+    therapy: one(therapies, { fields: [sessionNotes.therapyId], references: [therapies.id] }),
+    therapist: one(users, { fields: [sessionNotes.therapistId], references: [users.id] }),
+    session: one(sessions, { fields: [sessionNotes.sessionId], references: [sessions.id] }),
+}));
+
+export const goalsRelations = relations(goals, ({ one }) => ({
+    child: one(children, { fields: [goals.childId], references: [children.id] }),
+    therapy: one(therapies, { fields: [goals.therapyId], references: [therapies.id] }),
+    therapist: one(users, { fields: [goals.therapistId], references: [users.id] }),
 }));
 
 

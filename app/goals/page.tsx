@@ -1,0 +1,49 @@
+import { fetchGoals, fetchChildren, fetchTherapies } from "@/lib/data";
+import { auth } from "@/auth";
+import AppLayout from "@/components/AppLayout";
+import GoalModal from "@/components/GoalModal";
+import GoalsClient from "@/components/GoalsClient"; // Moving client logic to separate component
+import SearchInput from "@/components/SearchInput"; // Reusing search
+
+export const metadata = {
+    title: "Therapy Goals | WBTC",
+};
+
+export default async function GoalsPage() {
+    const session = await auth();
+    const role = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
+
+    const goals = await fetchGoals();
+    const childrenList = await fetchChildren(true); // Helper to get names
+    const therapies = await fetchTherapies(true);
+
+    // Map minimal data for dropdowns
+    const childrenOptions = childrenList.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        caseNumber: c.caseNumber,
+        assignedTherapies: c.therapyTypes?.map((t: any) => t.therapyId) || []
+    }));
+    const therapyOptions = therapies.map((t: any) => ({ id: t.id, name: t.name }));
+
+    return (
+        <AppLayout role={session?.user?.role as any} user={session?.user}>
+            <div className="space-y-6 animate-fade-in pb-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Therapy Goals</h2>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">Track and manage objectives</p>
+                    </div>
+                    {/* Add Search if needed later */}
+                </div>
+
+                <GoalsClient
+                    initialGoals={goals}
+                    childrenList={childrenOptions}
+                    therapies={therapyOptions}
+                    role={role}
+                />
+            </div>
+        </AppLayout>
+    );
+}

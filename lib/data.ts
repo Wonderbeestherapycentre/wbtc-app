@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, roleEnum, childTherapies } from "./db/schema";
+import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes } from "./db/schema";
 
 import { eq, desc, asc, and, gte, lte, sql, ilike } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -10,7 +10,10 @@ export async function fetchUsers() {
 
     // Admin sees all? 
     const allUsers = await db.query.users.findMany({
-        orderBy: [desc(users.createdAt)]
+        orderBy: [desc(users.createdAt)],
+        with: {
+            children: true
+        }
     });
 
     return allUsers.map((u: any) => ({
@@ -25,7 +28,42 @@ export async function fetchUsers() {
         address: u.address,
         doj: u.doj,
         endDate: u.endDate,
+        children: u.children || [] // Include children
     }));
+}
+
+export async function fetchUser(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    try {
+        const user = await db.query.users.findFirst({
+            where: eq(users.id, id),
+            with: {
+                children: true
+            }
+        });
+
+        if (!user) return null;
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            qualification: user.qualification,
+            specialization: user.specialization,
+            mobile1: user.mobile1,
+            mobile2: user.mobile2,
+            address: user.address,
+            doj: user.doj,
+            endDate: user.endDate,
+            children: user.children || []
+        };
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
 }
 
 export async function fetchChildren(includeInactive = false) {
@@ -215,6 +253,71 @@ export async function fetchSessions(startDate?: Date, endDate?: Date, therapistI
     if (session.user.role === "PARENT") {
         return data.filter((s: any) => s.child.parentId === session.user.id);
     }
+
+    return data;
+}
+
+export async function fetchGoals(childId?: string) {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [];
+
+    if (childId) {
+        conditions.push(eq(goals.childId, childId));
+    }
+
+    if (session.user.role === "PARENT") {
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM "children" 
+                WHERE "children"."id" = "goals"."child_id" 
+                AND "children"."parent_id" = ${session.user.id}
+            )`
+        );
+    } else if (session.user.role === "THERAPIST") {
+        if (!childId) {
+            conditions.push(eq(goals.therapistId, session.user.id));
+        }
+    }
+
+    const data = await db.query.goals.findMany({
+        where: and(...conditions),
+        orderBy: [desc(goals.createdAt)],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+        }
+    });
+
+    return data;
+}
+
+export async function fetchSessionNotes() {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [];
+
+    // Therapists see only their own notes
+    if (session.user.role === "THERAPIST") {
+        conditions.push(eq(sessionNotes.therapistId, session.user.id));
+    } else if (session.user.role === "PARENT") {
+        // Parents shouldn't access this, but just in case filter by their children
+        conditions.push(sql`${sessionNotes.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+    }
+    // Admins see all
+
+    const data = await db.query.sessionNotes.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        orderBy: [desc(sessionNotes.date)],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+        }
+    });
 
     return data;
 }

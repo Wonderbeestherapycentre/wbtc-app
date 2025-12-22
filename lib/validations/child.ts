@@ -6,7 +6,7 @@ export const ChildSchema = z.object({
     dob: z.string().min(1, "Date of birth is required"),
     gender: z.string().min(1, "Gender is required"),
     diagnosis: z.string().optional().nullable(),
-    parentId: z.string().min(1, "Parent is required"),
+    parentId: z.string().optional().nullable().transform(v => v === "" ? null : v),
     therapies: z.array(z.object({
         therapyId: z.string().min(1, "Therapy ID is required"),
         therapistId: z.string().min(1, "Therapist is required for selected therapy").nullable(),

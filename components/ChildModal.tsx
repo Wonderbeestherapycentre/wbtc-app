@@ -27,11 +27,30 @@ interface ChildModalProps {
         }[];
     } | null;
     parents?: { id: string; name: string }[];
-    therapists?: { id: string; name: string }[];
+    therapists?: { id: string; name: string; specialization?: string | null }[];
     therapies?: { id: string; name: string; chargePerSession?: string | null }[];
 }
 
 export default function ChildModal({ isOpen, onClose, child, parents = [], therapists = [], therapies = [] }: ChildModalProps) {
+    // Helper function to get therapists that specialize in a specific therapy
+    const getTherapistsForTherapy = (therapyId: string) => {
+        return therapists.filter(therapist => {
+            if (!therapist.specialization) return false;
+
+            // Try to parse as JSON array (old format)
+            try {
+                const parsed = JSON.parse(therapist.specialization);
+                if (Array.isArray(parsed)) {
+                    return parsed.includes(therapyId);
+                }
+            } catch (e) {
+                // Not JSON, treat as single ID
+            }
+
+            // Direct match (new format)
+            return therapist.specialization === therapyId;
+        });
+    };
     const [mounted, setMounted] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -301,22 +320,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                 <p className="text-xs text-gray-400 mt-1">Separate multiple diagnoses with commas</p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Parent</label>
-                                    <select
-                                        value={parentId}
-                                        onChange={(e) => setParentId(e.target.value)}
-                                        className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.parentId ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
-                                    >
-                                        <option value="">Select Parent...</option>
-                                        {parents.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                    {errors.parentId && <p className="text-xs text-red-500 mt-1">{errors.parentId[0]}</p>}
-                                </div>
-                            </div>
+
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Therapy Types</label>
@@ -351,7 +355,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                                                 className="flex-1 px-3 py-1.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none"
                                                             >
                                                                 <option value="">Select Therapist for {t.name}...</option>
-                                                                {therapists.map(ther => (
+                                                                {getTherapistsForTherapy(t.id).map(ther => (
                                                                     <option key={ther.id} value={ther.id}>{ther.name}</option>
                                                                 ))}
                                                             </select>

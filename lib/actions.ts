@@ -1,16 +1,19 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies } from "./db/schema"; // Removed families, staffs, budgets, expenses, categories
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes } from "./db/schema"; // Removed families, staffs, budgets, expenses, categories
 
 import bcrypt from "bcryptjs";
-import { eq, desc, and } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { eq, desc, and, isNotNull } from "drizzle-orm";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
+import { GoalSchema, UpdateGoalSchema } from "./validations/goal";
+import { SessionNoteSchema, UpdateSessionNoteSchema } from "./validations/session-note";
 import { generateSecurePassword } from "./utils/password";
 
 export async function authenticate(
@@ -144,9 +147,29 @@ export async function createUser(formData: FormData) {
             mobile1,
             mobile2,
             address,
-            doj,
             endDate,
         });
+
+        // Handle Child Assignment
+        if (role === "PARENT") {
+            const childIdsStr = formData.get("childIds") as string;
+            if (childIdsStr) {
+                const childIds = JSON.parse(childIdsStr) as string[];
+                const newUser = await db.query.users.findFirst({
+                    where: eq(users.email, email),
+                    columns: { id: true }
+                });
+
+                if (newUser && childIds.length > 0) {
+                    // Assign selected children to this parent
+                    for (const childId of childIds) {
+                        await db.update(children)
+                            .set({ parentId: newUser.id })
+                            .where(eq(children.id, childId));
+                    }
+                }
+            }
+        }
 
         // Send credentials email
         try {
@@ -365,6 +388,35 @@ export async function updateUser(userId: string, formData: FormData) {
             .set(updateData)
             .where(eq(users.id, userId));
 
+        // Handle Child Assignment
+        if (role === "PARENT" || session.user.role === "ADMIN") { // Admin can update parent's children
+            // Check if we are updating a parent
+            const updatedUserRole = role || (await db.query.users.findFirst({ where: eq(users.id, userId), columns: { role: true } }))?.role;
+
+            if (updatedUserRole === "PARENT") {
+                const childIdsStr = formData.get("childIds") as string;
+                if (childIdsStr) {
+                    const childIds = JSON.parse(childIdsStr) as string[];
+
+                    // 1. Unassign children that were previously assigned but not in the new list
+                    // Actually, simpler approach: 
+                    // Set parentId=null for ALL children currently assigned to this parent
+                    await db.update(children)
+                        .set({ parentId: null })
+                        .where(eq(children.parentId, userId));
+
+                    // 2. Assign new list
+                    if (childIds.length > 0) {
+                        for (const childId of childIds) {
+                            await db.update(children)
+                                .set({ parentId: userId })
+                                .where(eq(children.id, childId));
+                        }
+                    }
+                }
+            }
+        }
+
         revalidatePath("/settings");
         revalidatePath("/users");
         return { message: "User updated" };
@@ -482,13 +534,28 @@ export async function createChild(formData: FormData) {
         }
     }
 
+    // Generate Case Number (Dynamic Unique ID)
+    let nextCaseNumber = "WBC000001";
+    const lastChild = await db.query.children.findFirst({
+        where: isNotNull(children.caseNumber),
+        orderBy: [desc(children.caseNumber)]
+    });
+
+    if (lastChild && lastChild.caseNumber) {
+        const lastNum = parseInt(lastChild.caseNumber.replace("WBC", ""));
+        if (!isNaN(lastNum)) {
+            nextCaseNumber = `WBC${String(lastNum + 1).padStart(6, "0")}`;
+        }
+    }
+
     const [newChild] = await db.insert(children).values({
         name: vName,
         status: vStatus,
         dob: vDob,
         gender: vGender,
         diagnosis: vDiagnosis,
-        parentId: vParentId,
+        parentId: vParentId || null,
+        caseNumber: nextCaseNumber,
     }).returning({ id: children.id });
 
     if (newChild && vTherapies.length > 0) {
@@ -611,3 +678,246 @@ export async function deleteChild(id: string) {
     revalidatePath("/settings");
     return { message: "Child deleted" };
 }
+
+// ----------------------------------------------------------------------
+// GOAL ACTIONS
+// ----------------------------------------------------------------------
+
+export async function createGoal(formData: FormData) {
+    try {
+        const session = await auth();
+        // Allow parents? Requirement says "therapist need goals page". Let's restrict to Therapist/Admin for now.
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized: Only therapists/admins can create goals" };
+        }
+
+        const rawData = {
+            title: formData.get("title") as string,
+            childId: formData.get("childId") as string,
+            therapyId: formData.get("therapyId") as string,
+            startDate: formData.get("startDate") as string,
+            endDate: formData.get("endDate") as string,
+            objectives: formData.get("objectives") as string,
+            status: (formData.get("status") as any) || "IN_PROGRESS",
+        };
+
+        const validatedFields = GoalSchema.safeParse(rawData);
+
+        if (!validatedFields.success) {
+            return {
+                message: "Validation Error",
+                errors: validatedFields.error.flatten().fieldErrors
+            };
+        }
+
+        const { title, childId, therapyId, startDate, endDate, objectives, status } = validatedFields.data;
+
+        await db.insert(goals).values({
+            title,
+            childId,
+            therapyId,
+            therapistId: session.user.id,
+            startDate: new Date(startDate).toISOString(),
+            endDate: new Date(endDate).toISOString(),
+            objectives,
+            status: status as any
+        });
+
+        revalidatePath("/goals");
+        revalidatePath(`/childrens/${childId}`);
+        return { message: "Goal created successfully" };
+
+    } catch (error) {
+        console.error("createGoal error:", error);
+        return { message: "Failed to create goal" };
+    }
+}
+
+export async function updateGoal(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        const rawData = {
+            id: formData.get("id") as string,
+            title: formData.get("title") as string,
+            childId: formData.get("childId") as string, // Might not update childId, but schema expects it if we use GoalSchema. UpdateGoalSchema usually partial?
+            // UpdateGoalSchema extends partial GoalSchema and adds ID.
+            // Let's grab what we can.
+            therapyId: formData.get("therapyId") as string, // Might need to pass even if hidden or not changed
+            startDate: formData.get("startDate") as string,
+            endDate: formData.get("endDate") as string,
+            objectives: formData.get("objectives") as string,
+            status: formData.get("status") as any,
+        };
+
+        const validatedFields = UpdateGoalSchema.safeParse(rawData);
+
+        if (!validatedFields.success) {
+            return {
+                message: "Validation Error",
+                errors: validatedFields.error.flatten().fieldErrors
+            };
+        }
+
+        const { id, title, startDate, endDate, objectives, status, childId, therapyId } = validatedFields.data;
+
+        await db.update(goals).set({
+            title,
+            childId: childId || undefined,
+            therapyId: therapyId || undefined,
+            startDate: startDate ? new Date(startDate).toISOString() : undefined,
+            endDate: endDate ? new Date(endDate).toISOString() : undefined,
+            objectives,
+            status: status as any,
+            updatedAt: new Date()
+        }).where(eq(goals.id, id));
+
+        revalidatePath("/goals");
+        if (childId) revalidatePath(`/childrens/${childId}`); // Also revalidate new child page if changed
+
+        return { message: "Goal updated successfully" };
+
+    } catch (error) {
+        console.error("updateGoal error:", error);
+        return { message: "Failed to update goal" };
+    }
+}
+
+export async function deleteGoal(id: string) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        await db.delete(goals).where(eq(goals.id, id));
+        revalidatePath("/goals");
+        return { message: "Goal deleted successfully" };
+    } catch (error) {
+        console.error("deleteGoal error:", error);
+        return { message: "Failed to delete goal" };
+    }
+}
+
+// ========================================
+// Session Notes Actions
+// ========================================
+
+export async function createSessionNote(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        const validated = SessionNoteSchema.safeParse({
+            childId: formData.get("childId"),
+            therapyId: formData.get("therapyId"),
+            date: formData.get("date"),
+            goalsAddressed: formData.get("goalsAddressed"),
+            activities: formData.get("activities"),
+        });
+
+        if (!validated.success) {
+            return {
+                message: "Validation failed",
+                errors: validated.error.flatten().fieldErrors,
+            };
+        }
+
+        const { childId, therapyId, date, goalsAddressed, activities } = validated.data;
+
+        await db.insert(sessionNotes).values({
+            childId,
+            therapyId,
+            therapistId: session.user.id,
+            date,
+            goalsAddressed: goalsAddressed || null,
+            activities: activities || null,
+        });
+
+        revalidatePath("/session-notes");
+        return { message: "Session note created successfully" };
+    } catch (error) {
+        console.error("createSessionNote error:", error);
+        return { message: "Failed to create session note" };
+    }
+}
+
+export async function updateSessionNote(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        const validated = UpdateSessionNoteSchema.safeParse({
+            id: formData.get("id"),
+            childId: formData.get("childId"),
+            therapyId: formData.get("therapyId"),
+            date: formData.get("date"),
+            goalsAddressed: formData.get("goalsAddressed"),
+            activities: formData.get("activities"),
+        });
+
+        if (!validated.success) {
+            return {
+                message: "Validation failed",
+                errors: validated.error.flatten().fieldErrors,
+            };
+        }
+
+        const { id, ...updateData } = validated.data;
+
+        // Filter out undefined values
+        const filteredData = Object.fromEntries(
+            Object.entries(updateData).filter(([_, v]) => v !== undefined)
+        );
+
+        if (Object.keys(filteredData).length === 0) {
+            return { message: "No fields to update" };
+        }
+
+        await db.update(sessionNotes)
+            .set({
+                ...filteredData,
+                updatedAt: new Date(),
+            })
+            .where(and(
+                eq(sessionNotes.id, id),
+                eq(sessionNotes.therapistId, session.user.id)
+            ));
+
+        revalidatePath("/session-notes");
+        return { message: "Session note updated successfully" };
+    } catch (error) {
+        console.error("updateSessionNote error:", error);
+        return { message: "Failed to update session note" };
+    }
+}
+
+export async function deleteSessionNote(id: string) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        await db.delete(sessionNotes).where(
+            and(
+                eq(sessionNotes.id, id),
+                eq(sessionNotes.therapistId, session.user.id)
+            )
+        );
+
+        revalidatePath("/session-notes");
+        return { message: "Session note deleted successfully" };
+    } catch (error) {
+        console.error("deleteSessionNote error:", error);
+        return { message: "Failed to delete session note" };
+    }
+}
+

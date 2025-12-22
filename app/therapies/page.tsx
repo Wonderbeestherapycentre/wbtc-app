@@ -20,7 +20,7 @@ export default async function TherapiesPage() {
     if (currentUserRole !== "ADMIN" && currentUserRole !== "THERAPIST") redirect("/dashboard");
 
     return (
-        <AppLayout role={session?.user?.role as any}>
+        <AppLayout role={session?.user?.role as any} user={session?.user}>
             <div className="space-y-6 animate-fade-in pb-10">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Services</h2>

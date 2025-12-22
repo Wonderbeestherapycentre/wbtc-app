@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { X, Check, ChevronsUpDown } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { updateUser, createUser } from "@/lib/actions";
@@ -18,6 +18,7 @@ interface User {
     address?: string | null;
     doj?: string | null;
     endDate?: string | null;
+    children?: { id: string; name: string }[];
 }
 
 interface UserModalProps {
@@ -25,14 +26,20 @@ interface UserModalProps {
     onClose: () => void;
     user?: User | null;
     currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
+    allChildren?: { id: string; name: string; caseNumber?: string; parent?: { id: string; name: string } | null }[];
+    therapies?: { id: string; name: string; status: string }[];
 }
 
-export default function UserModal({ isOpen, onClose, user, currentUserRole }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, user, currentUserRole, allChildren = [], therapies = [] }: UserModalProps) {
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
 
-    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "">(user?.role || "");
+    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "">(user?.role || "PARENT");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+
+    const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
+    const [selectedTherapyId, setSelectedTherapyId] = useState("");
+    const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -43,7 +50,31 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
         if (user?.role) {
             setSelectedRole(user.role);
         } else {
-            setSelectedRole("");
+            setSelectedRole("PARENT");
+        }
+
+        if (user?.children) {
+            setSelectedChildIds(user.children.map(c => c.id));
+        } else {
+            setSelectedChildIds([]);
+        }
+
+        // Initialize therapy ID from user's specialization
+        if (user?.specialization) {
+            // Could be JSON array (old multi-select) or single ID
+            try {
+                const parsed = JSON.parse(user.specialization);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setSelectedTherapyId(parsed[0]); // Take first one
+                } else {
+                    setSelectedTherapyId("");
+                }
+            } catch (e) {
+                // If not JSON, treat as direct ID or leave empty
+                setSelectedTherapyId(user.specialization);
+            }
+        } else {
+            setSelectedTherapyId("");
         }
     }, [user, isOpen]);
 
@@ -52,6 +83,15 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+
+        if (selectedRole === "PARENT") {
+            if (selectedChildIds.length === 0) {
+                setFieldErrors({ children: ["At least one child must be selected"] });
+                return;
+            }
+            formData.append("childIds", JSON.stringify(selectedChildIds));
+        }
+
         setFieldErrors({});
 
         startTransition(async () => {
@@ -131,6 +171,69 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                             </div>
                         )}
 
+                        {selectedRole === "PARENT" && (
+                            <div className="relative">
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Children</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsChildSelectOpen(!isChildSelectOpen)}
+                                    className={`w-full px-4 py-2 bg-white dark:bg-neutral-800 border ${fieldErrors.children ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all flex items-center justify-between text-left`}
+                                >
+                                    <span className={`block truncate ${selectedChildIds.length === 0 ? "text-gray-400" : "text-gray-900 dark:text-white"}`}>
+                                        {selectedChildIds.length === 0
+                                            ? "Select Child"
+                                            : `${selectedChildIds.length} Child${selectedChildIds.length > 1 ? 'ren' : ''} Selected`
+                                        }
+                                    </span>
+                                    <ChevronsUpDown className="w-4 h-4 text-gray-400" />
+                                </button>
+                                {fieldErrors.children && (
+                                    <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.children[0]}</p>
+                                )}
+
+                                {isChildSelectOpen && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-gray-100 dark:border-neutral-800 max-h-60 overflow-auto">
+                                        <div className="p-1">
+                                            {allChildren.length === 0 ? (
+                                                <div className="px-4 py-2 text-sm text-gray-500">No children available</div>
+                                            ) : (
+                                                allChildren
+                                                    .filter(child => !child.parent || (user && child.parent.id === user.id) || selectedChildIds.includes(child.id))
+                                                    .sort((a, b) => {
+                                                        const aSelected = selectedChildIds.includes(a.id);
+                                                        const bSelected = selectedChildIds.includes(b.id);
+                                                        if (aSelected && !bSelected) return -1;
+                                                        if (!aSelected && bSelected) return 1;
+                                                        return a.name.localeCompare(b.name);
+                                                    })
+                                                    .map((child) => (
+                                                        <div
+                                                            key={child.id}
+                                                            className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors ${selectedChildIds.includes(child.id)
+                                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                                                : "hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-700 dark:text-gray-300"
+                                                                }`}
+                                                            onClick={() => {
+                                                                setSelectedChildIds(prev =>
+                                                                    prev.includes(child.id)
+                                                                        ? prev.filter(id => id !== child.id)
+                                                                        : [...prev, child.id]
+                                                                );
+                                                            }}
+                                                        >
+                                                            <span>{child.name} {child.caseNumber ? `(${child.caseNumber})` : ''}</span>
+                                                            {selectedChildIds.includes(child.id) && (
+                                                                <Check className="w-4 h-4" />
+                                                            )}
+                                                        </div>
+                                                    ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {selectedRole === "THERAPIST" && (
                             <>
                                 <div className="animate-fade-in">
@@ -147,12 +250,20 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 </div>
                                 <div className="animate-fade-in">
                                     <label className="block text-sm font-medium mb-1 dark:text-gray-300">Specialization</label>
-                                    <input
+                                    <select
                                         name="specialization"
-                                        defaultValue={user?.specialization || ""}
-                                        placeholder="e.g. Occupational Therapist, Speech Therapist"
+                                        value={selectedTherapyId}
+                                        onChange={(e) => setSelectedTherapyId(e.target.value)}
                                         className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.specialization ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
-                                    />
+                                    >
+                                        <option value="">Select Therapy</option>
+                                        {therapies
+                                            .filter(t => t.status === 'ACTIVE')
+                                            .map(therapy => (
+                                                <option key={therapy.id} value={therapy.id}>{therapy.name}</option>
+                                            ))
+                                        }
+                                    </select>
                                     {fieldErrors.specialization && (
                                         <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.specialization[0]}</p>
                                     )}
@@ -208,18 +319,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole }: Us
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.doj[0]}</p>
                             )}
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">End Date</label>
-                            <input
-                                name="endDate"
-                                type="date"
-                                defaultValue={user?.endDate || ""}
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.endDate ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
-                            />
-                            {fieldErrors.endDate && (
-                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.endDate[0]}</p>
-                            )}
-                        </div>
+
                     </div>
 
                     <div className="pt-4 flex justify-end gap-3">

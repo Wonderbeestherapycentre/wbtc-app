@@ -47,6 +47,12 @@
     },
     "00b8854e641a2918644c790895a996121032778623": {
       "workers": {
+        "app/childrens/[id]/page": {
+          "moduleId": "[project]/.next-internal/server/app/childrens/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "signOutAction",
+          "filename": "lib/actions.ts"
+        },
         "app/childrens/page": {
           "moduleId": "[project]/.next-internal/server/app/childrens/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -59,8 +65,14 @@
           "exportedName": "signOutAction",
           "filename": "lib/actions.ts"
         },
-        "app/profile/page": {
-          "moduleId": "[project]/.next-internal/server/app/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/goals/page": {
+          "moduleId": "[project]/.next-internal/server/app/goals/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "signOutAction",
+          "filename": "lib/actions.ts"
+        },
+        "app/session-notes/page": {
+          "moduleId": "[project]/.next-internal/server/app/session-notes/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "signOutAction",
           "filename": "lib/actions.ts"
@@ -79,59 +91,16 @@
         }
       },
       "layer": {
+        "app/childrens/[id]/page": "action-browser",
         "app/childrens/page": "action-browser",
         "app/dashboard/page": "action-browser",
-        "app/profile/page": "action-browser",
+        "app/goals/page": "action-browser",
+        "app/session-notes/page": "action-browser",
         "app/therapies/page": "action-browser",
         "app/users/page": "action-browser"
       },
       "filename": "lib/actions.ts",
       "exportedName": "signOutAction"
-    },
-    "402f5c00da4fc1285f6f7ef20432bc9ed6ebef59eb": {
-      "workers": {
-        "app/therapies/page": {
-          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "deleteTherapy",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/therapies/page": "action-browser"
-      },
-      "filename": "lib/actions.ts",
-      "exportedName": "deleteTherapy"
-    },
-    "4004a39d53f9f82adaca5d47cb1472f70093f96d99": {
-      "workers": {
-        "app/therapies/page": {
-          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "createTherapy",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/therapies/page": "action-browser"
-      },
-      "filename": "lib/actions.ts",
-      "exportedName": "createTherapy"
-    },
-    "6026f6639ed3236aa7bc9b2ddbc1bbd659fe6210b2": {
-      "workers": {
-        "app/therapies/page": {
-          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "updateTherapy",
-          "filename": "lib/actions.ts"
-        }
-      },
-      "layer": {
-        "app/therapies/page": "action-browser"
-      },
-      "filename": "lib/actions.ts",
-      "exportedName": "updateTherapy"
     },
     "4019303315d9e9dfabab44d37344828bb4a35e7b2a": {
       "workers": {
@@ -178,6 +147,81 @@
       "filename": "lib/actions.ts",
       "exportedName": "updateChild"
     },
+    "40e5407a20a452417576ace7bd82b7c5abc0af9843": {
+      "workers": {
+        "app/session-notes/page": {
+          "moduleId": "[project]/.next-internal/server/app/session-notes/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteSessionNote",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/session-notes/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "deleteSessionNote"
+    },
+    "4054a20a40a598fc6f33baefe7b14ce7146ea33567": {
+      "workers": {
+        "app/session-notes/page": {
+          "moduleId": "[project]/.next-internal/server/app/session-notes/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createSessionNote",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/session-notes/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "createSessionNote"
+    },
+    "40dc6c0f3bc2d98e15c6622ebc364526d9e05f420b": {
+      "workers": {
+        "app/session-notes/page": {
+          "moduleId": "[project]/.next-internal/server/app/session-notes/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateSessionNote",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/session-notes/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "updateSessionNote"
+    },
+    "40f1c5ce0ba986c4eb212c0ba52f68a017bcd9dbdb": {
+      "workers": {
+        "app/goals/page": {
+          "moduleId": "[project]/.next-internal/server/app/goals/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createGoal",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/goals/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "createGoal"
+    },
+    "407e2fb39f40b8427aa2e7211c7575adb4692a3971": {
+      "workers": {
+        "app/goals/page": {
+          "moduleId": "[project]/.next-internal/server/app/goals/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateGoal",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/goals/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "updateGoal"
+    },
     "60d7312b4cd1b908cc65ee08f6bb4476ff14b3180e": {
       "workers": {
         "app/page": {
@@ -193,20 +237,50 @@
       "filename": "lib/actions.ts",
       "exportedName": "authenticate"
     },
-    "6078d6d8d9e2f6378a3ba320e8413402c1f5df3dd2": {
+    "402f5c00da4fc1285f6f7ef20432bc9ed6ebef59eb": {
       "workers": {
-        "app/profile/page": {
-          "moduleId": "[project]/.next-internal/server/app/profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/therapies/page": {
+          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
-          "exportedName": "updatePassword",
+          "exportedName": "deleteTherapy",
           "filename": "lib/actions.ts"
         }
       },
       "layer": {
-        "app/profile/page": "action-browser"
+        "app/therapies/page": "action-browser"
       },
       "filename": "lib/actions.ts",
-      "exportedName": "updatePassword"
+      "exportedName": "deleteTherapy"
+    },
+    "4004a39d53f9f82adaca5d47cb1472f70093f96d99": {
+      "workers": {
+        "app/therapies/page": {
+          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createTherapy",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/therapies/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "createTherapy"
+    },
+    "6026f6639ed3236aa7bc9b2ddbc1bbd659fe6210b2": {
+      "workers": {
+        "app/therapies/page": {
+          "moduleId": "[project]/.next-internal/server/app/therapies/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateTherapy",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/therapies/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "updateTherapy"
     }
   },
   "edge": {},

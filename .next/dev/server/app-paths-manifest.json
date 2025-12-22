@@ -2,8 +2,9 @@
   "/childrens/[id]/page": "app/childrens/[id]/page.js",
   "/childrens/page": "app/childrens/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/goals/page": "app/goals/page.js",
   "/page": "app/page.js",
-  "/profile/page": "app/profile/page.js",
+  "/session-notes/page": "app/session-notes/page.js",
   "/therapies/page": "app/therapies/page.js",
   "/users/page": "app/users/page.js"
 }

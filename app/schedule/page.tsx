@@ -22,7 +22,7 @@ export default async function SchedulePage() {
     const sessions = await fetchSessions(startDate, endDate);
 
     return (
-        <AppLayout role={currentUserRole}>
+        <AppLayout role={currentUserRole} user={session?.user}>
             <div className="space-y-6 animate-fade-in pb-10">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h2>

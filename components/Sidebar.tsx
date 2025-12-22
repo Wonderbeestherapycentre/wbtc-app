@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import UserSwitcher from "./UserSwitcher";
@@ -24,6 +24,8 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         // { icon: Calendar, label: "Schedule", href: "/schedule" },
         // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
+        { icon: Tags, label: "Goals", href: "/goals" },
+        { icon: FileText, label: "Session Notes", href: "/session-notes" },
         // { icon: Clock, label: "Due List", href: "/dues\" },
         { icon: Users, label: "Users", href: "/users" },
         { icon: Heart, label: "Services", href: "/therapies" },
@@ -33,6 +35,8 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
+        { icon: Tags, label: "Goals", href: "/goals" },
+        { icon: FileText, label: "Session Notes", href: "/session-notes" },
         // { icon: Heart, label: "Services", href: "/therapies" },
     ];
 
@@ -40,7 +44,6 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Clock, label: "Due List", href: "/dues" },
     ];
 
     let navItems = ADMIN_NAV;
@@ -59,7 +62,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
 
             <aside
                 className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
-                    } flex flex-col overflow-y-auto`}
+                    } flex flex-col overflow-hidden`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
@@ -116,7 +119,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                     </nav>
 
                     {/* Footer / User Profile */}
-                    <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50">
+                    <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 flex-shrink-0">
                         <UserSwitcher user={user} />
                     </div>
                 </div>
