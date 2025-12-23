@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VR FinTrack",
+  title: "Wonderbees Therapy Centre",
   description: "Wonderbees Therapy Centre Management System",
   icons: {
     icon: [
