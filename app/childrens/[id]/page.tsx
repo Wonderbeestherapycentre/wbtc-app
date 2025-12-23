@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { fetchChild, fetchTherapies } from "@/lib/data";
-
-import { ArrowLeft, Calendar, User, Activity, Mail, Phone, MapPin } from "lucide-react";
+import { fetchChild, fetchTherapies, fetchGoals, fetchGoalsPaginated } from "@/lib/data";
+import { ArrowLeft, Calendar, User, Activity, Mail, Phone, MapPin, Target } from "lucide-react";
 import Link from "next/link";
 import { format, intervalToDuration } from "date-fns";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
+import ChildGoalsTable from "@/components/ChildGoalsTable";
 
 interface ChildPageProps {
     params: Promise<{
@@ -13,13 +13,24 @@ interface ChildPageProps {
     }>;
 }
 
-export default async function ChildPage({ params }: ChildPageProps) {
+export default async function ChildPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{ page?: string }>;
+}) {
     const { id } = await params;
+    const { page: pageParam } = await searchParams;
+    const page = parseInt(pageParam || "1");
+    const limit = 5;
+
     const session = await auth();
 
-    const [child, therapies] = await Promise.all([
+    const [child, therapies, { data: goals, meta: goalsMeta }] = await Promise.all([
         fetchChild(id),
-        fetchTherapies(true) // Include inactive therapies just in case
+        fetchTherapies(true),
+        fetchGoalsPaginated(page, limit, id)
     ]);
 
     if (!child) {
@@ -185,6 +196,20 @@ export default async function ChildPage({ params }: ChildPageProps) {
                         </div>
                     </div>
                 )}
+
+                {/* Therapy Goals Section */}
+                <ChildGoalsTable
+                    goals={goals}
+                    meta={goalsMeta}
+                    role={session?.user?.role as any}
+                    childrenList={[{
+                        id: child.id,
+                        name: child.name,
+                        caseNumber: child.caseNumber,
+                        assignedTherapies: child.therapyTypes?.map((t: any) => t.therapyId) || []
+                    }]}
+                    therapies={therapies.map((t: any) => ({ id: t.id, name: t.name }))}
+                />
 
                 {/* Assigned Therapies Detailed List */}
                 {child.therapyTypes && child.therapyTypes.length > 0 && (

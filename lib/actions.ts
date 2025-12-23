@@ -724,20 +724,38 @@ export async function createGoal(formData: FormData) {
 
         const { title, childId, therapyId, startDate, endDate, objectives, status } = validatedFields.data;
 
-        await db.insert(goals).values({
-            title: title || null,
-            childId,
-            therapyId,
-            therapistId: session.user.id,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(endDate).toISOString(),
-            objectives,
-            status: status as any
-        });
+        // Parse objectives (it's a JSON stringified array)
+        let objectivesList: string[] = [];
+        try {
+            objectivesList = JSON.parse(objectives);
+        } catch (e) {
+            objectivesList = [objectives];
+        }
+
+        // Filter out empty ones just in case
+        const finalObjectives = objectivesList.filter(o => o.trim() !== "");
+
+        if (finalObjectives.length === 0) {
+            return { message: "At least one valid goal is required" };
+        }
+
+        // Create a separate goal record for each objective
+        for (const objectiveText of finalObjectives) {
+            await db.insert(goals).values({
+                title: objectiveText, // Each objective becomes a separate goal with its own title
+                childId,
+                therapyId,
+                therapistId: session.user.id,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                objectives: JSON.stringify([objectiveText]), // Keep as array for compatibility if needed elsewhere
+                status: status as any
+            });
+        }
 
         revalidatePath("/goals");
         revalidatePath(`/childrens/${childId}`);
-        return { message: "Goal created successfully" };
+        return { message: `${finalObjectives.length} goals created successfully` };
 
     } catch (error) {
         console.error("createGoal error:", error);
@@ -776,19 +794,31 @@ export async function updateGoal(formData: FormData) {
 
         const { id, title, startDate, endDate, objectives, status, childId, therapyId } = validatedFields.data;
 
+        // When updating, we are updating a single specific goal record.
+        // We use the first objective if titles aren't explicitly passed, or vice-versa.
+        let finalTitle = title;
+        if (!finalTitle && objectives) {
+            try {
+                const parsed = JSON.parse(objectives);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    finalTitle = parsed[0];
+                }
+            } catch (e) { }
+        }
+
         await db.update(goals).set({
-            title: title || null,
+            title: finalTitle || null,
             childId: childId || undefined,
             therapyId: therapyId || undefined,
             startDate: startDate ? new Date(startDate).toISOString() : undefined,
             endDate: endDate ? new Date(endDate).toISOString() : undefined,
-            objectives,
+            objectives: objectives || undefined,
             status: status as any,
             updatedAt: new Date()
         }).where(eq(goals.id, id));
 
         revalidatePath("/goals");
-        if (childId) revalidatePath(`/childrens/${childId}`); // Also revalidate new child page if changed
+        if (childId) revalidatePath(`/childrens/${childId}`);
 
         return { message: "Goal updated successfully" };
 

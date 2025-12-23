@@ -1,4 +1,4 @@
-import { fetchGoals, fetchChildren, fetchTherapies } from "@/lib/data";
+import { fetchGoals, fetchChildren, fetchTherapies, fetchGoalsPaginated } from "@/lib/data";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 import GoalModal from "@/components/GoalModal";
@@ -9,12 +9,20 @@ export const metadata = {
     title: "Therapy Goals | WBTC",
 };
 
-export default async function GoalsPage() {
+export default async function GoalsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ page?: string; search?: string; status?: string }>;
+}) {
+    const { page: pageParam, search, status } = await searchParams;
+    const page = parseInt(pageParam || "1");
+    const limit = 10;
+
     const session = await auth();
     const role = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
 
-    const goals = await fetchGoals();
-    const childrenList = await fetchChildren(true); // Helper to get names
+    const { data: goals, meta } = await fetchGoalsPaginated(page, limit, undefined, search, status);
+    const childrenList = await fetchChildren(true);
     const therapies = await fetchTherapies(true);
 
     // Map minimal data for dropdowns
@@ -34,11 +42,11 @@ export default async function GoalsPage() {
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Therapy Goals</h2>
                         <p className="text-gray-500 dark:text-gray-400 mt-1">Track and manage objectives</p>
                     </div>
-                    {/* Add Search if needed later */}
                 </div>
 
                 <GoalsClient
                     initialGoals={goals}
+                    meta={meta}
                     childrenList={childrenOptions}
                     therapies={therapyOptions}
                     role={role}

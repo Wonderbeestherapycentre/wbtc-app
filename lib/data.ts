@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes } from "./db/schema";
 
-import { eq, desc, asc, and, gte, lte, sql, ilike } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lte, sql, ilike, count } from "drizzle-orm";
 import { auth } from "@/auth";
 
 export async function fetchUsers() {
@@ -292,6 +292,73 @@ export async function fetchGoals(childId?: string) {
     });
 
     return data;
+}
+
+export async function fetchGoalsPaginated(page: number, limit: number, childId?: string, search?: string, status?: string) {
+    const session = await auth();
+    if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
+
+    const offset = (page - 1) * limit;
+    const conditions = [];
+
+    if (childId) {
+        conditions.push(eq(goals.childId, childId));
+    }
+
+    if (status && status !== "ALL") {
+        conditions.push(eq(goals.status, status as any));
+    }
+
+    if (session.user.role === "PARENT") {
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM "children" 
+                WHERE "children"."id" = "goals"."child_id" 
+                AND "children"."parent_id" = ${session.user.id}
+            )`
+        );
+    } else if (session.user.role === "THERAPIST" && !childId) {
+        conditions.push(eq(goals.therapistId, session.user.id));
+    }
+
+    if (search) {
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM "children" 
+                WHERE "children"."id" = "goals"."child_id" 
+                AND "children"."name" ILIKE ${`%${search}%`}
+            )`
+        );
+    }
+
+    // Get Total Count
+    const countResult = await db
+        .select({ value: count() })
+        .from(goals)
+        .where(and(...conditions));
+    const totalCount = Number(countResult[0]?.value || 0);
+
+    const data = await db.query.goals.findMany({
+        where: and(...conditions),
+        orderBy: [desc(goals.createdAt)],
+        limit,
+        offset,
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+        }
+    });
+
+    return {
+        data,
+        meta: {
+            total: totalCount,
+            page: page,
+            limit: limit,
+            totalPages: Math.ceil(totalCount / limit)
+        }
+    };
 }
 
 export async function fetchSessionNotes() {

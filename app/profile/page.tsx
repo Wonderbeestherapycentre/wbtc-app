@@ -1,7 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import { auth } from "@/auth";
-import { fetchChildren } from "@/lib/data";
+import { fetchChildren, fetchTherapies } from "@/lib/data";
 import { User, Mail, Shield, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -13,7 +13,10 @@ export default async function ProfilePage() {
     if (!session?.user) redirect("/");
 
 
-    const children = await fetchChildren();
+    const [children, therapies] = await Promise.all([
+        fetchChildren(),
+        fetchTherapies(true)
+    ]);
 
     // Fetch full user details (e.g. family name)
     const user = await db.query.users.findFirst({
@@ -91,7 +94,9 @@ export default async function ProfilePage() {
                                         )}
                                         {user.specialization && (
                                             <p className="text-gray-900 dark:text-white font-medium">
-                                                <span className="text-gray-500">Specialization:</span> {user.specialization}
+                                                <span className="text-gray-500">Specialization:</span> {
+                                                    therapies.find((t: any) => t.id === user.specialization)?.name || user.specialization
+                                                }
                                             </p>
                                         )}
                                     </div>

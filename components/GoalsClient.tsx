@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, Calendar, CheckCircle2, Circle, Archive, Eye, EyeOff, Edit2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Search, Calendar, CheckCircle2, Circle, Archive, Eye, EyeOff, Edit2, ChevronLeft, ChevronRight } from "lucide-react";
 import GoalModal from "./GoalModal";
 import { format } from "date-fns";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 interface GoalsClientProps {
     initialGoals: any[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
     childrenList: { id: string; name: string; caseNumber?: string; assignedTherapies: string[] }[];
     therapies: { id: string; name: string }[];
     role: "ADMIN" | "THERAPIST" | "PARENT";
@@ -14,15 +21,47 @@ interface GoalsClientProps {
 
 export default function GoalsClient({
     initialGoals,
+    meta,
     childrenList,
     therapies,
     role
 }: GoalsClientProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<any>(null);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState<string>("ALL");
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+    const [filterStatus, setFilterStatus] = useState<string>(searchParams.get("status") || "ALL");
     const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
+
+    const updateFilters = useCallback((newSearch: string, newStatus: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (newSearch) params.set("search", newSearch);
+        else params.delete("search");
+
+        if (newStatus && newStatus !== "ALL") params.set("status", newStatus);
+        else params.delete("status");
+
+        params.set("page", "1"); // Reset to page 1 on filter
+        router.push(`${pathname}?${params.toString()}`);
+    }, [pathname, router, searchParams]);
+
+    // Handle search debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== (searchParams.get("search") || "")) {
+                updateFilters(searchTerm, filterStatus);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm, filterStatus, updateFilters, searchParams]);
+
+    const handleStatusChange = (status: string) => {
+        setFilterStatus(status);
+        updateFilters(searchTerm, status);
+    };
 
     const handleCreate = () => {
         setEditingGoal(null);
@@ -38,16 +77,6 @@ export default function GoalsClient({
         e.stopPropagation();
         setExpandedGoal(expandedGoal === goalId ? null : goalId);
     };
-
-    // Filter Logic
-    const filteredGoals = initialGoals.filter(goal => {
-        const matchesSearch =
-            goal.child.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesStatus = filterStatus === "ALL" || goal.status === filterStatus;
-
-        return matchesSearch && matchesStatus;
-    });
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -81,7 +110,7 @@ export default function GoalsClient({
                 <div className="flex gap-2">
                     <select
                         value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        onChange={(e) => handleStatusChange(e.target.value)}
                         className="px-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
                         <option value="ALL">All Status</option>
@@ -106,108 +135,89 @@ export default function GoalsClient({
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium">
-                                <th className="px-6 py-4">Child & Therapy</th>
+                            <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium whitespace-nowrap">
+                                <th className="px-6 py-4 w-12">S.No</th>
+                                <th className="px-6 py-4 min-w-[200px]">Goal Description</th>
+                                <th className="px-6 py-4">Child (Name & ID)</th>
+                                <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
-                            {filteredGoals.length > 0 ? (
-                                filteredGoals.map((goal) => (
-                                    <>
-                                        <tr
-                                            key={goal.id}
-                                            className="group hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-300">
-                                                        {goal.child.name[0]}
-                                                    </div>
-                                                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">
+                            {initialGoals.length > 0 ? (
+                                initialGoals.map((goal, index) => (
+                                    <tr
+                                        key={goal.id}
+                                        className="group hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
+                                    >
+                                        <td className="px-6 py-4 text-sm text-gray-400 font-medium">
+                                            {(meta.page - 1) * meta.limit + index + 1}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed font-medium line-clamp-2" title={goal.title}>
+                                                {goal.title || "No goal description"}
+                                            </p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[10px] font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                                                    {goal.child.name[0]}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
                                                         {goal.child.name}
-                                                        {goal.child.caseNumber && <span className="text-xs text-gray-500 ml-1">({goal.child.caseNumber})</span>}
                                                     </span>
-                                                </div>
-                                                {role === "ADMIN" && (
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 pl-8 space-y-0.5">
-                                                        <div>{goal.therapy.name}</div>
-                                                        <div className="text-[10px] text-gray-400">By: {goal.therapist?.name || "Unknown"}</div>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
-                                                    <Calendar className="w-4 h-4 text-gray-400" />
-                                                    <div className="flex flex-col text-xs">
-                                                        <span>{format(new Date(goal.startDate), "MMM d, yyyy")}</span>
-                                                        <span className="text-gray-400">to {format(new Date(goal.endDate), "MMM d, yyyy")}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1 ${getStatusColor(goal.status)}`}>
-                                                    {getStatusIcon(goal.status)}
-                                                    {goal.status.replace("_", " ")}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={(e) => toggleExpand(goal.id, e)}
-                                                        className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                        title={expandedGoal === goal.id ? "Hide goals" : "View goals"}
-                                                    >
-                                                        {expandedGoal === goal.id ? (
-                                                            <EyeOff className="w-4 h-4" />
-                                                        ) : (
-                                                            <Eye className="w-4 h-4" />
-                                                        )}
-                                                    </button>
-                                                    {role !== "PARENT" && (
-                                                        <button
-                                                            onClick={() => handleEdit(goal)}
-                                                            className="p-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-                                                            title="Edit goal"
-                                                        >
-                                                            <Edit2 className="w-4 h-4" />
-                                                        </button>
+                                                    {goal.child.caseNumber && (
+                                                        <span className="text-[10px] text-gray-400 font-normal">
+                                                            ID: {goal.child.caseNumber}
+                                                        </span>
                                                     )}
                                                 </div>
-                                            </td>
-                                        </tr>
-                                        {/* Expanded Goals Row */}
-                                        {expandedGoal === goal.id && (
-                                            <tr className="bg-gray-50 dark:bg-neutral-800/30">
-                                                <td colSpan={4} className="px-6 py-4">
-                                                    <div className="animate-in slide-in-from-top-2 duration-200">
-                                                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Therapy Goals:</h4>
-                                                        <div className="space-y-2">
-                                                            {(() => {
-                                                                try {
-                                                                    const objs = JSON.parse(goal.objectives);
-                                                                    return Array.isArray(objs) && objs.length > 0 ? objs.map((obj, i) => (
-                                                                        <div key={i} className="flex items-start gap-3 p-3 bg-white dark:bg-neutral-900 rounded-lg">
-                                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mt-0.5">
-                                                                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{i + 1}</span>
-                                                                            </div>
-                                                                            <p className="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{obj}</p>
-                                                                        </div>
-                                                                    )) : (
-                                                                        <p className="text-sm text-gray-500 italic">No goals defined</p>
-                                                                    );
-                                                                } catch (e) {
-                                                                    return <p className="text-sm text-gray-500 italic">No goals defined</p>;
-                                                                }
-                                                            })()}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[10px] bg-gray-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 font-bold tracking-wide w-fit uppercase">
+                                                    {goal.therapy.name}
+                                                </span>
+                                                {role === "ADMIN" && (
+                                                    <span className="text-[10px] text-gray-400 font-medium">
+                                                        By: {goal.therapist?.name || "Unknown"}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                                <div className="flex flex-col text-[10px]">
+                                                    <span>{format(new Date(goal.startDate), "MMM d, yyyy")}</span>
+                                                    <span className="text-gray-400 italic">to {format(new Date(goal.endDate), "MMM d, yyyy")}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1 ${getStatusColor(goal.status)}`}>
+                                                {getStatusIcon(goal.status)}
+                                                {goal.status.replace("_", " ")}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-2">
+                                                {role !== "PARENT" && (
+                                                    <button
+                                                        onClick={() => handleEdit(goal)}
+                                                        className="p-1.5 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
+                                                        title="Edit goal"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
                                 ))
                             ) : (
                                 <tr>
@@ -222,6 +232,40 @@ export default function GoalsClient({
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {meta?.totalPages > 1 && (
+                    <div className="px-6 py-4 bg-gray-50/50 dark:bg-neutral-900/50 border-t border-gray-200 dark:border-neutral-800 flex items-center justify-between">
+                        <p className="text-xs text-gray-500 font-medium">
+                            Showing Page <span className="text-gray-900 dark:text-white">{meta.page}</span> of <span className="text-gray-900 dark:text-white">{meta.totalPages}</span>
+                            <span className="ml-2 text-gray-400">({meta.total} total items)</span>
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page", (meta.page - 1).toString());
+                                    router.push(`${pathname}?${params.toString()}`);
+                                }}
+                                disabled={meta.page <= 1}
+                                className="p-2 rounded-lg border border-gray-200 dark:border-neutral-800 hover:bg-white dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set("page", (meta.page + 1).toString());
+                                    router.push(`${pathname}?${params.toString()}`);
+                                }}
+                                disabled={meta.page >= meta.totalPages}
+                                className="p-2 rounded-lg border border-gray-200 dark:border-neutral-800 hover:bg-white dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <GoalModal
