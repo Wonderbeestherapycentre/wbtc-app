@@ -284,7 +284,7 @@ export default function SessionNoteModal({
                                         >
                                             <option value="">Select Prompt</option>
                                             {PROMPT_OPTIONS.map(opt => (
-                                                <option key={opt} value={opt}>{opt}</option>
+                                                <option key={opt.key} value={opt.key}>{opt.value}</option>
                                             ))}
                                         </select>
                                     </div>
