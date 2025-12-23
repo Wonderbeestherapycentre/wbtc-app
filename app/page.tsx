@@ -1,15 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { authenticate } from "@/lib/actions";
-
 
 import NextImage from "next/image";
 import card1 from "./assets/1.jpeg";
 import card2 from "./assets/2.jpeg";
 import card3 from "./assets/3.jpeg";
+import logo from "./assets/logo.jpeg";
 export default function LoginPage() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4 relative overflow-hidden">
@@ -91,6 +93,16 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md p-8 glass-card rounded-2xl relative z-10 animate-fade-in">
         <div className="mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <NextImage
+              src={logo}
+              alt="Wonderbees Therapy Centre Logo"
+              width={100}
+              height={100}
+              className="rounded-xl shadow-lg"
+              placeholder="blur"
+            />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Welcome Back
           </h1>
@@ -105,6 +117,8 @@ export default function LoginPage() {
               type="email"
               required
               placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             />
           </div>
@@ -115,6 +129,8 @@ export default function LoginPage() {
               type="password"
               required
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             />
           </div>

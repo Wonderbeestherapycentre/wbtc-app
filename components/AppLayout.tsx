@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { Menu, X, Receipt } from "lucide-react";
-import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
+import logo from "@/app/assets/logo.jpeg";
+import NextImage from "next/image";
 
 export default function AppLayout({
     children,
@@ -23,8 +24,16 @@ export default function AppLayout({
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-50">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-orange-500/20 shadow-lg">
-                        <Receipt className="w-5 h-5 text-white" />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-orange-500/20 shadow-lg">
+                        {/* <Receipt className="w-5 h-5 text-white" /> */}
+                        <NextImage
+                            src={logo}
+                            alt="Wonderbees Therapy Centre Logo"
+                            width={100}
+                            height={100}
+                            className="rounded-xl shadow-lg"
+                            placeholder="blur"
+                        />
                     </div>
                     <div>
                         <h1 className="text-lg font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent leading-none">

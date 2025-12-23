@@ -3,6 +3,8 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText } from "lucide-react";
+import Image from "next/image";
+import logo from "@/app/assets/logo.jpeg";
 
 import { cn } from "@/lib/utils";
 import UserSwitcher from "./UserSwitcher";
@@ -61,15 +63,21 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
             )}
 
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-100 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
                     } flex flex-col overflow-hidden`}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="p-6 pb-2 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-orange-500/20 shadow-lg">
-                                <Heart className="w-6 h-6 text-white" />
+                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+                                <Image
+                                    src={logo}
+                                    alt="Wonderbees Logo"
+                                    width={40}
+                                    height={40}
+                                    className="object-cover"
+                                />
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent leading-none">

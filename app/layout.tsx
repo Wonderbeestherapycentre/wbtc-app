@@ -16,6 +16,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VR FinTrack",
   description: "Wonderbees Therapy Centre Management System",
+  icons: {
+    icon: [
+      {
+        url: "/assets/logo.jpeg",
+        type: "image/jpeg",
+      },
+    ],
+    apple: [
+      {
+        url: "/assets/logo.jpeg",
+        type: "image/jpeg",
+      },
+    ],
+  },
 };
 
 export default async function RootLayout({
