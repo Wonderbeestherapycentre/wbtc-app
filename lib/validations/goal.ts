@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const GoalSchema = z.object({
-    title: z.string().min(1, "Title is required"),
+    title: z.string().optional().nullable(),
     childId: z.string().min(1, "Child is required"),
     therapyId: z.string().min(1, "Therapy is required"),
     startDate: z.string().refine((date) => !isNaN(Date.parse(date)), {

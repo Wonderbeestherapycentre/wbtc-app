@@ -83,7 +83,7 @@ export default function SessionNotesClient({
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 whitespace-nowrap"
                     >
                         <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">New Note</span>
+                        <span className=" sm:inline">New Note</span>
                     </button>
                 )}
             </div>

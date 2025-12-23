@@ -27,7 +27,7 @@ export default function GoalModal({
     const [isPending, startTransition] = useTransition();
 
     // Form States
-    const [title, setTitle] = useState("");
+    // const [title, setTitle] = useState("");
     const [selectedChildId, setSelectedChildId] = useState("");
     const [selectedTherapyId, setSelectedTherapyId] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -41,7 +41,7 @@ export default function GoalModal({
         if (isOpen) {
             if (goal) {
                 // Editing
-                setTitle(goal.title);
+                // setTitle(goal.title);
                 setSelectedChildId(goal.childId);
                 setSelectedTherapyId(goal.therapyId);
                 setStartDate(goal.startDate ? new Date(goal.startDate).toISOString().split('T')[0] : "");
@@ -55,7 +55,7 @@ export default function GoalModal({
                 }
             } else {
                 // Creating
-                setTitle("");
+                // setTitle("");
                 setSelectedChildId(childId || "");
                 setSelectedTherapyId("");
                 setStartDate(new Date().toISOString().split('T')[0]);
@@ -96,7 +96,7 @@ export default function GoalModal({
         }
 
         const formData = new FormData();
-        formData.append("title", title);
+        // formData.append("title", title);
         formData.append("childId", selectedChildId);
         formData.append("therapyId", selectedTherapyId);
         formData.append("startDate", startDate);
@@ -149,33 +149,9 @@ export default function GoalModal({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="py-2 px-4 space-y-2">
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Goal Title</label>
-                            <input
-                                type="text"
-                                required
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="e.g. Q1 Speech Therapy Plan"
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-                            <select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                            >
-                                <option value="IN_PROGRESS">In Progress</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="ARCHIVED">Archived</option>
-                            </select>
-                        </div>
-                    </div>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -216,7 +192,7 @@ export default function GoalModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                             <input
@@ -242,13 +218,13 @@ export default function GoalModal({
                     {/* Objectives Section */}
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Goals / Objectives</label>
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Goals</label>
                             <button
                                 type="button"
                                 onClick={addObjective}
                                 className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1"
                             >
-                                <Plus className="w-3 h-3" /> Add Objective
+                                <Plus className="w-3 h-3" /> Add goal
                             </button>
                         </div>
                         <div className="space-y-2">
@@ -258,8 +234,8 @@ export default function GoalModal({
                                     <textarea
                                         value={obj}
                                         onChange={(e) => handleObjectiveChange(index, e.target.value)}
-                                        placeholder="Enter specific goal/objective..."
-                                        rows={2}
+                                        placeholder="Enter specific goal..."
+                                        rows={1}
                                         className="flex-1 px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm resize-none"
                                     />
                                     {objectives.length > 1 && (
@@ -274,6 +250,32 @@ export default function GoalModal({
                                     )}
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Goal Title</label>
+                            <input
+                                type="text"
+                                
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="e.g. Q1 Speech Therapy Plan"
+                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                            />
+                        </div> */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                            >
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="ARCHIVED">Archived</option>
+                            </select>
                         </div>
                     </div>
 

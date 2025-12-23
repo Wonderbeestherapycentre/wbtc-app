@@ -106,7 +106,7 @@ export const goals = pgTable("goals", {
     childId: uuid("child_id").references(() => children.id).notNull(),
     therapyId: uuid("therapy_id").references(() => therapies.id).notNull(),
     therapistId: uuid("therapist_id").references(() => users.id).notNull(),
-    title: text("title").notNull(),
+    title: text("title"),
     objectives: text("objectives"), // JSON array stringified or simple text
     startDate: date("start_date").notNull(),
     endDate: date("end_date").notNull(),

@@ -713,7 +713,7 @@ export async function createGoal(formData: FormData) {
         const { title, childId, therapyId, startDate, endDate, objectives, status } = validatedFields.data;
 
         await db.insert(goals).values({
-            title,
+            title: title || null,
             childId,
             therapyId,
             therapistId: session.user.id,
@@ -765,7 +765,7 @@ export async function updateGoal(formData: FormData) {
         const { id, title, startDate, endDate, objectives, status, childId, therapyId } = validatedFields.data;
 
         await db.update(goals).set({
-            title,
+            title: title || null,
             childId: childId || undefined,
             therapyId: therapyId || undefined,
             startDate: startDate ? new Date(startDate).toISOString() : undefined,
