@@ -73,6 +73,7 @@ export const sessionNotes = pgTable("session_notes", {
     activities: text("activities"), // JSON stringified array of {description: string, prompt: string}
     response: text("response"),
     remarks: text("remarks"),
+    parentViewedAt: timestamp("parent_viewed_at"), // Track when parent viewed this note
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

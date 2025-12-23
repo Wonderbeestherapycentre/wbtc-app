@@ -207,6 +207,7 @@ export default function SessionNoteModal({
                                 type="date"
                                 required
                                 value={date}
+                                max={new Date().toISOString().split('T')[0]}
                                 onChange={(e) => setDate(e.target.value)}
                                 className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                             />

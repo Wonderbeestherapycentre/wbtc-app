@@ -8,7 +8,7 @@ import { db } from "./db";
 import { users, children, therapies, sessions, childTherapies, goals, sessionNotes } from "./db/schema"; // Removed families, staffs, budgets, expenses, categories
 
 import bcrypt from "bcryptjs";
-import { eq, desc, and, isNotNull } from "drizzle-orm";
+import { eq, desc, and, isNotNull, like } from "drizzle-orm";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
@@ -535,18 +535,30 @@ export async function createChild(formData: FormData) {
     }
 
     // Generate Case Number (Dynamic Unique ID)
-    let nextCaseNumber = "WBC000001";
+    // Generate Case Number (Dynamic Unique ID)
+    const currentYear = new Date().getFullYear().toString().slice(-2); // "24", "25", etc.
+    const idPrefix = `WB-${currentYear}-CH`;
+
+    // Find last child with this specific prefix
     const lastChild = await db.query.children.findFirst({
-        where: isNotNull(children.caseNumber),
+        where: like(children.caseNumber, `${idPrefix}-%`),
         orderBy: [desc(children.caseNumber)]
     });
 
+    let nextSequence = "001";
     if (lastChild && lastChild.caseNumber) {
-        const lastNum = parseInt(lastChild.caseNumber.replace("WBC", ""));
-        if (!isNaN(lastNum)) {
-            nextCaseNumber = `WBC${String(lastNum + 1).padStart(6, "0")}`;
+        const parts = lastChild.caseNumber.split('-');
+        // Format is WB-YY-CH-XXX, so sequence is the last part (index 3)
+        // Check if format matches length
+        if (parts.length === 4) {
+            const lastSeq = parseInt(parts[3]);
+            if (!isNaN(lastSeq)) {
+                nextSequence = String(lastSeq + 1).padStart(3, "0");
+            }
         }
     }
+
+    const nextCaseNumber = `${idPrefix}-${nextSequence}`;
 
     const [newChild] = await db.insert(children).values({
         name: vName,
@@ -921,3 +933,21 @@ export async function deleteSessionNote(id: string) {
     }
 }
 
+
+export async function markSessionNoteAsViewed(id: string) {
+    try {
+        const session = await auth();
+        // Only parents trigger this tracking
+        if (session?.user?.role !== "PARENT") return { success: false };
+
+        await db.update(sessionNotes)
+            .set({ parentViewedAt: new Date() })
+            .where(eq(sessionNotes.id, id));
+
+        revalidatePath("/session-notes");
+        return { success: true };
+    } catch (error) {
+        console.error("markSessionNoteAsViewed error:", error);
+        return { success: false };
+    }
+}

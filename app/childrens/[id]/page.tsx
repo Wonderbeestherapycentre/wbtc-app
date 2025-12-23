@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { fetchChild } from "@/lib/data";
+import { fetchChild, fetchTherapies } from "@/lib/data";
 
 import { ArrowLeft, Calendar, User, Activity, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, intervalToDuration } from "date-fns";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 
@@ -17,13 +17,26 @@ export default async function ChildPage({ params }: ChildPageProps) {
     const { id } = await params;
     const session = await auth();
 
-    const child = await fetchChild(id);
+    const [child, therapies] = await Promise.all([
+        fetchChild(id),
+        fetchTherapies(true) // Include inactive therapies just in case
+    ]);
 
     if (!child) {
         notFound();
     }
 
+    // Create a map for quick therapy lookup
+    const therapyMap = new Map(therapies.map((t: any) => [t.id, t.name]));
 
+    const getSpecializationName = (spec: string | null) => {
+        if (!spec) return null;
+        // Check if spec is a UUID (approximate check or check if in map)
+        if (therapyMap.has(spec)) {
+            return therapyMap.get(spec);
+        }
+        return spec;
+    };
 
     return (
         <AppLayout role={session?.user?.role as any}>
@@ -53,7 +66,22 @@ export default async function ChildPage({ params }: ChildPageProps) {
                         <div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Date of Birth</p>
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                {child.dob ? format(new Date(child.dob), "dd MMM yyyy") : "Not set"}
+                                {child.dob ? (
+                                    <>
+                                        {format(new Date(child.dob), "dd MMM yyyy")}
+                                        {(() => {
+                                            const duration = intervalToDuration({
+                                                start: new Date(child.dob),
+                                                end: new Date()
+                                            });
+                                            const parts = [];
+                                            if (duration.years) parts.push(`${duration.years} yrs`);
+                                            if (duration.months) parts.push(`${duration.months} mos`);
+                                            const ageStr = parts.join(' ') || "0 mos";
+                                            return <span className="ml-2 text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full">({ageStr})</span>;
+                                        })()}
+                                    </>
+                                ) : "Not set"}
                             </p>
                         </div>
                     </div>
@@ -182,7 +210,7 @@ export default async function ChildPage({ params }: ChildPageProps) {
                                                     <div className="flex flex-wrap gap-2 text-xs">
                                                         {tt.therapist.specialization && (
                                                             <span className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
-                                                                {tt.therapist.specialization}
+                                                                {getSpecializationName(tt.therapist.specialization)}
                                                             </span>
                                                         )}
                                                         {tt.therapist.qualification && (

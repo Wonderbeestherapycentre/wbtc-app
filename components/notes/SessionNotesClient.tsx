@@ -5,7 +5,7 @@ import { Plus, Search, Calendar, FileText, Eye, Edit, Trash2 } from "lucide-reac
 import SessionNoteModal from "./SessionNoteModal";
 import SessionNoteViewModal from "./SessionNoteViewModal";
 import { format, isToday } from "date-fns";
-import { deleteSessionNote } from "@/lib/actions";
+import { deleteSessionNote, markSessionNoteAsViewed } from "@/lib/actions";
 import { toast } from "sonner";
 
 interface SessionNotesClientProps {
@@ -41,9 +41,13 @@ export default function SessionNotesClient({
         setIsModalOpen(true);
     };
 
-    const handleView = (note: any) => {
+    const handleView = async (note: any) => {
         setViewingNote(note);
         setIsViewModalOpen(true);
+
+        if (role === "PARENT" && !note.parentViewedAt) {
+            await markSessionNoteAsViewed(note.id);
+        }
     };
 
     const handleDelete = async (note: any) => {
@@ -97,6 +101,7 @@ export default function SessionNotesClient({
                                 <th className="px-6 py-4">Child</th>
                                 <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Activities</th>
+                                {role !== "PARENT" && <th className="px-6 py-4">Status</th>}
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -138,6 +143,19 @@ export default function SessionNotesClient({
                                                     })()}
                                                 </div>
                                             </td>
+                                            {role !== "PARENT" && (
+                                                <td className="px-6 py-4 align-top">
+                                                    {note.parentViewedAt ? (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" title={`Viewed at ${new Date(note.parentViewedAt).toLocaleString()}`}>
+                                                            Viewed
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            )}
                                             <td className="px-6 py-4 align-top text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
@@ -172,7 +190,7 @@ export default function SessionNotesClient({
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={role !== "PARENT" ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <FileText className="w-6 h-6 text-gray-400" />
                                         </div>

@@ -3,7 +3,12 @@ import { z } from "zod";
 export const ChildSchema = z.object({
     name: z.string().min(1, "Name is required").max(100),
     status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
-    dob: z.string().min(1, "Date of birth is required"),
+    dob: z.string().min(1, "Date of birth is required").refine((val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        return date <= today;
+    }, "Date of birth cannot be in the future"),
     gender: z.string().min(1, "Gender is required"),
     diagnosis: z.string().optional().nullable(),
     parentId: z.string().optional().nullable().transform(v => v === "" ? null : v),

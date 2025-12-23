@@ -24,7 +24,13 @@ export const UserSchema = z.object({
     mobile1: z.string().min(1, "Mobile 1 is required").regex(/^\d+$/, "Mobile number must contain only digits").min(10, "Mobile number must be at least 10 digits"),
     mobile2: z.string().optional().nullable().transform(v => (v === "" || v === undefined ? null : v)).refine(v => v === null || /^\d+$/.test(v), "Mobile number must contain only digits"),
     address: emptyStringToNull,
-    doj: emptyStringToNull,
+    doj: emptyStringToNull.refine((val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        return date <= today;
+    }, "Date of joining cannot be in the future"),
     endDate: emptyStringToNull,
 });
 

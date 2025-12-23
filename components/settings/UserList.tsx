@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Edit2, Trash2, Plus, Eye } from "lucide-react";
 import Link from "next/link";
 import { deleteUser } from "@/lib/actions";
+import { intervalToDuration } from "date-fns";
 import UserModal from "./UserModal";
 import ConfirmModal from "@/components/ConfirmModal";
 
@@ -20,14 +21,14 @@ interface User {
     address?: string | null;
     doj?: string | null;
     endDate?: string | null;
-    children?: { id: string; name: string }[];
+    children?: { id: string; name: string, dob?: string | null }[];
 }
 
 interface UserListProps {
     users: User[];
     currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
     currentUserId: string;
-    allChildren?: { id: string; name: string; caseNumber?: string; parent?: { id: string; name: string } | null }[];
+    allChildren?: { id: string; name: string; caseNumber?: string; dob?: string | null; parent?: { id: string; name: string } | null }[];
     therapies?: { id: string; name: string; status: string }[];
 }
 
@@ -35,6 +36,18 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+
+    const calculateAge = (dob: string | null) => {
+        if (!dob) return null;
+        const duration = intervalToDuration({
+            start: new Date(dob),
+            end: new Date()
+        });
+        const parts = [];
+        if (duration.years) parts.push(`${duration.years} yrs`);
+        if (duration.months) parts.push(`${duration.months} mos`);
+        return parts.join(' ') || "0 mos";
+    };
 
     // Delete confirmation state
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -129,9 +142,22 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                                 </p>
                                             )}
                                             {user.role === 'PARENT' && user.children && user.children.length > 0 && (
-                                                <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">
-                                                    Children: {user.children.map(c => c.name).join(', ')}
-                                                </p>
+                                                <div className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium flex flex-wrap gap-x-2">
+                                                    <span className="shrink-0">Children:</span>
+                                                    <div className="flex flex-wrap gap-x-1 underline decoration-indigo-200 dark:decoration-indigo-800 underline-offset-2">
+                                                        {user.children.map((c, i) => (
+                                                            <span key={c.id}>
+                                                                {c.name}
+                                                                {c.dob && (
+                                                                    <span className="ml-1 text-[10px] opacity-75">
+                                                                        ({calculateAge(c.dob)})
+                                                                    </span>
+                                                                )}
+                                                                {i < (user.children?.length ?? 0) - 1 ? "," : ""}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

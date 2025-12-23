@@ -5,7 +5,7 @@ import { createChild, updateChild } from "@/lib/actions";
 import { toast } from "sonner";
 import { X, Save, AlertCircle, Calendar, User, Stethoscope, Activity, Check } from "lucide-react";
 import { createPortal } from "react-dom";
-import { differenceInYears } from "date-fns";
+import { intervalToDuration } from "date-fns";
 
 interface ChildModalProps {
     isOpen: boolean;
@@ -70,8 +70,14 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
     // Calculate age when DOB changes
     useEffect(() => {
         if (dob) {
-            const ageInYears = differenceInYears(new Date(), new Date(dob));
-            setAge(ageInYears.toString());
+            const duration = intervalToDuration({
+                start: new Date(dob),
+                end: new Date()
+            });
+            const parts = [];
+            if (duration.years) parts.push(`${duration.years} yrs`);
+            if (duration.months) parts.push(`${duration.months} mos`);
+            setAge(parts.join(' ') || "0 mos");
         } else {
             setAge("");
         }
@@ -279,6 +285,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                     <input
                                         type="date"
                                         value={dob}
+                                        max={new Date().toISOString().split('T')[0]}
                                         onChange={(e) => setDob(e.target.value)}
                                         className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.dob ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                                     />

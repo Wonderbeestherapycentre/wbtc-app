@@ -313,6 +313,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 name="doj"
                                 type="date"
                                 defaultValue={user?.doj || ""}
+                                max={new Date().toISOString().split('T')[0]}
                                 className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.doj ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
                             />
                             {fieldErrors.doj && (

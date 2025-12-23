@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 // Create reusable transporter with SMTP configuration
 const transporter = nodemailer.createTransport({
@@ -18,6 +19,8 @@ export async function sendCredentialsEmail(
     password: string
 ) {
     try {
+        const logoPath = path.join(process.cwd(), 'app/assets/logo.jpeg');
+
         const mailOptions = {
             from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
             to: to,
@@ -31,6 +34,7 @@ export async function sendCredentialsEmail(
                 </head>
                 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                        <img src="cid:logo" alt="Wonderbees Logo" style="width: 80px; height: 80px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);" />
                         <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Wonderbees!</h1>
                     </div>
                     
@@ -68,7 +72,12 @@ export async function sendCredentialsEmail(
                     </div>
                 </body>
                 </html>
-            `
+            `,
+            attachments: [{
+                filename: 'logo.jpeg',
+                path: logoPath,
+                cid: 'logo' // same cid value as in the html img src
+            }]
         };
 
         await transporter.sendMail(mailOptions);

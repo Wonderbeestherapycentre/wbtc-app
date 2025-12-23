@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { deleteChild } from "@/lib/actions";
 import { Plus, Pencil, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
+import { intervalToDuration } from "date-fns";
 import ChildModal from "./ChildModal";
 import ConfirmModal from "./ConfirmModal";
 
@@ -80,14 +81,14 @@ export default function ChildSettings({
 
     const calculateAge = (dob: string | null) => {
         if (!dob) return null;
-        const birthDate = new Date(dob);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        return age;
+        const duration = intervalToDuration({
+            start: new Date(dob),
+            end: new Date()
+        });
+        const parts = [];
+        if (duration.years) parts.push(`${duration.years} yrs`);
+        if (duration.months) parts.push(`${duration.months} mos`);
+        return parts.join(' ') || "0 mos";
     };
 
     const generateAvatarColor = (name: string) => {
@@ -141,7 +142,7 @@ export default function ChildSettings({
                         <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
                                 <th className="text-left py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
-                                <th className="text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Case ID</th>
+                                <th className="text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Child ID</th>
                                 <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Parent</th>
                                 <th className="hidden md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Gender / Age</th>
                                 <th className="hidden xl:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Diagnosis</th>
@@ -172,6 +173,9 @@ export default function ChildSettings({
                                                     <span className="font-medium text-gray-900 dark:text-white">
                                                         {child.name}
                                                     </span>
+                                                    <span className="md:hidden text-[10px] text-gray-500">
+                                                        {child.gender || "N/A"}{child.dob && ` • ${calculateAge(child.dob)}`}
+                                                    </span>
                                                     <span className={`md:hidden mt-0.5 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-medium ${child.status === 'ACTIVE'
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                         : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
@@ -194,7 +198,7 @@ export default function ChildSettings({
                                         <td className="hidden md:table-cell py-1 px-3 md:py-2 md:px-6">
                                             <span className="text-sm text-gray-600 dark:text-gray-300">
                                                 {child.gender || "N/A"}
-                                                {child.dob && ` / ${calculateAge(child.dob)} yrs`}
+                                                {child.dob && ` / ${calculateAge(child.dob)}`}
                                             </span>
                                         </td>
                                         <td className="hidden xl:table-cell py-1 px-3 md:py-2 md:px-6">
@@ -260,7 +264,7 @@ export default function ChildSettings({
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

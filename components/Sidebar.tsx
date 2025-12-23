@@ -46,6 +46,8 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
+        { icon: Tags, label: "Goals", href: "/goals" },
+        { icon: FileText, label: "Session Notes", href: "/session-notes" },
     ];
 
     let navItems = ADMIN_NAV;

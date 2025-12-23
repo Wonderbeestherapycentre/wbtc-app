@@ -2,10 +2,23 @@ import React from "react";
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
 import { fetchChildren } from "@/lib/data";
+import { intervalToDuration } from "date-fns";
 
 export default async function ParentDashboard() {
     const session = await auth();
     const children = await fetchChildren(true);
+
+    const calculateAge = (dob: string | null) => {
+        if (!dob) return null;
+        const duration = intervalToDuration({
+            start: new Date(dob),
+            end: new Date()
+        });
+        const parts = [];
+        if (duration.years) parts.push(`${duration.years} yrs`);
+        if (duration.months) parts.push(`${duration.months} mos`);
+        return parts.join(' ') || "0 mos";
+    };
 
     return (
         <AppLayout role="PARENT" familyChildren={children} user={session?.user}>
@@ -24,10 +37,11 @@ export default async function ParentDashboard() {
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">{child.name}</h3>
                                 <div className="mt-2 space-y-1">
                                     <p className="text-sm text-gray-500">Gender: {child.gender || "N/A"}</p>
+                                    {child.dob && <p className="text-sm text-gray-500">Age: {calculateAge(child.dob)}</p>}
                                     <p className="text-sm text-gray-500">Diagnosis: {child.diagnosis || "None"}</p>
                                     <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${child.status === 'ACTIVE'
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
                                         }`}>
                                         {child.status}
                                     </span>
