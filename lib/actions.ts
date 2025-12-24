@@ -5,15 +5,16 @@ import { revalidatePath } from "next/cache";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes } from "./db/schema"; // Removed families, staffs, budgets, expenses, categories
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
-import { eq, desc, and, isNotNull, like } from "drizzle-orm";
+import { eq, desc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
 import { GoalSchema, UpdateGoalSchema } from "./validations/goal";
 import { SessionNoteSchema, UpdateSessionNoteSchema } from "./validations/session-note";
+import { HomeProgramSchema, UpdateHomeProgramSchema } from "./validations/home-program";
 import { generateSecurePassword } from "./utils/password";
 
 export async function authenticate(
@@ -979,5 +980,270 @@ export async function markSessionNoteAsViewed(id: string) {
     } catch (error) {
         console.error("markSessionNoteAsViewed error:", error);
         return { success: false };
+    }
+}
+
+// ========================================
+// Home Program Actions
+// ========================================
+
+export async function createHomeProgram(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        const rawTasksStr = formData.get("tasks") as string || "[]";
+        const rawTasks = JSON.parse(rawTasksStr);
+
+        const validated = HomeProgramSchema.safeParse({
+            childId: formData.get("childId"),
+            therapyId: formData.get("therapyId"),
+            title: formData.get("title"),
+            tasks: rawTasks,
+            status: formData.get("status") || "ACTIVE",
+        });
+
+        if (!validated.success) {
+            return {
+                message: "Validation failed",
+                errors: validated.error.flatten().fieldErrors,
+            };
+        }
+
+        const { childId, therapyId, title, tasks, status } = validated.data;
+
+        const [newProgram] = await db.insert(homePrograms).values({
+            childId,
+            therapyId,
+            therapistId: session.user.id,
+            title,
+            status,
+        }).returning({ id: homePrograms.id });
+
+        if (newProgram && tasks.length > 0) {
+            await db.insert(homeProgramTasks).values(
+                tasks.map(t => ({
+                    programId: newProgram.id,
+                    description: t.description,
+                    status: t.status || "PENDING",
+                }))
+            );
+        }
+
+        revalidatePath("/home-programs");
+        revalidatePath(`/childrens/${childId}`);
+        return { message: "Home program created successfully" };
+    } catch (error) {
+        console.error("createHomeProgram error:", error);
+        return { message: "Failed to create home program" };
+    }
+}
+
+export async function updateHomeProgram(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        const id = formData.get("id") as string;
+        const rawTasksStr = formData.get("tasks") as string || "[]";
+        const rawTasks = JSON.parse(rawTasksStr);
+
+        const validated = UpdateHomeProgramSchema.safeParse({
+            id,
+            childId: formData.get("childId"),
+            therapyId: formData.get("therapyId"),
+            title: formData.get("title"),
+            tasks: rawTasks,
+            status: formData.get("status"),
+        });
+
+        if (!validated.success) {
+            return {
+                message: "Validation failed",
+                errors: validated.error.flatten().fieldErrors,
+            };
+        }
+
+        const { childId, therapyId, title, tasks, status } = validated.data;
+
+        await db.update(homePrograms).set({
+            title,
+            therapyId,
+            status,
+            updatedAt: new Date(),
+        }).where(eq(homePrograms.id, id));
+
+        // Update tasks: simple strategy, delete and re-insert
+        await db.delete(homeProgramTasks).where(eq(homeProgramTasks.programId, id));
+        if (tasks && tasks.length > 0) {
+            await db.insert(homeProgramTasks).values(
+                tasks.map(t => ({
+                    programId: id,
+                    description: t.description,
+                    status: t.status,
+                }))
+            );
+        }
+
+        revalidatePath("/home-programs");
+        if (childId) revalidatePath(`/childrens/${childId}`);
+        return { message: "Home program updated successfully" };
+    } catch (error) {
+        console.error("updateHomeProgram error:", error);
+        return { message: "Failed to update home program" };
+    }
+}
+
+export async function deleteHomeProgram(id: string) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT") {
+            return { message: "Unauthorized" };
+        }
+
+        // Fetch program to get childId for revalidation
+        const program = await db.query.homePrograms.findFirst({
+            where: eq(homePrograms.id, id),
+            columns: { childId: true }
+        });
+
+        await db.delete(homePrograms).where(eq(homePrograms.id, id));
+
+        revalidatePath("/home-programs");
+        if (program?.childId) revalidatePath(`/childrens/${program.childId}`);
+        return { message: "Home program deleted successfully" };
+    } catch (error) {
+        console.error("deleteHomeProgram error:", error);
+        return { message: "Failed to delete home program" };
+    }
+}
+
+export async function updateHomeProgramTaskStatus(taskId: string, status: any) {
+    try {
+        const session = await auth();
+        if (!session?.user) return { message: "Unauthorized" };
+
+        await db.update(homeProgramTasks)
+            .set({ status, updatedAt: new Date() })
+            .where(eq(homeProgramTasks.id, taskId));
+
+        revalidatePath("/home-programs");
+        return { success: true };
+    } catch (error) {
+        console.error("updateHomeProgramTaskStatus error:", error);
+        return { message: "Failed to update task status" };
+    }
+}
+
+export async function submitHomeProgramReport(data: {
+    programId: string;
+    childId: string;
+    date: string;
+    tasks: {
+        taskId: string;
+        supportLevelId: number;
+        supportLevelName: string;
+        score: number;
+    }[];
+}) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "PARENT") {
+        return { error: "Only parents can submit daily reports." };
+    }
+
+    try {
+        // 1. Get total tasks count for the program
+        const programTasks = await db.select({ id: homeProgramTasks.id })
+            .from(homeProgramTasks)
+            .where(eq(homeProgramTasks.programId, data.programId));
+
+        const totalTasksCount = programTasks.length;
+        const completedTasksCount = data.tasks.length;
+
+        // STEP 1: Task Completion Score (50%)
+        const taskScore = totalTasksCount > 0
+            ? (completedTasksCount / totalTasksCount) * 50
+            : 0;
+
+        // STEP 2: Support Level Score (50%)
+        // We take the average score of completed tasks
+        const totalSupportPoints = data.tasks.reduce((acc, t) => acc + t.score, 0);
+        const supportScore = completedTasksCount > 0
+            ? (totalSupportPoints / completedTasksCount)
+            : 0;
+
+        // STEP 3: Final Activity Percentage
+        const finalScore = Number((taskScore + supportScore).toFixed(2));
+
+        // 3. Performance Level Mapping
+        let performanceLevel = "Needs Maximum Support";
+        if (finalScore > 90) performanceLevel = "Generalization";
+        else if (finalScore > 70) performanceLevel = "Independent";
+        else if (finalScore > 40) performanceLevel = "Developing 🐝";
+        else if (finalScore > 20) performanceLevel = "Emerging";
+
+        // 4. Check if a submission for this program and date already exists
+        const [existingSubmission] = await db.select()
+            .from(homeProgramSubmissions)
+            .where(
+                and(
+                    eq(homeProgramSubmissions.programId, data.programId),
+                    eq(homeProgramSubmissions.date, data.date)
+                )
+            )
+            .limit(1);
+
+        let submissionId = existingSubmission?.id;
+
+        const submissionData = {
+            programId: data.programId,
+            childId: data.childId,
+            parentId: session.user.id,
+            date: data.date,
+            overallScore: finalScore.toString(),
+            performanceLevel,
+        };
+
+        if (!existingSubmission) {
+            // Create new submission
+            const [newSubmission] = await db.insert(homeProgramSubmissions)
+                .values(submissionData)
+                .returning();
+            submissionId = newSubmission.id;
+        } else {
+            // Update existing submission with new scores
+            await db.update(homeProgramSubmissions)
+                .set(submissionData)
+                .where(eq(homeProgramSubmissions.id, submissionId));
+
+            // Clear existing tasks for this submission to replace them
+            await db.delete(homeProgramSubmissionTasks)
+                .where(eq(homeProgramSubmissionTasks.submissionId, submissionId));
+        }
+
+        // 5. Create/Replace the task entries
+        if (data.tasks.length > 0) {
+            await db.insert(homeProgramSubmissionTasks).values(
+                data.tasks.map(task => ({
+                    submissionId: submissionId,
+                    taskId: task.taskId,
+                    supportLevelId: task.supportLevelId,
+                    supportLevelName: task.supportLevelName,
+                    score: task.score,
+                }))
+            );
+        }
+
+        revalidatePath(`/home-programs/${data.programId}`);
+        revalidatePath("/home-programs");
+
+        return { success: true, submissionId };
+    } catch (error: any) {
+        console.error("Failed to submit home program report:", error);
+        return { error: error?.message || "Failed to submit report. Please try again." };
     }
 }

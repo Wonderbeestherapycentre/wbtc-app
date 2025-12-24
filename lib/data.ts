@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes } from "./db/schema";
+import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks } from "./db/schema";
 
-import { eq, desc, asc, and, gte, lte, sql, ilike, count } from "drizzle-orm";
+import { eq, desc, asc, and, or, gte, lte, sql, ilike, count } from "drizzle-orm";
 import { auth } from "@/auth";
 
 export async function fetchUsers() {
@@ -387,4 +387,151 @@ export async function fetchSessionNotes() {
     });
 
     return data;
+}
+
+export async function fetchHomePrograms(childId?: string) {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [];
+
+    if (childId) {
+        conditions.push(eq(homePrograms.childId, childId));
+    }
+
+    if (session.user.role === "PARENT") {
+        conditions.push(sql`${homePrograms.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+    } else if (session.user.role === "THERAPIST" && !childId) {
+        conditions.push(eq(homePrograms.therapistId, session.user.id));
+    }
+
+    const data = await db.query.homePrograms.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        orderBy: [desc(homePrograms.createdAt)],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+            tasks: true,
+        }
+    });
+
+    return data;
+}
+
+export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL") {
+    const session = await auth();
+    if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
+
+    const offset = (page - 1) * limit;
+    const conditions = [];
+
+    if (status && status !== "ALL") {
+        conditions.push(eq(homePrograms.status, status as any));
+    }
+
+    if (session.user.role === "PARENT") {
+        conditions.push(sql`${homePrograms.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+    } else if (session.user.role === "THERAPIST") {
+        conditions.push(eq(homePrograms.therapistId, session.user.id));
+    }
+
+    if (search) {
+        conditions.push(
+            or(
+                ilike(homePrograms.title, `%${search}%`),
+                sql`EXISTS (
+                    SELECT 1 FROM ${children} 
+                    WHERE ${children.id} = ${homePrograms.childId} 
+                    AND ${children.name} ILIKE ${`%${search}%`}
+                )`
+            )
+        );
+    }
+
+    const [data, totalResult] = await Promise.all([
+        db.query.homePrograms.findMany({
+            where: conditions.length > 0 ? and(...conditions) : undefined,
+            limit,
+            offset,
+            orderBy: [desc(homePrograms.createdAt)],
+            with: {
+                child: true,
+                therapy: true,
+                therapist: true,
+                tasks: true,
+                submissions: {
+                    orderBy: (submissions, { desc }) => [desc(submissions.date)],
+                    with: {
+                        submissionTasks: true,
+                    },
+                },
+            }
+        }),
+        db.select({ count: count() }).from(homePrograms).where(conditions.length > 0 ? and(...conditions) : undefined)
+    ]);
+
+    const total = totalResult[0].count;
+
+    return {
+        data,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        }
+    };
+}
+
+export async function fetchHomeProgramDetails(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const program = await db.query.homePrograms.findFirst({
+        where: eq(homePrograms.id, id),
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+            tasks: true,
+            submissions: {
+                orderBy: (submissions, { desc }) => [desc(submissions.date)],
+                with: {
+                    submissionTasks: true,
+                },
+            },
+        }
+    });
+
+    if (!program) return null;
+
+    // Access check: ADMIN can see all, THERAPIST can see their own, PARENT can see their children's
+    if (session.user.role === "PARENT") {
+        const child = await db.query.children.findFirst({
+            where: and(eq(children.id, program.childId), eq(children.parentId, session.user.id))
+        });
+        if (!child) return null;
+    } else if (session.user.role === "THERAPIST") {
+        if (program.therapistId !== session.user.id) return null;
+    }
+
+    return program;
+}
+
+export async function fetchHomeProgram(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const program = await db.query.homePrograms.findFirst({
+        where: eq(homePrograms.id, id),
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+            tasks: true,
+        }
+    });
+
+    return program || null;
 }

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
@@ -23,18 +23,20 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
 
     const ADMIN_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+        { icon: Home, label: "Home Programs", href: "/home-programs" },
         // { icon: Calendar, label: "Schedule", href: "/schedule" },
         // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
         { icon: FileText, label: "Session Notes", href: "/session-notes" },
-        // { icon: Clock, label: "Due List", href: "/dues\" },
+        // { icon: Clock, label: "Due List", href: "/dues" },
         { icon: Users, label: "Users", href: "/users" },
         { icon: Heart, label: "Services", href: "/therapies" },
     ];
 
     const THERAPIST_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+        { icon: Home, label: "Home Programs", href: "/home-programs" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
@@ -44,6 +46,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
 
     const PARENT_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+        { icon: Home, label: "Home Programs", href: "/home-programs" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },

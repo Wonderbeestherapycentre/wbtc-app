@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueIndex } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // 1. Enums
@@ -116,6 +116,49 @@ export const goals = pgTable("goals", {
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 9. Home Programs
+export const homePrograms = pgTable("home_programs", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    childId: uuid("child_id").references(() => children.id, { onDelete: "cascade" }).notNull(),
+    therapistId: uuid("therapist_id").references(() => users.id).notNull(),
+    therapyId: uuid("therapy_id").references(() => therapies.id).notNull(),
+    title: text("title").notNull(),
+    status: text("status", { enum: ["ACTIVE", "INACTIVE", "COMPLETED"] }).default("ACTIVE").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const homeProgramTasks = pgTable("home_program_tasks", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    programId: uuid("program_id").references(() => homePrograms.id, { onDelete: "cascade" }).notNull(),
+    description: text("description").notNull(),
+    status: text("status", { enum: ["PENDING", "COMPLETED", "IN_PROGRESS", "BORED", "REFUSED"] }).default("PENDING").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const homeProgramSubmissions = pgTable("home_program_submissions", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    programId: uuid("program_id").references(() => homePrograms.id, { onDelete: "cascade" }).notNull(),
+    childId: uuid("child_id").references(() => children.id, { onDelete: "cascade" }).notNull(),
+    parentId: uuid("parent_id").references(() => users.id).notNull(),
+    date: date("date").notNull(),
+    overallScore: decimal("overall_score", { precision: 5, scale: 2 }).default("0").notNull(),
+    performanceLevel: text("performance_level"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: uniqueIndex("home_program_submissions_program_date_idx").on(t.programId, t.date),
+}));
+
+export const homeProgramSubmissionTasks = pgTable("home_program_submission_tasks", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    submissionId: uuid("submission_id").references(() => homeProgramSubmissions.id, { onDelete: "cascade" }).notNull(),
+    taskId: uuid("task_id").references(() => homeProgramTasks.id, { onDelete: "cascade" }).notNull(),
+    supportLevelId: integer("support_level_id").notNull(),
+    supportLevelName: text("support_level_name").notNull(),
+    score: integer("score").notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
     sessionsAsTherapist: many(sessions, { relationName: "therapistSessions" }),
@@ -166,11 +209,36 @@ export const sessionNotesRelations = relations(sessionNotes, ({ one }) => ({
     session: one(sessions, { fields: [sessionNotes.sessionId], references: [sessions.id] }),
 }));
 
+export const homeProgramSubmissionsRelations = relations(homeProgramSubmissions, ({ one, many }) => ({
+    program: one(homePrograms, { fields: [homeProgramSubmissions.programId], references: [homePrograms.id] }),
+    child: one(children, { fields: [homeProgramSubmissions.childId], references: [children.id] }),
+    parent: one(users, { fields: [homeProgramSubmissions.parentId], references: [users.id] }),
+    submissionTasks: many(homeProgramSubmissionTasks),
+}));
+
+export const homeProgramSubmissionTasksRelations = relations(homeProgramSubmissionTasks, ({ one }) => ({
+    submission: one(homeProgramSubmissions, { fields: [homeProgramSubmissionTasks.submissionId], references: [homeProgramSubmissions.id] }),
+    task: one(homeProgramTasks, { fields: [homeProgramSubmissionTasks.taskId], references: [homeProgramTasks.id] }),
+}));
+
 export const goalsRelations = relations(goals, ({ one }) => ({
     child: one(children, { fields: [goals.childId], references: [children.id] }),
     therapy: one(therapies, { fields: [goals.therapyId], references: [therapies.id] }),
     therapist: one(users, { fields: [goals.therapistId], references: [users.id] }),
 }));
+
+export const homeProgramsRelations = relations(homePrograms, ({ one, many }) => ({
+    child: one(children, { fields: [homePrograms.childId], references: [children.id] }),
+    therapy: one(therapies, { fields: [homePrograms.therapyId], references: [therapies.id] }),
+    therapist: one(users, { fields: [homePrograms.therapistId], references: [users.id] }),
+    tasks: many(homeProgramTasks),
+    submissions: many(homeProgramSubmissions),
+}));
+
+export const homeProgramTasksRelations = relations(homeProgramTasks, ({ one }) => ({
+    program: one(homePrograms, { fields: [homeProgramTasks.programId], references: [homePrograms.id] }),
+}));
+
 
 
 
