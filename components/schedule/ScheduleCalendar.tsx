@@ -35,7 +35,7 @@ const SLOT_HEIGHT = 48; // px per 45-minute slot
 
 
 export default function ScheduleCalendar({ sessions, childrenData, allTherapists, currentUserRole, userId }: ScheduleCalendarProps) {
-    const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("MONTH");
+    const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sessionToEdit, setSessionToEdit] = useState<any>(null);
@@ -186,7 +186,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                         ))}
                     </div>
 
-                    <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1">
+                    <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 hidden md:flex">
                         <button onClick={prevRange} className="p-1.5 hover:bg-white dark:hover:bg-neutral-700 rounded-lg transition-all">
                             <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                         </button>
@@ -198,9 +198,15 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                         </button>
                     </div>
 
-                    <button onClick={() => setCurrentDate(new Date())} className="text-xs font-bold text-blue-600 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 transition-all">
+                    <button onClick={() => setCurrentDate(new Date())} className="hidden md:block text-xs font-bold text-blue-600 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 transition-all">
                         Today
                     </button>
+                    {currentUserRole === "ADMIN" && (
+                        <button onClick={() => setIsModalOpen(true)} className=" flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-500/25 transition-all font-bold text-xs">
+                            <Plus className="w-4 h-4" />
+                            <span className="sr-only">New Schedule</span>
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -222,13 +228,6 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                 {childrenData.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         </div>
-                    )}
-
-                    {currentUserRole === "ADMIN" && (
-                        <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-500/25 transition-all font-bold text-xs">
-                            <Plus className="w-4 h-4" />
-                            New Schedule
-                        </button>
                     )}
                 </div>
             </div>

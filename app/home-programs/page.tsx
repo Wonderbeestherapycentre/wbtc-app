@@ -37,10 +37,9 @@ export default async function HomeProgramsPage({
             user={session.user}
             familyChildren={activeChildren}
         >
-            <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="space-y-3 animate-in fade-in duration-500">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Home Programs</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Manage developmental tasks for children to perform at home.</p>
+                    <h1 className="md:text-3xl text-xl font-bold text-gray-900 dark:text-white tracking-tight">Home Programs</h1>
                 </div>
 
                 <HomeProgramList

@@ -8,15 +8,27 @@ import { db } from "./db";
 import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
-import { eq, desc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
+import { eq, desc, asc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
 import { addDays, isSameDay, setHours, setMinutes, getDay, startOfToday } from "date-fns";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
 import { GoalSchema, UpdateGoalSchema } from "./validations/goal";
 import { SessionNoteSchema, UpdateSessionNoteSchema } from "./validations/session-note";
+import { SessionSchema, UpdateSessionSchema, MonthlyScheduleSchema } from "./validations/session";
 import { HomeProgramSchema, UpdateHomeProgramSchema } from "./validations/home-program";
 import { generateSecurePassword } from "./utils/password";
+import { ZodError } from "zod";
+
+// Utility function to format Zod errors
+function formatZodErrors(error: ZodError) {
+    const fieldErrors: Record<string, string> = {};
+    error.issues.forEach((issue) => {
+        const path = issue.path.join(".");
+        fieldErrors[path] = issue.message;
+    });
+    return fieldErrors;
+}
 
 export async function authenticate(
     prevState: string | undefined,
@@ -282,112 +294,149 @@ export async function createSession(formData: FormData) {
     // Admin or Therapist can create sessions
     if (session?.user?.role === "PARENT") return { message: "Unauthorized" };
 
-    const childId = formData.get("childId") as string;
-    const therapistId = formData.get("therapistId") as string;
-    const therapyId = formData.get("therapyId") as string;
-    const dateStr = formData.get("date") as string;
-    const duration = formData.get("durationMinutes") as string || "45";
-    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED";
+    try {
+        // Parse FormData
+        const data = {
+            childId: formData.get("childId") as string,
+            therapistId: formData.get("therapistId") as string,
+            therapyId: formData.get("therapyId") as string,
+            date: formData.get("date") as string,
+            durationMinutes: parseInt(formData.get("durationMinutes") as string || "45"),
+            status: (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED",
+        };
 
-    if (!childId || !therapistId || !therapyId || !dateStr) {
-        return { message: "Missing required fields" };
+        // Validate with Zod schema
+        const validated = SessionSchema.parse(data);
+
+        await db.insert(sessions).values({
+            childId: validated.childId,
+            therapistId: validated.therapistId,
+            therapyId: validated.therapyId,
+            date: new Date(validated.date),
+            durationMinutes: validated.durationMinutes,
+            status: validated.status,
+        });
+
+        revalidatePath("/schedule");
+        return { message: "Session scheduled" };
+    } catch (error) {
+        if (error instanceof ZodError) {
+            const fieldErrors = formatZodErrors(error);
+            return { message: "Validation failed", errors: fieldErrors };
+        }
+        console.error("createSession error:", error);
+        return { message: "Failed to create session" };
     }
-
-    await db.insert(sessions).values({
-        childId,
-        therapistId,
-        therapyId,
-        date: new Date(dateStr),
-        durationMinutes: parseInt(duration),
-        status,
-    });
-
-    revalidatePath("/schedule");
-    return { message: "Session scheduled" };
 }
 
 export async function createMonthlySchedule(formData: FormData) {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
 
-    const childId = formData.get("childId") as string;
-    const therapistId = formData.get("therapistId") as string;
-    const therapyId = formData.get("therapyId") as string;
-    const duration = formData.get("durationMinutes") as string || "45";
-    const startTime = formData.get("startTime") as string; // Format "HH:mm"
-    const startDateStr = formData.get("startDate") as string; // Starting Monday or specific date
-    const weeksStr = formData.get("weeks") as string || "4";
-    const selectedDaysStr = formData.get("selectedDays") as string; // JSON array of numbers [1, 3, 5] (Mon, Wed, Fri)
+    try {
+        // Parse FormData
+        const selectedDaysStr = formData.get("selectedDays") as string;
+        const data = {
+            childId: formData.get("childId") as string,
+            therapistId: formData.get("therapistId") as string,
+            therapyId: formData.get("therapyId") as string,
+            durationMinutes: parseInt(formData.get("durationMinutes") as string || "45"),
+            startTime: formData.get("startTime") as string,
+            startDate: formData.get("startDate") as string,
+            weeks: parseInt(formData.get("weeks") as string || "4"),
+            selectedDays: selectedDaysStr ? JSON.parse(selectedDaysStr) : [],
+        };
 
-    if (!childId || !therapistId || !therapyId || !startTime || !startDateStr || !selectedDaysStr) {
-        return { message: "Missing required fields" };
-    }
+        // Validate with Zod schema
+        const validated = MonthlyScheduleSchema.parse(data);
 
-    const weeks = parseInt(weeksStr);
-    const selectedDays = JSON.parse(selectedDaysStr) as number[];
-    const [hours, minutes] = startTime.split(':').map(Number);
+        const [hours, minutes] = validated.startTime.split(':').map(Number);
+        const baseDate = new Date(validated.startDate);
+        const sessionsToInsert = [];
 
-    const baseDate = new Date(startDateStr);
-    const sessionsToInsert = [];
+        for (let w = 0; w < validated.weeks; w++) {
+            for (const dayOfWeek of validated.selectedDays) {
+                // Find the day in the current week
+                let sessionDate = addDays(baseDate, w * 7);
 
-    for (let w = 0; w < weeks; w++) {
-        for (const dayOfWeek of selectedDays) {
-            // Find the day in the current week
-            let sessionDate = addDays(baseDate, w * 7);
+                // Adjust to the specific day of the week
+                const currentDay = getDay(sessionDate);
+                const diff = dayOfWeek - currentDay;
+                sessionDate = addDays(sessionDate, diff);
 
-            // Adjust to the specific day of the week
-            const currentDay = getDay(sessionDate);
-            const diff = dayOfWeek - currentDay;
-            sessionDate = addDays(sessionDate, diff);
+                // Set time
+                sessionDate = setHours(sessionDate, hours);
+                sessionDate = setMinutes(sessionDate, minutes);
 
-            // Set time
-            sessionDate = setHours(sessionDate, hours);
-            sessionDate = setMinutes(sessionDate, minutes);
+                // Skip if the date is in the past
+                if (sessionDate < startOfToday()) continue;
 
-            // Skip if the date is in the past (if baseDate is far in the past)
-            if (sessionDate < startOfToday()) continue;
-
-            sessionsToInsert.push({
-                childId,
-                therapistId,
-                therapyId,
-                date: sessionDate,
-                durationMinutes: parseInt(duration),
-                status: "SCHEDULED" as const,
-            });
+                sessionsToInsert.push({
+                    childId: validated.childId,
+                    therapistId: validated.therapistId,
+                    therapyId: validated.therapyId,
+                    date: sessionDate,
+                    durationMinutes: validated.durationMinutes,
+                    status: "SCHEDULED" as const,
+                });
+            }
         }
-    }
 
-    if (sessionsToInsert.length > 0) {
-        await db.insert(sessions).values(sessionsToInsert);
-    }
+        if (sessionsToInsert.length > 0) {
+            await db.insert(sessions).values(sessionsToInsert);
+        }
 
-    revalidatePath("/schedule");
-    return { message: `${sessionsToInsert.length} sessions scheduled successfully` };
+        revalidatePath("/schedule");
+        return { message: `${sessionsToInsert.length} sessions scheduled successfully` };
+    } catch (error) {
+        if (error instanceof ZodError) {
+            const fieldErrors = formatZodErrors(error);
+            return { message: "Validation failed", errors: fieldErrors };
+        }
+        console.error("createMonthlySchedule error:", error);
+        return { message: "Failed to create monthly schedule" };
+    }
 }
 
 export async function updateSession(id: string, formData: FormData) {
     const session = await auth();
     if (session?.user?.role === "PARENT") return { message: "Unauthorized" };
 
-    const childId = formData.get("childId") as string;
-    const therapistId = formData.get("therapistId") as string;
-    const therapyId = formData.get("therapyId") as string;
-    const dateStr = formData.get("date") as string;
-    const duration = formData.get("durationMinutes") as string || "45";
-    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED";
+    try {
+        // Parse FormData
+        const data = {
+            id,
+            childId: formData.get("childId") as string,
+            therapistId: formData.get("therapistId") as string,
+            therapyId: formData.get("therapyId") as string,
+            date: formData.get("date") as string,
+            durationMinutes: parseInt(formData.get("durationMinutes") as string || "45"),
+            status: (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED",
+        };
 
-    await db.update(sessions).set({
-        childId,
-        therapistId,
-        therapyId,
-        date: new Date(dateStr),
-        durationMinutes: parseInt(duration),
-        status,
-    }).where(eq(sessions.id, id));
+        // Validate with Zod schema
+        const validated = UpdateSessionSchema.parse(data);
 
-    revalidatePath("/schedule");
-    return { message: "Session updated" };
+        const updateData: any = {};
+        if (validated.childId) updateData.childId = validated.childId;
+        if (validated.therapistId) updateData.therapistId = validated.therapistId;
+        if (validated.therapyId) updateData.therapyId = validated.therapyId;
+        if (validated.date) updateData.date = new Date(validated.date);
+        if (validated.durationMinutes) updateData.durationMinutes = validated.durationMinutes;
+        if (validated.status) updateData.status = validated.status;
+
+        await db.update(sessions).set(updateData).where(eq(sessions.id, id));
+
+        revalidatePath("/schedule");
+        return { message: "Session updated" };
+    } catch (error) {
+        if (error instanceof ZodError) {
+            const fieldErrors = formatZodErrors(error);
+            return { message: "Validation failed", errors: fieldErrors };
+        }
+        console.error("updateSession error:", error);
+        return { message: "Failed to update session" };
+    }
 }
 
 export async function deleteSession(id: string) {
@@ -1143,16 +1192,36 @@ export async function updateHomeProgram(formData: FormData) {
             updatedAt: new Date(),
         }).where(eq(homePrograms.id, id));
 
-        // Update tasks: simple strategy, delete and re-insert
-        await db.delete(homeProgramTasks).where(eq(homeProgramTasks.programId, id));
-        if (tasks && tasks.length > 0) {
-            await db.insert(homeProgramTasks).values(
-                tasks.map(t => ({
-                    programId: id,
-                    description: t.description,
-                    status: t.status,
-                }))
-            );
+        // Fetch existing tasks to check if they've changed
+        const existingTasks = await db.query.homeProgramTasks.findMany({
+            where: eq(homeProgramTasks.programId, id),
+            orderBy: [asc(homeProgramTasks.createdAt)]
+        });
+
+        // Check if tasks have actually changed
+        const tasksChanged = tasks && (
+            tasks.length !== existingTasks.length ||
+            tasks.some((newTask: any, index: number) => {
+                const existingTask = existingTasks[index];
+                return !existingTask ||
+                    newTask.description !== existingTask.description ||
+                    newTask.status !== existingTask.status;
+            })
+        );
+
+        // Only update tasks if they've actually changed
+        // This preserves task IDs and prevents cascade deletion of submission tasks
+        if (tasksChanged) {
+            await db.delete(homeProgramTasks).where(eq(homeProgramTasks.programId, id));
+            if (tasks && tasks.length > 0) {
+                await db.insert(homeProgramTasks).values(
+                    tasks.map(t => ({
+                        programId: id,
+                        description: t.description,
+                        status: t.status,
+                    }))
+                );
+            }
         }
 
         revalidatePath("/home-programs");

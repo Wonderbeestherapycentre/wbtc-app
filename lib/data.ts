@@ -92,7 +92,7 @@ export async function fetchChildren(includeInactive = false) {
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [desc(children.createdAt)],
+        orderBy: [asc(children.name)],
         with: {
             parent: true,
             therapyTypes: {

@@ -124,6 +124,7 @@ export default function HomeProgramList({
                         <option value="ALL">All Status</option>
                         <option value="ACTIVE">Active</option>
                         <option value="INACTIVE">Inactive</option>
+                        <option value="COMPLETED">Completed</option>
                     </select>
                     {canAdd && (
                         <button
@@ -142,18 +143,20 @@ export default function HomeProgramList({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Activity Name</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Child</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Therapy</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                                <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[200px]">Activity Name</th>
+                                {userRole !== "PARENT" && (
+                                    <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Child</th>
+                                )}
+                                <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Therapy</th>
+                                <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {programs.length > 0 ? (
                                 programs.map((program) => (
                                     <tr key={program.id} className="group hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 py-4" onClick={() => handleView(program)}>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-900 dark:text-white transition-colors capitalize">
                                                     {program.title}
@@ -163,24 +166,26 @@ export default function HomeProgramList({
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                                                        {program.child?.name?.charAt(0)}
+                                        {userRole !== "PARENT" && (
+                                            <td className="px-3 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                                                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                                                            {program.child?.name?.charAt(0)}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                        {program.child?.name}
                                                     </span>
                                                 </div>
-                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    {program.child?.name}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
+                                            </td>
+                                        )}
+                                        <td className="px-3 py-4">
                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
                                                 {program.therapy?.name}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${program.status === 'ACTIVE'
                                                 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
                                                 : 'bg-gray-50 dark:bg-neutral-800 text-gray-500'
@@ -188,7 +193,7 @@ export default function HomeProgramList({
                                                 {program.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-3 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => handleView(program)}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { format, startOfWeek, addDays } from "date-fns";
 import { X, Calendar, Clock, RotateCcw, User, Baby, Activity } from "lucide-react";
 import { createSession, createMonthlySchedule, updateSession } from "@/lib/actions";
@@ -38,6 +39,11 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
     const [isPending, setIsPending] = useState(false);
     const [message, setMessage] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Populate when editing
     useEffect(() => {
@@ -133,10 +139,11 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
     };
 
     if (!isOpen) return null;
+    if (!mounted) return null;
 
     const selectedChild = children.find(c => c.id === selectedChildId);
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800">
                 <div className="p-6 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50/50 dark:bg-neutral-900">
@@ -153,7 +160,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-4 space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     {/* Mode Toggle */}
                     {!sessionToEdit && (
                         <div className="flex p-1 bg-gray-100 dark:bg-neutral-800 rounded-xl">
@@ -388,6 +395,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
