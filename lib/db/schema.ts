@@ -144,6 +144,8 @@ export const homeProgramSubmissions = pgTable("home_program_submissions", {
     parentId: uuid("parent_id").references(() => users.id).notNull(),
     date: date("date").notNull(),
     overallScore: decimal("overall_score", { precision: 5, scale: 2 }).default("0").notNull(),
+    taskScore: decimal("task_score", { precision: 5, scale: 2 }).default("0").notNull(),
+    supportScore: decimal("support_score", { precision: 5, scale: 2 }).default("0").notNull(),
     performanceLevel: text("performance_level"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({

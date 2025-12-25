@@ -68,17 +68,18 @@ export default function HomeProgramReportForm({
 
     // STEP 3: Final Activity Percentage
     const currentScore = Number((taskScore + supportScore).toFixed(0));
+    // const currentScore = Number((supportScore).toFixed(0));
 
     // Performance Level Mapping
     const getPerformanceLevel = (score: number) => {
-        if (score > 90) return { name: "Generalization", color: "text-purple-600 bg-purple-50 border-purple-100", emoji: "🌟" };
-        if (score > 70) return { name: "Independent", color: "text-emerald-600 bg-emerald-50 border-emerald-100", emoji: "✅" };
-        if (score > 40) return { name: "Developing", color: "text-blue-600 bg-blue-50 border-blue-100", emoji: "🐝" };
-        if (score > 20) return { name: "Emerging", color: "text-amber-600 bg-amber-50 border-amber-100", emoji: "🌱" };
+        if (score > 45) return { name: "Generalization", color: "text-purple-600 bg-purple-50 border-purple-100", emoji: "🌟" };
+        if (score > 35) return { name: "Independent", color: "text-emerald-600 bg-emerald-50 border-emerald-100", emoji: "✅" };
+        if (score > 20) return { name: "Developing", color: "text-blue-600 bg-blue-50 border-blue-100", emoji: "🐝" };
+        if (score > 10) return { name: "Emerging", color: "text-amber-600 bg-amber-50 border-amber-100", emoji: "🌱" };
         return { name: "Needs Maximum Support", color: "text-red-600 bg-red-50 border-red-100", emoji: "🆘" };
     };
 
-    const performance = getPerformanceLevel(currentScore);
+    const performance = getPerformanceLevel(supportScore);
 
     const toggleTask = (taskId: string) => {
         setSelectedTasks(prev => {

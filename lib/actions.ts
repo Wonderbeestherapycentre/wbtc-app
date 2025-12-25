@@ -1316,10 +1316,10 @@ export async function submitHomeProgramReport(data: {
 
         // 3. Performance Level Mapping
         let performanceLevel = "Needs Maximum Support";
-        if (finalScore > 90) performanceLevel = "Generalization";
-        else if (finalScore > 70) performanceLevel = "Independent";
-        else if (finalScore > 40) performanceLevel = "Developing 🐝";
-        else if (finalScore > 20) performanceLevel = "Emerging";
+        if (supportScore > 45) performanceLevel = "Generalization";
+        else if (supportScore > 35) performanceLevel = "Independent";
+        else if (supportScore > 20) performanceLevel = "Developing 🐝";
+        else if (supportScore > 10) performanceLevel = "Emerging";
 
         // 4. Check if a submission for this program and date already exists
         const [existingSubmission] = await db.select()
@@ -1340,6 +1340,8 @@ export async function submitHomeProgramReport(data: {
             parentId: session.user.id,
             date: data.date,
             overallScore: finalScore.toString(),
+            taskScore: taskScore.toString(),
+            supportScore: supportScore.toString(),
             performanceLevel,
         };
 

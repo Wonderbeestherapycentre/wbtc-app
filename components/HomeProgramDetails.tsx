@@ -110,7 +110,9 @@ export default function HomeProgramDetails({
                                     <tr className="bg-gray-50 dark:bg-neutral-800/50">
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Date</th>
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Tasks Completed</th>
-                                        <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Score</th>
+                                        <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Total Score</th>
+                                        {/* <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Support Score</th>
+                                        <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Task Score</th> */}
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Performance Level</th>
                                     </tr>
                                 </thead>
@@ -118,6 +120,8 @@ export default function HomeProgramDetails({
                                     {program.submissions.map((sub: any) => {
                                         const subTasks = sub.submissionTasks || [];
                                         const score = Number(sub.overallScore || 0);
+                                        const taskScore = Number(sub.taskScore || 0);
+                                        const supportScore = Number(sub.supportScore || 0);
                                         return (
                                             <tr key={sub.id} className="hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
                                                 <td className="px-3 md:px-6 py-4">
@@ -150,6 +154,12 @@ export default function HomeProgramDetails({
                                                         </div>
                                                     </div>
                                                 </td>
+                                                {/* <td className="px-3 md:px-6 py-4 text-center">
+                                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{supportScore}</span>
+                                                </td>
+                                                <td className="px-3 md:px-6 py-4 text-center">
+                                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{taskScore}</span>
+                                                </td> */}
                                                 <td className="px-3 md:px-6 py-4">
                                                     <span className={cn(
                                                         "text-[10px] font-bold px-3 py-1 rounded-full border whitespace-nowrap inline-block",
