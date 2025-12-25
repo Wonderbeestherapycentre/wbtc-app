@@ -38,32 +38,27 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
     return createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-neutral-900 w-full max-w-3xl rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 max-h-[90vh] overflow-y-auto">
+
                 <div className="p-6 border-b border-gray-100 dark:border-neutral-800 sticky top-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md z-10 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Session Note Details</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
+                    <div>
+                        <h2 className="md:text-xl text-sm font-bold text-gray-900 dark:text-white">
+                            {note.child.name} Session Note ({format(new Date(note.date), "MMM d, yyyy")})
+                        </h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {note.therapy.name}
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
+                    >
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
                 </div>
 
+
                 <div className="p-6 space-y-6">
-                    {/* Basic Info */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Child</label>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                                {note.child.name}
-                                {note.child.caseNumber && <span className="text-xs text-gray-500 ml-1">({note.child.caseNumber})</span>}
-                            </p>
-                        </div>
-                        <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Therapy</label>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">{note.therapy.name}</p>
-                        </div>
-                        <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Date</label>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">{format(new Date(note.date), "MMM d, yyyy")}</p>
-                        </div>
-                    </div>
 
                     {/* Objectives */}
                     {Object.keys(objectives).length > 0 && (

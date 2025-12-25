@@ -32,6 +32,7 @@ export const UserSchema = z.object({
         return date <= today;
     }, "Date of joining cannot be in the future"),
     endDate: emptyStringToNull,
+    status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 
 export const CreateUserSchema = UserSchema.extend({

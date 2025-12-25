@@ -21,6 +21,24 @@ async function getUser(email: string) {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
+    callbacks: {
+        ...authConfig.callbacks,
+        async session({ session, token }) {
+            if (token?.id) {
+                const user = await db.query.users.findFirst({
+                    where: eq(users.id, token.id as string),
+                });
+
+                if (!user || user.status !== "ACTIVE") {
+                    return null as any; // Force logout
+                }
+
+                session.user.id = token.id as string;
+                session.user.role = token.role as any;
+            }
+            return session;
+        },
+    },
     providers: [
         Credentials({
             async authorize(credentials) {
@@ -32,6 +50,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                     const { email, password } = parsedCredentials.data;
                     const user = await getUser(email);
                     if (!user) return null;
+
+                    if (user.status !== "ACTIVE") {
+                        console.log("Access denied: User is not active");
+                        return null;
+                    }
 
                     const passwordsMatch = await bcrypt.compare(password, user.passwordHash);
                     if (passwordsMatch) return user;

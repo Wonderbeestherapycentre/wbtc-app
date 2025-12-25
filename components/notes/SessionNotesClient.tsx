@@ -122,9 +122,9 @@ export default function SessionNotesClient({
                                                     {format(noteDate, "MMM d, yyyy")}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 align-top">
-                                                <div className="font-medium text-sm text-gray-900 dark:text-white">
-                                                    {note.child.name}
+                                            <td className="px-6 py-4 align-top" onClick={() => handleView(note)}>
+                                                <div className="font-medium text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                                                    <Eye className="w-4 h-4 md:hidden" /> {note.child.name}
                                                     {note.child.caseNumber && <span className="text-xs text-gray-500 ml-1">({note.child.caseNumber})</span>}
                                                 </div>
                                             </td>
@@ -160,7 +160,7 @@ export default function SessionNotesClient({
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => handleView(note)}
-                                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                        className="hidden md:block p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                                                         title="View"
                                                     >
                                                         <Eye className="w-4 h-4" />

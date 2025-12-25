@@ -22,6 +22,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: an
         case "THERAPIST":
             return <StaffDashboard />;
         default:
-            return <div>Access Denied: Unknown Role</div>;
+            redirect("/");
     }
 }

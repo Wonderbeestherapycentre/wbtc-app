@@ -18,6 +18,7 @@ interface User {
     address?: string | null;
     doj?: string | null;
     endDate?: string | null;
+    status?: "ACTIVE" | "INACTIVE";
     children?: { id: string; name: string }[];
 }
 
@@ -318,6 +319,21 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                             />
                             {fieldErrors.doj && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.doj[0]}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Status</label>
+                            <select
+                                name="status"
+                                defaultValue={user?.status || "ACTIVE"}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.status ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                            >
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                            {fieldErrors.status && (
+                                <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.status[0]}</p>
                             )}
                         </div>
 

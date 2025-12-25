@@ -7,18 +7,21 @@ export const authConfig = {
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
+            const userRole = (auth?.user as any)?.role;
+            const isValidRole = ["ADMIN", "THERAPIST", "PARENT"].includes(userRole);
+
             const isOnDashboard = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/expenses") || nextUrl.pathname.startsWith("/settings") || nextUrl.pathname.startsWith("/profile");
             const isOnHome = nextUrl.pathname === "/";
             const isOnRegister = nextUrl.pathname.startsWith("/register");
 
             if (isOnHome || isOnRegister) {
-                if (isLoggedIn && isOnHome) return Response.redirect(new URL("/dashboard", nextUrl));
+                if (isLoggedIn && isValidRole && isOnHome) return Response.redirect(new URL("/dashboard", nextUrl));
                 return true; // Allow access to login/register
             }
 
             if (isOnDashboard) {
-                if (isLoggedIn) return true;
-                return false; // Redirect unauthenticated users to login page (which is now /)
+                if (isLoggedIn && isValidRole) return true;
+                return false; // Redirect unauthenticated or invalid users to login page
             }
 
             // Default protection for other routes? Or allow?

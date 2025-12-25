@@ -28,6 +28,7 @@ export async function fetchUsers() {
         address: u.address,
         doj: u.doj,
         endDate: u.endDate,
+        status: u.status,
         children: u.children || [] // Include children
     }));
 }
@@ -58,6 +59,7 @@ export async function fetchUser(id: string) {
             address: user.address,
             doj: user.doj,
             endDate: user.endDate,
+            status: user.status,
             children: user.children || []
         };
     } catch (error) {
@@ -195,7 +197,7 @@ export async function fetchTherapists() {
     if (!session?.user) return [];
 
     const therapists = await db.query.users.findMany({
-        where: eq(users.role, "THERAPIST"),
+        where: and(eq(users.role, "THERAPIST"), eq(users.status, "ACTIVE")),
         orderBy: [asc(users.name)]
     });
 
@@ -207,7 +209,7 @@ export async function fetchParents() {
     if (!session?.user) return [];
 
     const parents = await db.query.users.findMany({
-        where: eq(users.role, "PARENT"),
+        where: and(eq(users.role, "PARENT"), eq(users.status, "ACTIVE")),
         orderBy: [asc(users.name)]
     });
 

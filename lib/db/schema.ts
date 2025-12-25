@@ -21,8 +21,8 @@ export const users = pgTable("users", {
     endDate: date("end_date"),
     qualification: text("qualification"), // For Therapists
     specialization: text("specialization"), // For Therapists
+    status: text("status", { enum: ["ACTIVE", "INACTIVE"] }).default("ACTIVE").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    // Relation for Parents -> Children is defined in children table
 });
 
 // 3. Children Table

@@ -98,6 +98,7 @@ export async function createUser(formData: FormData) {
         const rawAddress = formData.get("address") as string || "";
         const rawDoj = formData.get("doj") as string || "";
         const rawEndDate = formData.get("endDate") as string || "";
+        const rawStatus = (formData.get("status") as string) || "ACTIVE";
 
         const validatedFields = CreateUserSchema.safeParse({
             name: rawName,
@@ -110,7 +111,8 @@ export async function createUser(formData: FormData) {
             mobile2: rawMobile2,
             address: rawAddress,
             doj: rawDoj,
-            endDate: rawEndDate
+            endDate: rawEndDate,
+            status: rawStatus
         });
 
         if (!validatedFields.success) {
@@ -121,7 +123,7 @@ export async function createUser(formData: FormData) {
             };
         }
 
-        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate } = validatedFields.data;
+        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate, status } = validatedFields.data;
         let { password } = validatedFields.data;
 
         if (!password) {
@@ -149,6 +151,7 @@ export async function createUser(formData: FormData) {
             mobile2,
             address,
             endDate,
+            status,
         });
 
         // Handle Child Assignment
@@ -353,6 +356,7 @@ export async function updateUser(userId: string, formData: FormData) {
         const rawAddress = formData.get("address") as string || "";
         const rawDoj = formData.get("doj") as string || "";
         const rawEndDate = formData.get("endDate") as string || "";
+        const rawStatus = (formData.get("status") as string) || "ACTIVE";
 
         const validatedFields = UpdateUserSchema.safeParse({
             name: rawName,
@@ -365,7 +369,8 @@ export async function updateUser(userId: string, formData: FormData) {
             address: rawAddress,
             doj: rawDoj,
             endDate: rawEndDate,
-            password: rawPassword
+            password: rawPassword,
+            status: rawStatus
         });
 
         if (!validatedFields.success) {
@@ -376,9 +381,9 @@ export async function updateUser(userId: string, formData: FormData) {
             };
         }
 
-        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate, password } = validatedFields.data;
+        const { name, email, role, qualification, specialization, mobile1, mobile2, address, doj, endDate, password, status } = validatedFields.data;
 
-        const updateData: any = { name, email, qualification, specialization, mobile1, mobile2, address, doj, endDate }; if (session.user.role === "ADMIN") {
+        const updateData: any = { name, email, qualification, specialization, mobile1, mobile2, address, doj, endDate, status }; if (session.user.role === "ADMIN") {
             if (role) updateData.role = role;
             if (password && password.trim() !== "") {
                 updateData.passwordHash = await bcrypt.hash(password, 10);

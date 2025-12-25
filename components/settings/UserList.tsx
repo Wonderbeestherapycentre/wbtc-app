@@ -21,6 +21,7 @@ interface User {
     address?: string | null;
     doj?: string | null;
     endDate?: string | null;
+    status: "ACTIVE" | "INACTIVE";
     children?: { id: string; name: string, dob?: string | null }[];
 }
 
@@ -114,6 +115,7 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                         <tr>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
+                            <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone 1</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">DOJ</th>
                             <th className="text-right py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -170,6 +172,14 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                             : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                         }`}>
                                         {user.role}
+                                    </span>
+                                </td>
+                                <td className="py-4 px-6">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'ACTIVE'
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                        }`}>
+                                        {user.status}
                                     </span>
                                 </td>
                                 <td className="py-4 px-6">
