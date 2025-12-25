@@ -115,7 +115,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
     if (!mounted) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800 animate-slide-up">
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-neutral-800">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user ? "Edit User" : "Add New User"}</h2>

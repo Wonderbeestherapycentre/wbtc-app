@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
-import { fetchSessions } from "@/lib/data";
+import { fetchSessions, fetchChildren, fetchTherapists } from "@/lib/data";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 
 export default async function SchedulePage() {
@@ -8,12 +8,10 @@ export default async function SchedulePage() {
     const currentUserRole = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
     const userId = session?.user?.id || "";
 
+    // Fetch data for the scheduling modal
+    const children = await fetchChildren();
+    const therapists = await fetchTherapists();
 
-    // Fetch sessions for range (e.g. current month? or just all recent).
-    // Weekly calendar needs specific range but for now fetch all and filter in UI component?
-    // Or better, fetch for current month +/- 1 month.
-    // For MVP, fetch all (assuming small session load initially) or fetch last 30 days + future.
-    // Let's fetch "future 90 days" and "past 30 days".
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
     const endDate = new Date();
@@ -33,6 +31,8 @@ export default async function SchedulePage() {
 
                 <ScheduleCalendar
                     sessions={sessions as any}
+                    childrenData={children as any}
+                    allTherapists={therapists as any}
                     currentUserRole={currentUserRole}
                     userId={userId}
                 />

@@ -4,7 +4,7 @@ import { relations } from "drizzle-orm";
 // 1. Enums
 export const roleEnum = pgEnum("role", ["ADMIN", "THERAPIST", "PARENT"]);
 export const transactionTypeEnum = pgEnum("transaction_type", ["EXPENSE", "INCOME", "DUE"]);
-export const sessionStatusEnum = pgEnum("session_status", ["SCHEDULED", "COMPLETED", "CANCELLED", "MISSED"]);
+export const sessionStatusEnum = pgEnum("session_status", ["SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED"]);
 export const attendanceStatusEnum = pgEnum("attendance_status", ["PRESENT", "ABSENT", "EXCUSED"]);
 
 // 2. Users Table (Admin, Therapist, Parent)

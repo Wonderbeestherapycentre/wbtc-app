@@ -9,6 +9,7 @@ import { users, children, therapies, sessions, childTherapies, goals, sessionNot
 
 import bcrypt from "bcryptjs";
 import { eq, desc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
+import { addDays, isSameDay, setHours, setMinutes, getDay, startOfToday } from "date-fns";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
 import { ChildSchema } from "./validations/child";
@@ -286,7 +287,7 @@ export async function createSession(formData: FormData) {
     const therapyId = formData.get("therapyId") as string;
     const dateStr = formData.get("date") as string;
     const duration = formData.get("durationMinutes") as string || "45";
-    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "MISSED") || "SCHEDULED";
+    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED";
 
     if (!childId || !therapistId || !therapyId || !dateStr) {
         return { message: "Missing required fields" };
@@ -305,6 +306,66 @@ export async function createSession(formData: FormData) {
     return { message: "Session scheduled" };
 }
 
+export async function createMonthlySchedule(formData: FormData) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    const childId = formData.get("childId") as string;
+    const therapistId = formData.get("therapistId") as string;
+    const therapyId = formData.get("therapyId") as string;
+    const duration = formData.get("durationMinutes") as string || "45";
+    const startTime = formData.get("startTime") as string; // Format "HH:mm"
+    const startDateStr = formData.get("startDate") as string; // Starting Monday or specific date
+    const weeksStr = formData.get("weeks") as string || "4";
+    const selectedDaysStr = formData.get("selectedDays") as string; // JSON array of numbers [1, 3, 5] (Mon, Wed, Fri)
+
+    if (!childId || !therapistId || !therapyId || !startTime || !startDateStr || !selectedDaysStr) {
+        return { message: "Missing required fields" };
+    }
+
+    const weeks = parseInt(weeksStr);
+    const selectedDays = JSON.parse(selectedDaysStr) as number[];
+    const [hours, minutes] = startTime.split(':').map(Number);
+
+    const baseDate = new Date(startDateStr);
+    const sessionsToInsert = [];
+
+    for (let w = 0; w < weeks; w++) {
+        for (const dayOfWeek of selectedDays) {
+            // Find the day in the current week
+            let sessionDate = addDays(baseDate, w * 7);
+
+            // Adjust to the specific day of the week
+            const currentDay = getDay(sessionDate);
+            const diff = dayOfWeek - currentDay;
+            sessionDate = addDays(sessionDate, diff);
+
+            // Set time
+            sessionDate = setHours(sessionDate, hours);
+            sessionDate = setMinutes(sessionDate, minutes);
+
+            // Skip if the date is in the past (if baseDate is far in the past)
+            if (sessionDate < startOfToday()) continue;
+
+            sessionsToInsert.push({
+                childId,
+                therapistId,
+                therapyId,
+                date: sessionDate,
+                durationMinutes: parseInt(duration),
+                status: "SCHEDULED" as const,
+            });
+        }
+    }
+
+    if (sessionsToInsert.length > 0) {
+        await db.insert(sessions).values(sessionsToInsert);
+    }
+
+    revalidatePath("/schedule");
+    return { message: `${sessionsToInsert.length} sessions scheduled successfully` };
+}
+
 export async function updateSession(id: string, formData: FormData) {
     const session = await auth();
     if (session?.user?.role === "PARENT") return { message: "Unauthorized" };
@@ -314,7 +375,7 @@ export async function updateSession(id: string, formData: FormData) {
     const therapyId = formData.get("therapyId") as string;
     const dateStr = formData.get("date") as string;
     const duration = formData.get("durationMinutes") as string || "45";
-    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "MISSED") || "SCHEDULED";
+    const status = (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED";
 
     await db.update(sessions).set({
         childId,

@@ -29,6 +29,14 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Documentation
+
+For detailed information about the project architecture and workflows, refer to the following guides:
+
+- [Functional Requirements](file:///Users/vc/antigravity/wbtc-app/README_Doc.md)
+- [Technical Documentation](file:///Users/vc/antigravity/wbtc-app/docs/technical_documentation.md)
+- [User Flow Diagrams](file:///Users/vc/antigravity/wbtc-app/docs/user_flows.md)
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

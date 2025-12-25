@@ -25,7 +25,7 @@ export default function HomeProgramViewModal({
     if (!isOpen || !mounted || !program) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-neutral-900 w-full max-w-2xl rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 dark:border-neutral-800 flex justify-end items-center bg-gray-50/50 dark:bg-neutral-800/30 rounded-t-2xl">

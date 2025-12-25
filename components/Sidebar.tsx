@@ -23,8 +23,8 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
 
     const ADMIN_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+        { icon: Calendar, label: "Schedule", href: "/schedule" },
         { icon: Home, label: "Home Programs", href: "/home-programs" },
-        // { icon: Calendar, label: "Schedule", href: "/schedule" },
         // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
             {/* Mobile Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-sm transition-opacity duration-300"
+                    className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-md transition-opacity duration-300"
                     onClick={onClose}
                 />
             )}

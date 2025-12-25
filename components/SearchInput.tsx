@@ -37,7 +37,7 @@ export default function SearchInput({ placeholder = "Search..." }: { placeholder
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="block w-full pl-10 pr-10 py-2 border border-gray-100 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-100 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 placeholder={placeholder}
             />
             {text && (
