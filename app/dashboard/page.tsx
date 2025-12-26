@@ -9,10 +9,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: an
     const session = await auth();
 
     if (!session?.user) {
-        redirect("/");
+        return redirect("/api/auth/force-signout");
     }
 
-    const role = session.user.role;
+    const role = session?.user?.role;
 
     switch (role) {
         case "ADMIN":
@@ -22,6 +22,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: an
         case "THERAPIST":
             return <StaffDashboard />;
         default:
-            redirect("/");
+            return redirect("/api/auth/force-signout");
     }
 }

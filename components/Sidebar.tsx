@@ -7,7 +7,6 @@ import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
 import { cn } from "@/lib/utils";
-import UserSwitcher from "./UserSwitcher";
 import Link from "next/link";
 
 
@@ -131,10 +130,10 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                         })}
                     </nav>
 
-                    {/* Footer / User Profile */}
-                    <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 flex-shrink-0">
+                    {/* Footer / User Profile - Removed as per request */}
+                    {/* <div className="p-4 border-t border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900/50 flex-shrink-0">
                         <UserSwitcher user={user} />
-                    </div>
+                    </div> */}
                 </div>
             </aside>
         </>

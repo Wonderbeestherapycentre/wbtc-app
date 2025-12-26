@@ -10,7 +10,9 @@ import { eq } from "drizzle-orm";
 
 export default async function ProfilePage() {
     const session = await auth();
-    if (!session?.user) redirect("/");
+    if (!session?.user) {
+        return redirect("/api/auth/force-signout");
+    }
 
 
     const [children, therapies] = await Promise.all([
@@ -20,10 +22,12 @@ export default async function ProfilePage() {
 
     // Fetch full user details (e.g. family name)
     const user = await db.query.users.findFirst({
-        where: eq(users.id, session.user.id),
+        where: eq(users.id, session!.user!.id),
     });
 
-    if (!user) redirect("/");
+    if (!user) {
+        return redirect("/api/auth/force-signout");
+    }
 
     return (
         <AppLayout familyChildren={children} role={session?.user?.role as any} user={session?.user}>

@@ -443,9 +443,9 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
             or(
                 ilike(homePrograms.title, `%${search}%`),
                 sql`EXISTS (
-                    SELECT 1 FROM ${children} 
-                    WHERE ${children.id} = ${homePrograms.childId} 
-                    AND ${children.name} ILIKE ${`%${search}%`}
+                    SELECT 1 FROM "children" 
+                    WHERE "children"."id" = ${homePrograms.childId} 
+                    AND "children"."name" ILIKE ${`%${search}%`}
                 )`
             )
         );
