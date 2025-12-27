@@ -8,6 +8,7 @@ import Link from "next/link";
 import { intervalToDuration } from "date-fns";
 import ChildModal from "./ChildModal";
 import ConfirmModal from "./ConfirmModal";
+import SearchInput from "@/components/SearchInput";
 
 
 interface Child {
@@ -121,20 +122,26 @@ export default function ChildSettings({
                 isPending={isPending}
             />
 
-
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-md md:text-xl font-bold text-gray-900 dark:text-white">Manage child profiles</h2>
+                </div>
+                {role !== "PARENT" && <SearchInput placeholder="Search by name..." />}
+                {role === "ADMIN" && (
+                    <button
+                        onClick={handleAddClick}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Child</span>
+                    </button>
+                )}
+            </div>
 
             <div className="glass-card rounded-2xl overflow-hidden animate-fade-in p-4 md:p-6">
                 <div className="flex justify-between items-center mb-4 md:mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Family Members</h3>
-                    {role === "ADMIN" && (
-                        <button
-                            onClick={handleAddClick}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>Add Child</span>
-                        </button>
-                    )}
+
                 </div>
 
                 <div className="overflow-x-auto -mx-4 px-4 md:-mx-6 md:px-6 pb-4">

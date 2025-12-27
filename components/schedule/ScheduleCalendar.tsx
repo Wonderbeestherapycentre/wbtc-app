@@ -6,7 +6,7 @@ import {
     startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth,
     addMonths, subMonths, isToday, startOfDay, addHours, differenceInMinutes, getHours, setHours
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays, Table as TableIcon } from "lucide-react";
 import ScheduleModal from "./ScheduleModal";
 
 interface Session {
@@ -30,12 +30,12 @@ interface ScheduleCalendarProps {
 
 const START_HOUR = 8.26;
 const END_HOUR = 21.10;
-const SLOT_MINUTES = 45; // 45-minute intervals
+const SLOT_MINUTES = 60; // 45-minute intervals
 const SLOT_HEIGHT = 48; // px per 45-minute slot
 
 
 export default function ScheduleCalendar({ sessions, childrenData, allTherapists, currentUserRole, userId }: ScheduleCalendarProps) {
-    const [view, setView] = useState<"DAY" | "WEEK" | "MONTH">("DAY");
+    const [view, setView] = useState<"DAY" | "WEEK" | "MONTH" | "TABLE">("TABLE");
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sessionToEdit, setSessionToEdit] = useState<any>(null);
@@ -171,6 +171,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                 <div className="flex items-center gap-3">
                     <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 gap-1">
                         {[
+                            { id: "TABLE", label: "List", icon: TableIcon },
                             { id: "DAY", label: "Day", icon: CalendarDays },
                             { id: "WEEK", label: "Week", icon: LayoutList },
                             { id: "MONTH", label: "Month", icon: CalendarIcon }
@@ -186,7 +187,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                         ))}
                     </div>
 
-                    <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 hidden md:flex">
+                    <div className={`flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 hidden md:flex ${view === "TABLE" ? "opacity-50 pointer-events-none" : ""}`}>
                         <button onClick={prevRange} className="p-1.5 hover:bg-white dark:hover:bg-neutral-700 rounded-lg transition-all">
                             <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                         </button>
@@ -235,7 +236,99 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
             {/* Calendar Body */}
             <div className="bg-white dark:bg-neutral-900 rounded-[2.5rem] border border-gray-100 dark:border-neutral-800 overflow-hidden shadow-2xl shadow-blue-100/20 dark:shadow-none min-h-[500px]">
 
-                {view === "MONTH" ? (
+                {view === "TABLE" ? (
+                    /* TABLE View */
+                    <div className="flex flex-col min-h-[600px] bg-white dark:bg-neutral-900">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-100 dark:border-neutral-800 sticky top-0 z-10 backdrop-blur-sm">
+                                    <tr>
+                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Date & Time</th>
+                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Child</th>
+                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Therapy</th>
+                                        {currentUserRole !== "PARENT" && (
+                                            <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Therapist</th>
+                                        )}
+                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Status</th>
+                                        {currentUserRole !== "PARENT" && (
+                                            <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50 dark:divide-neutral-800/50">
+                                    {filteredSessions.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={currentUserRole !== "PARENT" ? 6 : 4} className="py-12 text-center text-gray-400 text-sm">
+                                                No sessions found for the selected filters.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        [...filteredSessions]
+                                            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                                            .map((session) => (
+                                                <tr
+                                                    key={session.id}
+                                                    onClick={() => currentUserRole !== "PARENT" && handleEditSession(session)}
+                                                    className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
+                                                >
+                                                    <td className="py-4 px-6">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                {format(new Date(session.date), "MMM d, yyyy")}
+                                                            </span>
+                                                            <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">
+                                                                <Clock className="w-3 h-3" />
+                                                                {format(new Date(session.date), "h:mm a")} - {format(addHours(new Date(session.date), (session.durationMinutes || 45) / 60), "h:mm a")}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-6">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                                                                {session.child.name.charAt(0)}
+                                                            </div>
+                                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{session.child.name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-6">
+                                                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600">
+                                                            {session.therapy.name}
+                                                        </span>
+                                                    </td>
+                                                    {currentUserRole !== "PARENT" && (
+                                                        <td className="py-4 px-6">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                                <User className="w-3.5 h-3.5" />
+                                                                {session.therapist.name}
+                                                            </div>
+                                                        </td>
+                                                    )}
+                                                    <td className="py-4 px-6 text-center">
+                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${getStatusColor(session.status)}`}>
+                                                            {session.status || "SCHEDULED"}
+                                                        </span>
+                                                    </td>
+                                                    {currentUserRole !== "PARENT" && (
+                                                        <td className="py-4 px-6 text-right">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditSession(session);
+                                                                }}
+                                                                className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : view === "MONTH" ? (
                     /* Existing MONTH View */
                     <div className="flex flex-col">
                         <div className="grid grid-cols-7 bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-100 dark:border-neutral-800">

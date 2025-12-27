@@ -2,7 +2,6 @@ import AppLayout from "@/components/AppLayout";
 import { fetchChildren, fetchChildrenPaginated, fetchParents, fetchTherapists, fetchTherapies } from "@/lib/data";
 import ChildSettings from "@/components/ChildSettings";
 import Pagination from "@/components/Pagination";
-import SearchInput from "@/components/SearchInput";
 import { ITEMS_PER_PAGE } from "@/lib/constants";
 
 import { auth } from "@/auth";
@@ -28,14 +27,7 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
 
     return (
         <AppLayout familyChildren={activeChildren} role={session?.user?.role as any} user={session?.user}>
-            <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Children</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">Manage child profiles</p>
-                    </div>
-                    {role !== "PARENT" && <SearchInput placeholder="Search by name..." />}
-                </div>
+            <div className="space-y-3 animate-fade-in">
 
                 <ChildSettings
                     children={childrenList as any}

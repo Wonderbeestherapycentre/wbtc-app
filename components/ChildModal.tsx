@@ -75,9 +75,9 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 end: new Date()
             });
             const parts = [];
-            if (duration.years) parts.push(`${duration.years} yrs`);
-            if (duration.months) parts.push(`${duration.months} mos`);
-            setAge(parts.join(' ') || "0 mos");
+            if (duration.years) parts.push(`${duration.years}Y`);
+            if (duration.months) parts.push(`${duration.months}M`);
+            setAge(parts.join(' ') || "0M");
         } else {
             setAge("");
         }
@@ -234,11 +234,11 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
     if (!mounted || !isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-neutral-800 flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between p-2 border-b border-gray-100 dark:border-neutral-800">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                             {child ? "Edit Child Profile" : "Add New Child"}
@@ -256,8 +256,8 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar">
-                    <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="p-2 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-3">
 
                         {/* Basic Info Section */}
                         <div className="space-y-4">
@@ -279,8 +279,8 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                        Date of Birth
-                                        {age && <span className="ml-2 text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded text-xs">Age: {age}</span>}
+                                        D.O.B
+                                        {age && <span className="ml-2 text-blue-600 dark:text-blue-400 font-bold text-xs md:text-md bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded text-xs">Age: {age}</span>}
                                     </label>
                                     <input
                                         type="date"
@@ -361,7 +361,7 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                                                 onChange={(e) => updateTherapistForTherapy(t.id, e.target.value)}
                                                                 className="flex-1 px-3 py-1.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none"
                                                             >
-                                                                <option value="">Select Therapist for {t.name}...</option>
+                                                                <option value="">Select Therapist</option>
                                                                 {getTherapistsForTherapy(t.id).map(ther => (
                                                                     <option key={ther.id} value={ther.id}>{ther.name}</option>
                                                                 ))}
