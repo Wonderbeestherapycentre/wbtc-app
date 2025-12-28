@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { format, startOfWeek, addDays } from "date-fns";
 import { X, Calendar, Clock, RotateCcw, User, Baby, Activity } from "lucide-react";
 import { createSession, createMonthlySchedule, updateSession } from "@/lib/actions";
+import { parseISTDateTime, getISTDateString, getISTTimeString } from "@/lib/utils/timezone";
 
 interface Child {
     id: string;
@@ -54,8 +55,9 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
             setSelectedTherapistId(sessionToEdit.therapist.id);
             setStatus(sessionToEdit.status || "SCHEDULED");
             const sDate = new Date(sessionToEdit.date);
-            setDate(format(sDate, "yyyy-MM-dd"));
-            setStartTime(format(sDate, "HH:mm"));
+            // Extract date and time in IST
+            setDate(getISTDateString(sDate));
+            setStartTime(getISTTimeString(sDate));
             setDuration(String(sessionToEdit.durationMinutes || "45"));
         } else {
             // Reset for new
@@ -111,14 +113,19 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
         try {
             let res;
             if (sessionToEdit) {
-                const fullDate = new Date(`${date}T${startTime}`);
-                formData.append("date", fullDate.toISOString());
+                // Send date and time separately
+                formData.append("date", date);
+                formData.append("time", startTime);
+                console.log('Updating session:', { date, time: startTime });
                 res = await updateSession(sessionToEdit.id, formData);
             } else if (mode === "SINGLE") {
-                const fullDate = new Date(`${date}T${startTime}`);
-                formData.append("date", fullDate.toISOString());
+                // Send date and time separately
+                formData.append("date", date);
+                formData.append("time", startTime);
+                console.log('Creating session:', { date, time: startTime });
                 res = await createSession(formData);
             } else {
+                console.log('Creating monthly schedule:', { date, startTime, weeks, selectedDays });
                 formData.append("startTime", startTime);
                 formData.append("startDate", date);
                 formData.append("weeks", weeks);
@@ -126,12 +133,18 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                 res = await createMonthlySchedule(formData);
             }
 
+            console.log('Server response:', res);
             if (res.message.toLowerCase().includes("success") || res.message.toLowerCase().includes("updated") || res.message.toLowerCase().includes("scheduled")) {
                 onClose();
             } else {
                 setMessage(res.message);
+                // Log errors if present
+                if ('errors' in res) {
+                    console.error('Validation errors:', res.errors);
+                }
             }
         } catch (error) {
+            console.error('Submit error:', error);
             setMessage("Something went wrong");
         } finally {
             setIsPending(false);

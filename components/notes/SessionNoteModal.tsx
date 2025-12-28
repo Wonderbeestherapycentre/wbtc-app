@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createSessionNote, updateSessionNote } from "@/lib/actions";
 import { X, Plus, Trash2 } from "lucide-react";
 import { PROMPT_OPTIONS } from "@/lib/constants";
+import { getTodayIST } from "@/lib/utils/timezone";
 
 interface SessionNoteModalProps {
     isOpen: boolean;
@@ -67,7 +68,7 @@ export default function SessionNoteModal({
                 console.log("Creating new note, setting therapy to:", therapistSpecialization || "empty");
                 setSelectedChildId("");
                 setSelectedTherapyId(therapistSpecialization || "");
-                setDate(new Date().toISOString().split('T')[0]);
+                setDate(getTodayIST());
                 setSelectedObjectives({});
                 setActivities([{ description: "", prompt: "" }]);
             }
@@ -207,7 +208,7 @@ export default function SessionNoteModal({
                                 type="date"
                                 required
                                 value={date}
-                                max={new Date().toISOString().split('T')[0]}
+                                max={getTodayIST()}
                                 onChange={(e) => setDate(e.target.value)}
                                 className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                             />

@@ -5,6 +5,7 @@ import { CheckSquare, ChevronDown, Save, Loader2, Sparkles, CheckCircle2 } from 
 import { cn } from "@/lib/utils";
 import { submitHomeProgramReport } from "@/lib/actions";
 import { toast } from "sonner";
+import { getTodayIST } from "@/lib/utils/timezone";
 
 interface Task {
     id: string;
@@ -40,6 +41,7 @@ export default function HomeProgramReportForm({
     const [isPending, startTransition] = useTransition();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [lastSubmission, setLastSubmission] = useState<{ score: number, level: string } | null>(null);
+    const [selectedDate, setSelectedDate] = useState(getTodayIST());
     const [selectedTasks, setSelectedTasks] = useState<Record<string, { supportLevelId: number }>>(() => {
         if (initialData) {
             const data: Record<string, { supportLevelId: number }> = {};
@@ -100,6 +102,10 @@ export default function HomeProgramReportForm({
         }));
     };
 
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedDate(e.target.value);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -116,7 +122,7 @@ export default function HomeProgramReportForm({
             return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = selectedDate; // Use the selected date
 
         const payload = {
             programId,
@@ -204,6 +210,18 @@ export default function HomeProgramReportForm({
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Date Picker */}
+            <div className="flex items-center justify-end">
+                <label htmlFor="report-date" className="sr-only">Report Date</label>
+                <input
+                    id="report-date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    className="bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-medium"
+                />
             </div>
 
             <div className="grid grid-cols-1 gap-4">

@@ -5,7 +5,9 @@ import { format } from "date-fns";
 import { updateAttendance } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { getTodayIST } from "@/lib/utils/timezone";
 import { Loader2, Calendar, Check, X, Clock, AlertCircle } from "lucide-react";
+import { convertUTCToIST } from "@/lib/utils/timezone";
 
 interface Session {
     id: string;
@@ -40,6 +42,7 @@ export default function AttendanceList({
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [selectedDate, setSelectedDate] = useState(getTodayIST());
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const date = e.target.value;
@@ -77,7 +80,7 @@ export default function AttendanceList({
                     <Calendar className="w-5 h-5 text-gray-500" />
                     <input
                         type="date"
-                        value={format(currentDate, "yyyy-MM-dd")}
+                        value={getTodayIST()}
                         onChange={handleDateChange}
                         className="bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-medium"
                     />
@@ -134,7 +137,7 @@ export default function AttendanceList({
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
                                             <Clock className="w-4 h-4 text-gray-400" />
-                                            {format(new Date(session.date), "h:mm a")}
+                                            {format(session.date as Date, "h:mm a")}
                                         </div>
                                         <div className="text-xs text-gray-500 ml-6">
                                             {session.durationMinutes} mins
@@ -161,8 +164,8 @@ export default function AttendanceList({
                                                     <button
                                                         onClick={() => markAttendance(session.id, "PRESENT")}
                                                         className={`p-2 rounded-lg transition-all ${session.attendance === "PRESENT"
-                                                                ? "bg-green-100 text-green-700 ring-2 ring-green-600 ring-offset-1 dark:ring-offset-neutral-900"
-                                                                : "bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-600 dark:bg-neutral-800"
+                                                            ? "bg-green-100 text-green-700 ring-2 ring-green-600 ring-offset-1 dark:ring-offset-neutral-900"
+                                                            : "bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-600 dark:bg-neutral-800"
                                                             }`}
                                                         title="Present"
                                                     >
@@ -171,8 +174,8 @@ export default function AttendanceList({
                                                     <button
                                                         onClick={() => markAttendance(session.id, "ABSENT")}
                                                         className={`p-2 rounded-lg transition-all ${session.attendance === "ABSENT"
-                                                                ? "bg-red-100 text-red-700 ring-2 ring-red-600 ring-offset-1 dark:ring-offset-neutral-900"
-                                                                : "bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:bg-neutral-800"
+                                                            ? "bg-red-100 text-red-700 ring-2 ring-red-600 ring-offset-1 dark:ring-offset-neutral-900"
+                                                            : "bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:bg-neutral-800"
                                                             }`}
                                                         title="Absent"
                                                     >
@@ -181,8 +184,8 @@ export default function AttendanceList({
                                                     <button
                                                         onClick={() => markAttendance(session.id, "EXCUSED")}
                                                         className={`p-2 rounded-lg transition-all ${session.attendance === "EXCUSED"
-                                                                ? "bg-yellow-100 text-yellow-700 ring-2 ring-yellow-600 ring-offset-1 dark:ring-offset-neutral-900"
-                                                                : "bg-gray-100 text-gray-400 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-neutral-800"
+                                                            ? "bg-yellow-100 text-yellow-700 ring-2 ring-yellow-600 ring-offset-1 dark:ring-offset-neutral-900"
+                                                            : "bg-gray-100 text-gray-400 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-neutral-800"
                                                             }`}
                                                         title="Excused"
                                                     >

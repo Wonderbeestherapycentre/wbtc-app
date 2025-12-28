@@ -3,6 +3,7 @@ import { users, children, therapies, sessions, roleEnum, childTherapies, goals, 
 
 import { eq, desc, asc, and, or, gte, lte, sql, ilike, count } from "drizzle-orm";
 import { auth } from "@/auth";
+import { convertUTCToIST } from "./utils/timezone";
 
 export async function fetchUsers() {
     const session = await auth();
@@ -252,11 +253,16 @@ export async function fetchSessions(startDate?: Date, endDate?: Date, therapistI
         orderBy: [asc(sessions.date)]
     });
 
+    const sessionsData = data.map((s: any) => ({
+        ...s,
+        date: convertUTCToIST(s.date)
+    }));
+
     if (session.user.role === "PARENT") {
-        return data.filter((s: any) => s.child.parentId === session.user.id);
+        return sessionsData.filter((s: any) => s.child.parentId === session.user.id);
     }
 
-    return data;
+    return sessionsData;
 }
 
 export async function fetchGoals(childId?: string) {
@@ -293,7 +299,13 @@ export async function fetchGoals(childId?: string) {
         }
     });
 
-    return data;
+    return data.map((g: any) => ({
+        ...g,
+        startDate: convertUTCToIST(g.startDate),
+        endDate: convertUTCToIST(g.endDate),
+        createdAt: convertUTCToIST(g.createdAt),
+        updatedAt: convertUTCToIST(g.updatedAt)
+    }));
 }
 
 export async function fetchGoalsPaginated(page: number, limit: number, childId?: string, search?: string, status?: string) {
@@ -353,7 +365,13 @@ export async function fetchGoalsPaginated(page: number, limit: number, childId?:
     });
 
     return {
-        data,
+        data: data.map((g: any) => ({
+            ...g,
+            startDate: convertUTCToIST(g.startDate),
+            endDate: convertUTCToIST(g.endDate),
+            createdAt: convertUTCToIST(g.createdAt),
+            updatedAt: convertUTCToIST(g.updatedAt)
+        })),
         meta: {
             total: totalCount,
             page: page,
@@ -388,7 +406,13 @@ export async function fetchSessionNotes() {
         }
     });
 
-    return data;
+    return data.map((n: any) => ({
+        ...n,
+        date: convertUTCToIST(n.date),
+        createdAt: convertUTCToIST(n.createdAt),
+        updatedAt: convertUTCToIST(n.updatedAt),
+        parentViewedAt: n.parentViewedAt ? convertUTCToIST(n.parentViewedAt) : null
+    }));
 }
 
 export async function fetchHomePrograms(childId?: string) {
@@ -418,7 +442,11 @@ export async function fetchHomePrograms(childId?: string) {
         }
     });
 
-    return data;
+    return data.map((p: any) => ({
+        ...p,
+        createdAt: convertUTCToIST(p.createdAt),
+        updatedAt: convertUTCToIST(p.updatedAt)
+    }));
 }
 
 export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL") {
@@ -476,7 +504,15 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
     const total = totalResult[0].count;
 
     return {
-        data,
+        data: data.map((p: any) => ({
+            ...p,
+            createdAt: convertUTCToIST(p.createdAt),
+            updatedAt: convertUTCToIST(p.updatedAt),
+            submissions: p.submissions?.map((s: any) => ({
+                ...s,
+                date: convertUTCToIST(s.date)
+            })) || []
+        })),
         meta: {
             total,
             page,
@@ -518,7 +554,15 @@ export async function fetchHomeProgramDetails(id: string) {
         if (program.therapistId !== session.user.id) return null;
     }
 
-    return program;
+    return {
+        ...program,
+        createdAt: convertUTCToIST(program.createdAt),
+        updatedAt: convertUTCToIST(program.updatedAt),
+        submissions: program.submissions?.map((s: any) => ({
+            ...s,
+            date: convertUTCToIST(s.date)
+        })) || []
+    } as any;
 }
 
 export async function fetchHomeProgram(id: string) {

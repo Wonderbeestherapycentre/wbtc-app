@@ -12,6 +12,7 @@ import ScheduleModal from "./ScheduleModal";
 import { deleteSession } from "@/lib/actions";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableDropdown from "../ui/SearchableDropdown";
+import { convertUTCToIST } from "@/lib/utils/timezone";
 
 interface Session {
     id: string;
@@ -93,11 +94,14 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
     });
 
     const getSessionsForDay = (day: Date) => {
-        return filteredSessions.filter(session => isSameDay(new Date(session.date), day));
+        return filteredSessions.filter(session => {
+            return isSameDay(session.date as Date, day);
+        });
     };
 
     // Calculate vertical position for time-grid (45-minute slots)
     const getTimePosition = (date: Date) => {
+        // Use the pre-normalized date directly
         const hours = date.getHours();
         const minutes = date.getMinutes();
         if (hours < START_HOUR) return 0;
@@ -312,11 +316,15 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     <td className="py-4 px-6">
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                                                {format(new Date(session.date), "MMM d, yyyy")}
+                                                                {format(session.date as Date, "MMM d, yyyy")}
                                                             </span>
                                                             <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">
                                                                 <Clock className="w-3 h-3" />
-                                                                {format(new Date(session.date), "h:mm a")} - {format(addHours(new Date(session.date), (session.durationMinutes || 45) / 60), "h:mm a")}
+                                                                {(() => {
+                                                                    const d = session.date as Date;
+                                                                    const endDate = new Date(d.getTime() + (session.durationMinutes || 45) * 60000);
+                                                                    return `${format(d, "h:mm a")} - ${format(endDate, "h:mm a")}`;
+                                                                })()}
                                                             </span>
                                                         </div>
                                                     </td>
@@ -472,7 +480,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                             const daySessions = getSessionsForDay(day);
                                             const layouts = getSessionLayouts(daySessions);
                                             return daySessions.map(s => {
-                                                const sDate = new Date(s.date);
+                                                const sDate = s.date as Date;
                                                 const top = getTimePosition(sDate);
                                                 const height = (s.durationMinutes || 45) / SLOT_MINUTES * SLOT_HEIGHT;
                                                 const layout = layouts.get(s.id) || { left: 0, width: 100 };

@@ -3,6 +3,7 @@ import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
 import { fetchSessions } from "@/lib/data";
 import { format } from "date-fns";
+import { convertUTCToIST } from "@/lib/utils/timezone";
 
 export default async function StaffDashboard() {
     const session = await auth();

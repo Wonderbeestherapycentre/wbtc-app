@@ -295,12 +295,29 @@ export async function createSession(formData: FormData) {
     if (session?.user?.role === "PARENT") return { message: "Unauthorized" };
 
     try {
-        // Parse FormData
+        // Parse FormData - now receiving date and time separately
+        const dateStr = formData.get("date") as string;
+        const timeStr = formData.get("time") as string;
+
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const [hours, minutes] = timeStr.split(':').map(Number);
+
+        // Construct a Date object that treats the IST values as UTC components.
+        // This is "Wall Time" storage: 15:15 IST becomes 15:15 UTC in the object,
+        // which .toISOString() then renders as 15:15:00.000Z.
+        const dateObj = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+
+        console.log('createSession Wall Time (Date.UTC):', {
+            dateStr,
+            timeStr,
+            storedAs: dateObj.toISOString()
+        });
+
         const data = {
             childId: formData.get("childId") as string,
             therapistId: formData.get("therapistId") as string,
             therapyId: formData.get("therapyId") as string,
-            date: formData.get("date") as string,
+            date: dateObj.toISOString(),
             durationMinutes: parseInt(formData.get("durationMinutes") as string || "45"),
             status: (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED",
         };
@@ -312,7 +329,7 @@ export async function createSession(formData: FormData) {
             childId: validated.childId,
             therapistId: validated.therapistId,
             therapyId: validated.therapyId,
-            date: new Date(validated.date),
+            date: dateObj, // Pass the Date object, not a string
             durationMinutes: validated.durationMinutes,
             status: validated.status,
         });
@@ -336,6 +353,16 @@ export async function createMonthlySchedule(formData: FormData) {
     try {
         // Parse FormData
         const selectedDaysStr = formData.get("selectedDays") as string;
+        console.log('createMonthlySchedule raw input:', {
+            childId: formData.get("childId"),
+            therapistId: formData.get("therapistId"),
+            therapyId: formData.get("therapyId"),
+            startTime: formData.get("startTime"),
+            startDate: formData.get("startDate"),
+            weeks: formData.get("weeks"),
+            selectedDaysStr
+        });
+
         const data = {
             childId: formData.get("childId") as string,
             therapistId: formData.get("therapistId") as string,
@@ -349,33 +376,51 @@ export async function createMonthlySchedule(formData: FormData) {
 
         // Validate with Zod schema
         const validated = MonthlyScheduleSchema.parse(data);
+        console.log('createMonthlySchedule validated data:', validated);
 
         const [hours, minutes] = validated.startTime.split(':').map(Number);
-        const baseDate = new Date(validated.startDate);
+        const [year, month, day] = validated.startDate.split('-').map(Number);
         const sessionsToInsert = [];
 
         for (let w = 0; w < validated.weeks; w++) {
             for (const dayOfWeek of validated.selectedDays) {
-                // Find the day in the current week
-                let sessionDate = addDays(baseDate, w * 7);
+                // Calculate the target date
+                // Start from the base week
+                const weekOffset = w * 7;
 
-                // Adjust to the specific day of the week
-                const currentDay = getDay(sessionDate);
-                const diff = dayOfWeek - currentDay;
-                sessionDate = addDays(sessionDate, diff);
+                // Create a date object for the start date
+                const baseDate = new Date(year, month - 1, day);
+                const baseDayOfWeek = baseDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                // Calculate days to add to reach the target day of week
+                let daysToAdd = dayOfWeek - baseDayOfWeek;
+                if (daysToAdd < 0) daysToAdd += 7;
 
-                // Set time
-                sessionDate = setHours(sessionDate, hours);
-                sessionDate = setMinutes(sessionDate, minutes);
+                const d = new Date(year, month - 1, day + weekOffset + daysToAdd);
+
+                // Construct a Date object with UTC components matching the IST Wall Time
+                const sessionDate = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), hours, minutes));
+
+                console.log('createMonthlySchedule Wall Time (Date.UTC):', {
+                    targetDay: d.getDate(),
+                    displayDate: d.toLocaleDateString(),
+                    displayTime: `${hours}:${minutes}`,
+                    storedAs: sessionDate.toISOString(),
+                });
 
                 // Skip if the date is in the past
-                if (sessionDate < startOfToday()) continue;
+                const now = new Date();
+                // Use local date for accurate "in the past" check
+                const localCompare = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hours, minutes);
+                if (localCompare < now) {
+                    console.log('Skipping past session:', localCompare.toLocaleString());
+                    continue;
+                }
 
                 sessionsToInsert.push({
                     childId: validated.childId,
                     therapistId: validated.therapistId,
                     therapyId: validated.therapyId,
-                    date: sessionDate,
+                    date: sessionDate, // Pass Date object
                     durationMinutes: validated.durationMinutes,
                     status: "SCHEDULED" as const,
                 });
@@ -383,18 +428,26 @@ export async function createMonthlySchedule(formData: FormData) {
         }
 
         if (sessionsToInsert.length > 0) {
+            console.log(`Inserting ${sessionsToInsert.length} sessions...`);
             await db.insert(sessions).values(sessionsToInsert);
+        } else {
+            console.warn('No sessions were prepared for insertion (all might be in the past)');
+            return { message: "No sessions were created (check if selected dates are in the past)" };
         }
 
         revalidatePath("/schedule");
         return { message: `${sessionsToInsert.length} sessions scheduled successfully` };
-    } catch (error) {
+    } catch (error: any) {
+        console.error("createMonthlySchedule error details:", {
+            message: error.message,
+            stack: error.stack,
+            error
+        });
         if (error instanceof ZodError) {
             const fieldErrors = formatZodErrors(error);
             return { message: "Validation failed", errors: fieldErrors };
         }
-        console.error("createMonthlySchedule error:", error);
-        return { message: "Failed to create monthly schedule" };
+        return { message: `Failed to create monthly schedule: ${error.message || 'Unknown error'}` };
     }
 }
 
@@ -403,13 +456,29 @@ export async function updateSession(id: string, formData: FormData) {
     if (session?.user?.role === "PARENT") return { message: "Unauthorized" };
 
     try {
-        // Parse FormData
+        // Parse FormData - now receiving date and time separately
+        const dateStr = formData.get("date") as string;
+        const timeStr = formData.get("time") as string;
+
+        const [year, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
+        const [hours, minutes] = timeStr ? timeStr.split(':').map(Number) : [0, 0];
+
+        const dateObj = dateStr && timeStr ? new Date(Date.UTC(year, month - 1, day, hours, minutes)) : undefined;
+
+        if (dateObj) {
+            console.log('updateSession Wall Time (Date.UTC):', {
+                dateStr,
+                timeStr,
+                storedAs: dateObj.toISOString()
+            });
+        }
+
         const data = {
             id,
             childId: formData.get("childId") as string,
             therapistId: formData.get("therapistId") as string,
             therapyId: formData.get("therapyId") as string,
-            date: formData.get("date") as string,
+            date: dateObj?.toISOString(),
             durationMinutes: parseInt(formData.get("durationMinutes") as string || "45"),
             status: (formData.get("status") as "SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED") || "SCHEDULED",
         };
@@ -421,7 +490,7 @@ export async function updateSession(id: string, formData: FormData) {
         if (validated.childId) updateData.childId = validated.childId;
         if (validated.therapistId) updateData.therapistId = validated.therapistId;
         if (validated.therapyId) updateData.therapyId = validated.therapyId;
-        if (validated.date) updateData.date = new Date(validated.date);
+        if (validated.date) updateData.date = dateObj; // Pass Date object
         if (validated.durationMinutes) updateData.durationMinutes = validated.durationMinutes;
         if (validated.status) updateData.status = validated.status;
 
