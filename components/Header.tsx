@@ -13,8 +13,16 @@ interface HeaderProps {
 
 export default function Header({ user, onMobileMenuToggle }: HeaderProps) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [greeting, setGreeting] = useState("Welcome back");
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        const hour = new Date().getHours();
+        if (hour >= 4 && hour < 12) setGreeting("Good Morning");
+        else if (hour >= 12 && hour < 17) setGreeting("Good Afternoon");
+        else if (hour >= 17 || hour < 4) setGreeting("Good Evening");
+    }, []);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -52,7 +60,7 @@ export default function Header({ user, onMobileMenuToggle }: HeaderProps) {
                 {/* Desktop Welcome/Context - Optional */}
                 <div className="hidden md:block">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                        Welcome back, {user?.name?.split(' ')[0] || 'User'}
+                        {greeting}, {user?.name?.split(' ')[0] || 'User'}
                     </h2>
                 </div>
             </div>

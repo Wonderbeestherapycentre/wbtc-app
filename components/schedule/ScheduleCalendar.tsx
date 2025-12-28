@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
     format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks,
     startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth,
     addMonths, subMonths, isToday, startOfDay, addHours, differenceInMinutes, getHours, setHours
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays, Table as TableIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays, Table as TableIcon, Trash2 } from "lucide-react";
 import ScheduleModal from "./ScheduleModal";
+import { deleteSession } from "@/lib/actions";
+import ConfirmModal from "@/components/ConfirmModal";
+import SearchableDropdown from "../ui/SearchableDropdown";
 
 interface Session {
     id: string;
@@ -35,6 +39,8 @@ const SLOT_HEIGHT = 48; // px per 45-minute slot
 
 
 export default function ScheduleCalendar({ sessions, childrenData, allTherapists, currentUserRole, userId }: ScheduleCalendarProps) {
+    const router = useRouter();
+
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH" | "TABLE">("TABLE");
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,6 +49,10 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
     const [filterTherapistId, setFilterTherapistId] = useState(currentUserRole === "THERAPIST" ? userId : "");
     const [filterChildId, setFilterChildId] = useState("");
     const [now, setNow] = useState(new Date());
+
+    // Delete State
+    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Ensure therapist filter stays locked to current user for THERAPIST role
     useEffect(() => {
@@ -164,6 +174,25 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
         setSessionToEdit(null);
     };
 
+    const handleDelete = (sessionId: string) => {
+        setSessionToDelete(sessionId);
+    };
+
+    const confirmDelete = async () => {
+        if (!sessionToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await deleteSession(sessionToDelete);
+            setSessionToDelete(null);
+            router.refresh();
+        } catch (error) {
+            console.error("Failed to delete", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -212,23 +241,32 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
 
                 <div className="flex items-center gap-3">
                     {currentUserRole === "ADMIN" && (
-                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700">
-                            <Filter className="w-3.5 h-3.5 text-gray-400" />
-                            <select value={filterTherapistId} onChange={(e) => setFilterTherapistId(e.target.value)} className="bg-transparent border-none text-xs font-bold focus:ring-0 p-0">
-                                <option value="">All Therapists</option>
-                                {allTherapists.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                            </select>
-                        </div>
+                        <SearchableDropdown
+                            icon={<Filter className="w-3.5 h-3.5 text-gray-400" />}
+                            options={[
+                                { value: "", label: "All Therapists" },
+                                // { value: "unassigned", label: "Unassigned" },
+                                ...allTherapists.map((t: any) => ({ value: t.id, label: t.name }))
+                            ]}
+                            value={filterTherapistId}
+                            onChange={setFilterTherapistId}
+                            placeholder="All Therapists"
+                            className="w-[200px]"
+                        />
                     )}
 
                     {currentUserRole !== "PARENT" && (
-                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700">
-                            <Baby className="w-3.5 h-3.5 text-gray-400" />
-                            <select value={filterChildId} onChange={(e) => setFilterChildId(e.target.value)} className="bg-transparent border-none text-xs font-bold focus:ring-0 p-0 max-w-[140px]">
-                                <option value="">All Children</option>
-                                {childrenData.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
-                        </div>
+                        <SearchableDropdown
+                            icon={<Baby className="w-3.5 h-3.5 text-gray-400" />}
+                            options={[
+                                { value: "", label: "All Children" },
+                                ...childrenData.map((c: any) => ({ value: c.id, label: c.name }))
+                            ]}
+                            value={filterChildId}
+                            onChange={setFilterChildId}
+                            placeholder="All Children"
+                            className="w-[200px]"
+                        />
                     )}
                 </div>
             </div>
@@ -310,15 +348,27 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     </td>
                                                     {currentUserRole !== "PARENT" && (
                                                         <td className="py-4 px-6 text-right">
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleEditSession(session);
-                                                                }}
-                                                                className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
-                                                            >
-                                                                Edit
-                                                            </button>
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEditSession(session);
+                                                                    }}
+                                                                    className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDelete(session.id);
+                                                                    }}
+                                                                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    title="Delete Session"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     )}
                                                 </tr>
@@ -484,6 +534,16 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                 allTherapists={allTherapists}
                 initialDate={currentDate}
                 sessionToEdit={sessionToEdit}
+            />
+
+            <ConfirmModal
+                isOpen={!!sessionToDelete}
+                onClose={() => setSessionToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Delete Session"
+                description="Are you sure you want to delete this session? This action cannot be undone."
+                confirmLabel="Delete Session"
+                isPending={isDeleting}
             />
         </div>
     );

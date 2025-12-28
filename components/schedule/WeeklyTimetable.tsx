@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar, Filter, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Filter, Trash2 } from "lucide-react";
 import dynamic from 'next/dynamic';
-import WeeklyTimetablePDF from "./WeeklyTimetablePDF";
+import { deleteSession } from "@/lib/actions";
+import ConfirmModal from "@/components/ConfirmModal";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-const PDFDownloadLink = dynamic(
-    () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+const WeeklyTimetableDownload = dynamic(
+    () => import("./WeeklyTimetableDownload"),
     {
         ssr: false,
         loading: () => <button className="text-xs font-bold text-white px-3 py-1.5 bg-gray-300 rounded-lg">Loading PDF...</button>,
@@ -127,6 +129,29 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
         });
     };
 
+    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const router = useRouter(); // Initialize router
+
+    const handleDelete = (sessionId: string) => {
+        setSessionToDelete(sessionId);
+    };
+
+    const confirmDelete = async () => {
+        if (!sessionToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await deleteSession(sessionToDelete);
+            setSessionToDelete(null); // Close modal
+            router.refresh(); // Refresh to update UI
+        } catch (error) {
+            console.error("Failed to delete", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -155,27 +180,12 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <PDFDownloadLink
-                        key={`${weekStartDate.toISOString()}-${selectedTherapistId}`}
-                        document={
-                            <WeeklyTimetablePDF
-                                sessions={filteredSessions}
-                                weekStartDate={weekStartDate}
-                                selectedTherapistName={therapists.find(t => t.id === selectedTherapistId)?.name}
-                            />
-                        }
-                        fileName={`timetable-${format(weekStartDate, "yyyy-MM-dd")}.pdf`}
-                        className="text-xs font-bold text-white px-3 py-1.5 bg-red-600 rounded-lg hover:bg-red-700 flex items-center gap-2"
-                    >
-                        {({ blob, url, loading, error }) =>
-                            loading ? 'Generating...' : (
-                                <>
-                                    <Download className="w-4 h-4" />
-                                    PDF
-                                </>
-                            )
-                        }
-                    </PDFDownloadLink>
+                    <WeeklyTimetableDownload
+                        key={`${weekStartDate.toISOString()}-${selectedTherapistId}-${filteredSessions.length}`}
+                        sessions={filteredSessions}
+                        weekStartDate={weekStartDate}
+                        selectedTherapistName={therapists.find(t => t.id === selectedTherapistId)?.name}
+                    />
 
                     <button onClick={goToToday} className="text-xs font-bold text-blue-600 px-3 py-1.5 bg-blue-50 rounded-lg hover:bg-blue-100">
                         Current Week
@@ -232,8 +242,17 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                                         return (
                                             <td key={day.toString()} className="p-2 border-r border-gray-100 dark:border-neutral-800 text-center align-top relative h-16">
                                                 {slotSessions.map(session => (
-                                                    <div key={session.id} className="mb-1 p-1.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold leading-tight">
+                                                    <div key={session.id} className="group relative mb-1 p-1.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold leading-tight hover:bg-blue-200 transition-colors">
                                                         {session.child.name}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(session.id);
+                                                            }}
+                                                            className="absolute -top-2 -right-2 p-1 bg-white rounded-full shadow-sm text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 z-10"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
                                                     </div>
                                                 ))}
                                             </td>
@@ -245,6 +264,16 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                     </table>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={!!sessionToDelete}
+                onClose={() => setSessionToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Delete Session"
+                description="Are you sure you want to delete this session? This action cannot be undone."
+                confirmLabel="Delete Session"
+                isPending={isDeleting}
+            />
         </div>
     );
 }

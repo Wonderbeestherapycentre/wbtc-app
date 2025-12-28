@@ -139,10 +139,7 @@ export default function ChildSettings({
             </div>
 
             <div className="glass-card rounded-2xl overflow-hidden animate-fade-in p-4 md:p-6">
-                <div className="flex justify-between items-center mb-4 md:mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Family Members</h3>
 
-                </div>
 
                 <div className="overflow-x-auto -mx-4 px-4 md:-mx-6 md:px-6 pb-4">
                     <table className="w-full md:min-w-[600px]">

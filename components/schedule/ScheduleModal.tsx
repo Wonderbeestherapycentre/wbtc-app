@@ -32,7 +32,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
     const [selectedTherapyId, setSelectedTherapyId] = useState("");
     const [selectedTherapistId, setSelectedTherapistId] = useState("");
     const [date, setDate] = useState(format(initialDate || new Date(), "yyyy-MM-dd"));
-    const [startTime, setStartTime] = useState("10:00");
+    const [startTime, setStartTime] = useState("09:00");
     const [duration, setDuration] = useState("45");
     const [status, setStatus] = useState<"SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED">("SCHEDULED");
     const [weeks, setWeeks] = useState("4");
@@ -64,7 +64,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
             setSelectedTherapistId("");
             setStatus("SCHEDULED");
             setDate(format(initialDate || new Date(), "yyyy-MM-dd"));
-            setStartTime("10:00");
+            setStartTime("09:00");
         }
     }, [sessionToEdit, initialDate]);
 
@@ -295,13 +295,49 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Start Time</label>
-                                <input
-                                    type="time"
-                                    required
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
-                                />
+                                <div className="relative">
+                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <select
+                                        required
+                                        value={startTime}
+                                        onChange={(e) => setStartTime(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+                                    >
+                                        {(() => {
+                                            const options = [];
+                                            let current = new Date();
+                                            current.setHours(9, 0, 0, 0); // Start at 9:00 AM
+
+                                            const endTime = new Date();
+                                            endTime.setHours(19, 45, 0, 0); // End at 8:30 PM
+
+                                            while (current <= endTime) {
+                                                const hour = current.getHours();
+                                                const minute = current.getMinutes();
+
+                                                // Specific adjustment: if 11:15, shift to 11:30
+                                                if (hour === 11 && minute === 15) {
+                                                    current.setMinutes(30);
+                                                }
+
+                                                const currentHour = current.getHours();
+                                                const currentMinute = current.getMinutes();
+                                                const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+                                                const displayTime = format(current, "hh:mm a");
+
+                                                options.push(
+                                                    <option key={timeString} value={timeString}>
+                                                        {displayTime}
+                                                    </option>
+                                                );
+
+                                                // Add 45 minutes
+                                                current.setMinutes(current.getMinutes() + 45);
+                                            }
+                                            return options;
+                                        })()}
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
