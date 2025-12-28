@@ -448,6 +448,34 @@ export async function deleteSession(id: string) {
     return { message: "Session deleted" };
 }
 
+export async function updateAttendance(sessionId: string, status: "PRESENT" | "ABSENT" | "EXCUSED") {
+    const session = await auth();
+    if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "THERAPIST")) {
+        return { message: "Unauthorized" };
+    }
+
+    try {
+        const updateData: any = { attendance: status };
+
+        // Optional logic: If marked PRESENT, complete the session? 
+        // Let's keep it simple for now, or maybe only if it was SCHEDULED
+        if (status === "PRESENT") {
+            updateData.status = "COMPLETED";
+        }
+
+        await db.update(sessions)
+            .set(updateData)
+            .where(eq(sessions.id, sessionId));
+
+        revalidatePath("/attendance");
+        revalidatePath("/schedule");
+        return { message: "Attendance updated" };
+    } catch (error) {
+        console.error("updateAttendance error:", error);
+        return { message: "Failed to update attendance" };
+    }
+}
+
 export async function updateUser(userId: string, formData: FormData) {
     try {
         const session = await auth();

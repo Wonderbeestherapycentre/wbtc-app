@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, Clipboard as ClipboardIcon } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
@@ -24,6 +24,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
     const ADMIN_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
+        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" }, // Added
         { icon: Home, label: "Home Programs", href: "/home-programs" },
         // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
@@ -38,6 +39,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Home, label: "Home Programs", href: "/home-programs" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
+        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" }, // Added
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
         { icon: FileText, label: "Session Notes", href: "/session-notes" },

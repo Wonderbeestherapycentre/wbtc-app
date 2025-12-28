@@ -58,6 +58,7 @@ export const sessions = pgTable("sessions", {
     date: timestamp("date").notNull(), // Date and Time
     durationMinutes: integer("duration_minutes").default(45),
     status: sessionStatusEnum("status").default("SCHEDULED"),
+    attendance: attendanceStatusEnum("attendance"), // PRESENT, ABSENT, EXCUSED
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
