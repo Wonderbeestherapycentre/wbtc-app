@@ -4,6 +4,7 @@ import AppLayout from "@/components/AppLayout";
 import SessionFilterControls from "./SessionFilterControls";
 import { CalendarIcon, History } from "lucide-react";
 import Link from "next/link";
+import { formatDateToLocal } from "@/lib/utils";
 
 export default async function SessionHistoryPage(props: {
     searchParams: Promise<{
@@ -21,8 +22,17 @@ export default async function SessionHistoryPage(props: {
     const session = await auth();
     if (!session) return <div>Please sign in</div>;
 
-    const startDate = searchParams.startDate ? new Date(searchParams.startDate) : undefined;
-    const endDate = searchParams.endDate ? new Date(searchParams.endDate) : undefined;
+    const now = new Date();
+    const defaultStartDate = formatDateToLocal(new Date(now.getFullYear(), now.getMonth(), 1));
+    const defaultEndDate = formatDateToLocal(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+
+    // Use params or defaults
+    const startDateStr = searchParams.startDate || defaultStartDate;
+    const endDateStr = searchParams.endDate || defaultEndDate;
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
     const { childId, therapyId, therapistId, status, attendance } = searchParams;
 
     const page = searchParams.page ? Math.max(1, parseInt(searchParams.page) || 1) : 1;
@@ -68,8 +78,8 @@ export default async function SessionHistoryPage(props: {
                     therapies={therapies}
                     therapists={therapists}
                     initialState={{
-                        startDate: searchParams.startDate,
-                        endDate: searchParams.endDate,
+                        startDate: startDateStr,
+                        endDate: endDateStr,
                         childId,
                         therapyId,
                         therapistId,

@@ -3,12 +3,29 @@ import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 import Link from "next/link";
 import { Eye, CreditCard, ExternalLink } from "lucide-react";
+import FeeReportsFilter from "./FeeReportsFilter";
+import { formatDateToLocal } from "@/lib/utils";
 
-export default async function FeesPage() {
+export default async function FeesPage(props: { searchParams: Promise<{ startDate?: string; endDate?: string }> }) {
+    const searchParams = await props.searchParams;
     const session = await auth();
     if (!session) return <div>Please sign in</div>;
 
-    const summaryData = await fetchChildrenFeeSummary();
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const defaultStartDate = formatDateToLocal(firstDay);
+    const defaultEndDate = formatDateToLocal(lastDay);
+
+    const startDateStr = searchParams?.startDate || defaultStartDate;
+    const endDateStr = searchParams?.endDate || defaultEndDate;
+
+
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    const summaryData = await fetchChildrenFeeSummary(startDate, endDate);
     const activeChildren = await fetchChildren(); // For layout sidebar
 
     // Calculate Totals
@@ -28,7 +45,8 @@ export default async function FeesPage() {
                             Consolidated fee summary for all children
                         </p>
                     </div>
-
+                    {/* Totals Section was here, moved below or alongside filter? */}
+                    {/* Let's keep totals at top right, filter below header */}
                     <div className="flex gap-4">
                         <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-800">
                             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">Total Revenue</span>
@@ -40,6 +58,8 @@ export default async function FeesPage() {
                         </div>
                     </div>
                 </div>
+
+                <FeeReportsFilter defaultStartDate={defaultStartDate} defaultEndDate={defaultEndDate} />
 
                 <div className="glass-card rounded-xl overflow-hidden border border-gray-200 dark:border-neutral-800 shadow-sm">
                     <div className="overflow-x-auto">

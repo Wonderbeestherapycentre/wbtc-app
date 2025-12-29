@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks } from "./db/schema";
+import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses } from "./db/schema";
 
 import { eq, desc, and, asc, sql, count, gte, lte, ilike, or } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -721,7 +721,7 @@ export async function fetchChildFeeDetails(
     };
 }
 
-export async function fetchChildrenFeeSummary() {
+export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date) {
     const session = await auth();
     if (!session?.user) return [];
 
@@ -755,6 +755,16 @@ export async function fetchChildrenFeeSummary() {
                 }
             }, // For custom fees and therapist info
             sessions: {
+                where: (sessions, { and, gte, lte }) => {
+                    const conditions = [];
+                    if (startDate) conditions.push(gte(sessions.date, startDate));
+                    if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        conditions.push(lte(sessions.date, end));
+                    }
+                    return conditions.length > 0 ? and(...conditions) : undefined;
+                },
                 with: {
                     therapy: true
                 }
@@ -995,4 +1005,217 @@ export async function fetchGlobalSessionHistory(
             totalPresent
         }
     };
+}
+
+export async function fetchDashboardStats() {
+    const session = await auth();
+    if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "THERAPIST")) {
+        return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const last7Days = new Date(today);
+    last7Days.setDate(last7Days.getDate() - 6);
+
+    const last30Days = new Date(today);
+    last30Days.setDate(last30Days.getDate() - 29);
+
+    // 1. Counts
+    // Active Children
+    const [activeChildren] = await db.select({ count: count() })
+        .from(children)
+        .where(eq(children.status, "ACTIVE"));
+
+    // Active Therapists
+    const [activeTherapists] = await db.select({ count: count() })
+        .from(users)
+        .where(and(eq(users.role, "THERAPIST"), eq(users.status, "ACTIVE")));
+
+    // Today's Sessions
+    const [todaySessions] = await db.select({ count: count() })
+        .from(sessions)
+        .where(and(gte(sessions.date, today), lte(sessions.date, tomorrow)));
+
+    // 2. Weekly Trend (Last 7 Days)
+    const rawTrend = await db.query.sessions.findMany({
+        where: gte(sessions.date, last7Days),
+        columns: { date: true }
+    });
+
+    const trendMap = new Map<string, number>();
+    // Initialize last 7 days with 0
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(last7Days);
+        d.setDate(d.getDate() + i);
+        const key = d.toLocaleDateString('en-IN', { weekday: 'short' }); // Mon, Tue...
+        trendMap.set(key, 0);
+    }
+
+    const trendData: { name: string; sessions: number }[] = [];
+
+    const days: { date: Date; label: string }[] = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(last7Days);
+        d.setDate(d.getDate() + i);
+        days.push({
+            date: d,
+            label: d.toLocaleDateString('en-US', { weekday: 'short' })
+        });
+    }
+
+    const counts = new Array(7).fill(0);
+    rawTrend.forEach(s => {
+        const sDate = new Date(s.date);
+        sDate.setHours(0, 0, 0, 0);
+
+        const index = days.findIndex(d => {
+            const dayDate = new Date(d.date);
+            dayDate.setHours(0, 0, 0, 0);
+            return dayDate.getTime() === sDate.getTime();
+        });
+
+        if (index !== -1) {
+            counts[index]++;
+        }
+    });
+
+    days.forEach((d, i) => {
+        trendData.push({ name: d.label, sessions: counts[i] });
+    });
+
+
+    // 3. Attendance Distribution (Last 30 Days)
+    const rawAttendance = await db.query.sessions.findMany({
+        where: gte(sessions.date, last30Days),
+        columns: { attendance: true, status: true }
+    });
+
+    let present = 0;
+    let absent = 0;
+    let excused = 0;
+    let scheduled = 0;
+
+    rawAttendance.forEach(s => {
+        if (s.attendance === "PRESENT") present++;
+        else if (s.attendance === "ABSENT") absent++;
+        else if (s.attendance === "EXCUSED") excused++;
+        else if (s.status === "SCHEDULED" || !s.attendance) scheduled++;
+    });
+
+    const attendanceData = [
+        { name: "Present", value: present, color: "#22c55e" },
+        { name: "Absent", value: absent, color: "#ef4444" },
+        { name: "Excused", value: excused, color: "#eab308" },
+    ];
+
+
+    return {
+        counts: {
+            children: activeChildren.count,
+            therapists: activeTherapists.count,
+            todaySessions: todaySessions.count
+        },
+        charts: {
+            trend: trendData,
+            attendance: attendanceData.filter(d => d.value > 0)
+        }
+    };
+}
+export async function fetchCaseload() {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return [];
+
+    // 1. Fetch All Active Therapists
+    const therapists = await db.query.users.findMany({
+        where: and(eq(users.role, "THERAPIST"), eq(users.status, "ACTIVE")),
+        orderBy: [asc(users.name)]
+    });
+
+    // 2. For each therapist, find assigned children
+    const caseload = await Promise.all(therapists.map(async (therapist) => {
+        // Find assigned children via childTherapies
+        const assigned = await db.query.childTherapies.findMany({
+            where: eq(childTherapies.therapistId, therapist.id),
+            with: {
+                child: true
+            }
+        });
+
+        // Deduplicate children (incase assigned to same kid for multiple therapies)
+        const childMap = new Map();
+        assigned.forEach(a => {
+            if (a.child.status === "ACTIVE") {
+                childMap.set(a.childId, a.child);
+            }
+        });
+
+        return {
+            therapist: {
+                id: therapist.id,
+                name: therapist.name,
+                specialization: therapist.specialization
+            },
+            children: Array.from(childMap.values())
+        };
+    }));
+
+    // Sort by caseload size desc? or name asc? Let's keep name asc (default map order)
+    return caseload;
+}
+
+export async function fetchStaffAttendance(dateStr: string) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return [];
+
+    const records = await db.query.staffAttendance.findMany({
+        where: eq(staffAttendance.date, dateStr),
+        with: {
+            user: true
+        }
+    });
+
+    return records;
+}
+
+export async function fetchStaffMonthlyAttendance(startStr: string, endStr: string) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return [];
+
+    const records = await db.query.staffAttendance.findMany({
+        where: and(gte(staffAttendance.date, startStr), lte(staffAttendance.date, endStr)),
+        with: {
+            user: true
+        }
+    });
+
+    return records;
+}
+
+export async function fetchExpenses(startDate: Date, endDate: Date) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return [];
+
+    // Ensure we cover the full range
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    // Note: expenses.date is "date" type in schema, which usually maps to string "YYYY-MM-DD"
+    // Drizzle's gte/lte works best with strings for "date" columns, or Date objects for "timestamp".
+    // Let's convert to strings to be safe for "date" column
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    const data = await db.query.expenses.findMany({
+        where: and(gte(expenses.date, startStr), lte(expenses.date, endStr)),
+        orderBy: [desc(expenses.date)]
+    });
+
+    return data;
 }

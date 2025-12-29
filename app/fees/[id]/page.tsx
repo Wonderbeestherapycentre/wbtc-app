@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 import FeeFilterControls from "./FeeFilterControls";
+import { formatDateToLocal } from "@/lib/utils";
 
 export default async function ChildFeePage({
     params,
@@ -18,9 +19,17 @@ export default async function ChildFeePage({
     const session = await auth();
     if (!session) return <div>Please sign in</div>;
 
-    // Parse Dates
-    const start = startDate ? new Date(startDate) : undefined;
-    const end = endDate ? new Date(endDate) : undefined;
+    // Parse Dates or Defaults
+    const now = new Date();
+    const defaultStartDate = formatDateToLocal(new Date(now.getFullYear(), now.getMonth(), 1));
+    const defaultEndDate = formatDateToLocal(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+
+    // Use URL params if exist, else defaults
+    const startStr = startDate || defaultStartDate;
+    const endStr = endDate || defaultEndDate;
+
+    const start = new Date(startStr);
+    const end = new Date(endStr);
 
     const [data, activeChildren, allTherapies] = await Promise.all([
         fetchChildFeeDetails(id, { startDate: start, endDate: end, therapyId }),
@@ -45,8 +54,8 @@ export default async function ChildFeePage({
                     {/* Filters */}
                     <FeeFilterControls
                         therapies={allTherapies}
-                        initialStartDate={startDate}
-                        initialEndDate={endDate}
+                        initialStartDate={startStr}
+                        initialEndDate={endStr}
                         initialTherapyId={therapyId}
                     />
                 </div>

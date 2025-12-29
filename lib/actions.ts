@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks } from "./db/schema"; // Added reporting tables
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
 import { eq, desc, asc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
@@ -1479,5 +1479,81 @@ export async function submitHomeProgramReport(data: {
     } catch (error: any) {
         console.error("Failed to submit home program report:", error);
         return { error: error?.message || "Failed to submit report. Please try again." };
+    }
+}
+
+// --- Staff Attendance Actions ---
+export async function markStaffAttendance(formData: FormData) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    const userId = formData.get("userId") as string;
+    const dateStr = formData.get("date") as string;
+    const status = (formData.get("status") as "PRESENT" | "ABSENT" | "LEAVE") || "PRESENT";
+    const remarks = (formData.get("remarks") as string) || "";
+
+    if (!userId || !dateStr) return { message: "Missing fields" };
+
+    try {
+        await db.insert(staffAttendance)
+            .values({
+                userId,
+                date: dateStr,
+                status,
+                remarks
+            })
+            .onConflictDoUpdate({
+                target: [staffAttendance.userId, staffAttendance.date],
+                set: { status, remarks }
+            });
+
+        revalidatePath("/staff-attendance");
+        return { message: "Attendance marked" };
+    } catch (error) {
+        console.error("markStaffAttendance error:", error);
+        return { message: "Failed to mark attendance" };
+    }
+}
+
+// --- Expense Actions ---
+export async function addExpense(formData: FormData) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    const title = formData.get("title") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const dateStr = formData.get("date") as string;
+    const category = (formData.get("category") as "SALARY" | "RENT" | "MAINTENANCE" | "EQUIPMENT" | "OTHER") || "OTHER";
+    const description = (formData.get("description") as string) || "";
+
+    if (!title || isNaN(amount) || !dateStr) return { message: "Missing required fields" };
+
+    try {
+        await db.insert(expenses).values({
+            title,
+            amount: amount.toString(),
+            date: dateStr,
+            category,
+            description
+        });
+
+        revalidatePath("/profit-loss");
+        return { message: "Expense added" };
+    } catch (error) {
+        console.error("addExpense error:", error);
+        return { message: "Failed to add expense" };
+    }
+}
+
+export async function deleteExpense(id: string) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    try {
+        await db.delete(expenses).where(eq(expenses.id, id));
+        revalidatePath("/profit-loss");
+        return { message: "Expense deleted" };
+    } catch (error) {
+        return { message: "Failed to delete expense" };
     }
 }

@@ -243,6 +243,35 @@ export const homeProgramTasksRelations = relations(homeProgramTasks, ({ one }) =
 }));
 
 
+// 11. Staff Attendance
+export const staffAttendance = pgTable("staff_attendance", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id).notNull(),
+    date: date("date").notNull(),
+    status: text("status", { enum: ["PRESENT", "ABSENT", "LEAVE"] }).default("PRESENT").notNull(),
+    remarks: text("remarks"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: uniqueIndex("staff_attendance_user_date_idx").on(t.userId, t.date),
+}));
+
+// 12. Expenses
+export const expenses = pgTable("expenses", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    date: date("date").notNull(),
+    category: text("category", { enum: ["SALARY", "RENT", "MAINTENANCE", "EQUIPMENT", "OTHER"] }).default("OTHER").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Relations
+export const staffAttendanceRelations = relations(staffAttendance, ({ one }) => ({
+    user: one(users, { fields: [staffAttendance.userId], references: [users.id] }),
+}));
+
+
 
 
 

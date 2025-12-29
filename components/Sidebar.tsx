@@ -28,10 +28,13 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: Home, label: "Home Programs", href: "/home-programs" },
 
         { isHeader: true, label: "Reports" },
+        { icon: LayoutDashboard, label: "Caseload", href: "/caseload" },
+        { icon: IndianRupee, label: "Profit & Loss", href: "/profit-loss" },
         { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
         { icon: HistoryIcon, label: "Session History", href: "/session-history" },
 
         { isHeader: true, label: "Management" },
+        { icon: ClipboardIcon, label: "Staff Attendance", href: "/staff-attendance" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
         { icon: FileText, label: "Session Notes", href: "/session-notes" },
