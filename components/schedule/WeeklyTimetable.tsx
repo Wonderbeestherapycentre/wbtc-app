@@ -82,7 +82,7 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                 lunchEnd.setMinutes(lunchEnd.getMinutes() + 45);
 
                 slots.push({
-                    label: "1.00-1.45",
+                    label: "1.45-2.30",
                     startTime: new Date(currentTime),
                     endTime: lunchEnd,
                     isBreak: true,
