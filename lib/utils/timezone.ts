@@ -47,24 +47,12 @@ export function convertUTCToIST(date: Date | string | null | undefined): Date {
     if (!date) return new Date();
     const d = typeof date === 'string' ? new Date(date) : date;
 
-    // We want the numbers that were stored in the DB.
-    // In most server environments (Neon/Next.js), DB timestamps are fetched as UTC.
-    // However, some configurations fetch them as Local.
-
-    // HEURISTIC: If the hour is shifted by exactly 5:30 relative to the expected IST,
-    // we need to normalize. But we don't know the "expected" time here.
-
-    // STABLE SOLUTION: Since we now store sessions using strings 'YYYY-MM-DD HH:mm:ss'
-    // without TZ, the driver usually treats these as UTC points if no other info is given.
-    // We will extract UTC components which is the most common behavior for Neon.
-    return new Date(
-        d.getUTCFullYear(),
-        d.getUTCMonth(),
-        d.getUTCDate(),
-        d.getUTCHours(),
-        d.getUTCMinutes(),
-        d.getUTCSeconds()
-    );
+    // We store "Wall Time" (IST) in the DB as a naive timestamp.
+    // The driver (node-postgres) fetches this and treats it as a UTC Date object.
+    // e.g., '2026-01-12 16:00:00' becomes '2026-01-12T16:00:00.000Z'
+    // To get the "real" UTC absolute time, we subtract 5.5 hours from this Z date.
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    return new Date(d.getTime() - istOffset);
 }
 
 /**
@@ -72,11 +60,14 @@ export function convertUTCToIST(date: Date | string | null | undefined): Date {
  */
 export function getTodayIST(): string {
     const now = new Date();
-    // In IST, we might be a different day than UTC. 
-    // We add 5.5 hours to UTC to get IST time.
+    // Move to IST by adding 5.5 hours to the UTC timestamp
     const istTime = now.getTime() + (5.5 * 60 * 60 * 1000);
     const istDate = new Date(istTime);
-    return istDate.toISOString().split('T')[0];
+    // Use UTC methods to extract the parts that now represent IST values
+    const year = istDate.getUTCFullYear();
+    const month = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 /**
@@ -84,9 +75,11 @@ export function getTodayIST(): string {
  */
 export function getISTDateString(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    // Shift the UTC time forward by 5.5 hours so UTC components match IST
+    const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+    const year = istDate.getUTCFullYear();
+    const month = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(istDate.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
 
@@ -95,7 +88,9 @@ export function getISTDateString(date: Date | string): string {
  */
 export function getISTTimeString(date: Date | string): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
+    // Shift the UTC time forward by 5.5 hours so UTC components match IST
+    const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+    const hours = String(istDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
 }
