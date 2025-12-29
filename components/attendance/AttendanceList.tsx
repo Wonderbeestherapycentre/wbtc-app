@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { format } from "date-fns";
 import { updateAttendance } from "@/lib/actions";
 import { useRouter } from "next/navigation";
@@ -42,13 +42,22 @@ export default function AttendanceList({
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [updatingId, setUpdatingId] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState(getTodayIST());
+    const [selectedDate, setSelectedDate] = useState(() => {
+        return currentDate ? format(currentDate, "yyyy-MM-dd") : getTodayIST();
+    });
+
+    useEffect(() => {
+        if (currentDate) {
+            setSelectedDate(format(currentDate, "yyyy-MM-dd"));
+        }
+    }, [currentDate]);
 
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const date = e.target.value;
         const params = new URLSearchParams(window.location.search);
         if (date) params.set("date", date);
         else params.delete("date");
+        setSelectedDate(date);
         router.push(`/attendance?${params.toString()}`);
     };
 
@@ -75,12 +84,12 @@ export default function AttendanceList({
     return (
         <div className="space-y-6">
             {/* Filters */}
-            <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-2 shadow-sm flex flex-col md:flex-row gap-2 items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-gray-500" />
                     <input
                         type="date"
-                        value={getTodayIST()}
+                        value={selectedDate}
                         onChange={handleDateChange}
                         className="bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-medium"
                     />

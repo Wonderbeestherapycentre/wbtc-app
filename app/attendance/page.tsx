@@ -64,13 +64,10 @@ export default async function AttendancePage(props: {
 
     return (
         <AppLayout role={currentUserRole} user={session?.user}>
-            <div className="space-y-6 animate-fade-in pb-10">
+            <div className="space-y-3 animate-fade-in pb-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Attendance</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">
-                            Mark attendance for scheduled sessions
-                        </p>
                     </div>
                 </div>
 

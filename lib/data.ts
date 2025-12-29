@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks } from "./db/schema";
 
-import { eq, desc, asc, and, or, gte, lte, sql, ilike, count } from "drizzle-orm";
+import { eq, desc, and, asc, sql, count, gte, lte, ilike, or } from "drizzle-orm";
 import { auth } from "@/auth";
 import { convertUTCToIST } from "./utils/timezone";
 
@@ -580,4 +580,419 @@ export async function fetchHomeProgram(id: string) {
     });
 
     return program || null;
+}
+
+export async function fetchChildFeeDetails(
+    childId: string,
+    filters?: {
+        startDate?: Date;
+        endDate?: Date;
+        therapyId?: string;
+    }
+) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    // 1. Fetch Child Details
+    const child = await db.query.children.findFirst({
+        where: eq(children.id, childId),
+        with: {
+            parent: true,
+            therapyTypes: {
+                with: { // Need feePerSession
+                    therapy: true
+                }
+            }
+        }
+    });
+
+    if (!child) return null;
+
+    // Access Control
+    if (session.user.role === "PARENT" && child.parentId !== session.user.id) return null;
+    if (session.user.role === "THERAPIST") {
+        const isAssigned = await db.query.childTherapies.findFirst({
+            where: and(
+                eq(childTherapies.childId, childId),
+                eq(childTherapies.therapistId, session.user.id)
+            )
+        });
+        if (!isAssigned) return null;
+    }
+
+    // Prepare Session Filters
+    const conditions = [eq(sessions.childId, childId)];
+
+    if (filters?.startDate) {
+        conditions.push(gte(sessions.date, filters.startDate));
+    }
+    if (filters?.endDate) {
+        // Set end date to end of day to include all sessions on that day
+        const endOfDay = new Date(filters.endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        conditions.push(lte(sessions.date, endOfDay));
+    }
+    if (filters?.therapyId && filters.therapyId !== "ALL") {
+        conditions.push(eq(sessions.therapyId, filters.therapyId));
+    }
+
+    // Fetch all sessions
+    const childSessions = await db.query.sessions.findMany({
+        where: and(...conditions),
+        orderBy: [desc(sessions.date)],
+        with: {
+            therapy: true,
+            therapist: true
+        }
+    });
+
+    const detailedSessions = await Promise.all(childSessions.map(async (s) => {
+        // Determine Fee
+        // 1. Check if there is a specific fee for this child + therapy combo
+        // Note: The schema has childTherapies with feePerSession.
+        // We need to look up childTherapies for (childId, therapyId).
+        // Since we didn't fetch it in the main query efficiently, let's do it or map it.
+        // Optimization: Fetch all childTherapies for this child once.
+
+        return {
+            ...s,
+            date: convertUTCToIST(s.date),
+        };
+    }));
+
+    // Re-fetching child therapies map for fee lookup
+    const strategies = await db.query.childTherapies.findMany({
+        where: eq(childTherapies.childId, childId)
+    });
+
+    const feeMap = new Map<string, string>(); // therapyId -> fee
+    strategies.forEach(st => {
+        if (st.feePerSession) {
+            feeMap.set(st.therapyId, st.feePerSession);
+        }
+    });
+
+    let totalFee = 0;
+    let presentCount = 0;
+    let absentCount = 0;
+    let excusedCount = 0;
+
+    const sessionData = detailedSessions.map(s => {
+        let fee = 0;
+        // Logic: Fee applicable only if PRESENT?
+        // User requirements: "need attendance fees details"
+        // Usually, Absent implies no fee, but sometimes late cancellation charge exists.
+        // For this task, I'll assume Fee is charged only for PRESENT.
+
+        let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
+
+        // Override with custom fee if exists
+        if (feeMap.has(s.therapyId)) {
+            feePerSession = Number(feeMap.get(s.therapyId));
+        }
+
+        if (s.attendance === "PRESENT") {
+            fee = feePerSession;
+            presentCount++;
+            totalFee += fee;
+        } else if (s.attendance === "ABSENT") {
+            absentCount++;
+        } else if (s.attendance === "EXCUSED") {
+            excusedCount++;
+        }
+
+        return {
+            ...s,
+            fee
+        };
+    });
+
+    return {
+        child,
+        summary: {
+            totalSessions: detailedSessions.length,
+            present: presentCount,
+            absent: absentCount,
+            excused: excusedCount,
+            totalFee,
+            pendingFees: 0 // Placeholder if we track payments later
+        },
+        sessions: sessionData
+    };
+}
+
+export async function fetchChildrenFeeSummary() {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [];
+    // Default to active children for the report
+    conditions.push(eq(children.status, "ACTIVE"));
+
+    if (session.user.role === "PARENT") {
+        conditions.push(eq(children.parentId, session.user.id));
+    } else if (session.user.role === "THERAPIST") {
+        // Therapists see children they are assigned to OR have sessions with.
+        // For simplicity and performance in this summary, let's stick to assigned or explicitly associated.
+        conditions.push(
+            sql`EXISTS (
+                SELECT 1 FROM "child_therapies" 
+                WHERE "child_therapies"."child_id" = ${children.id} 
+                AND "child_therapies"."therapist_id" = ${session.user.id}
+            )`
+        );
+    }
+
+    // Fetch children with necessary relations
+    const kids = await db.query.children.findMany({
+        where: and(...conditions),
+        orderBy: [asc(children.name)],
+        with: {
+            parent: true,
+            therapyTypes: {
+                with: {
+                    therapist: true
+                }
+            }, // For custom fees and therapist info
+            sessions: {
+                with: {
+                    therapy: true
+                }
+            }
+        }
+    });
+
+    // Calculate details for each child
+    const report = kids.map(child => {
+        // Create Fee Map for this child
+        const feeMap = new Map<string, number>();
+        const distinctTherapists = new Set<string>();
+
+        child.therapyTypes.forEach((tt: any) => {
+            if (tt.feePerSession) {
+                feeMap.set(tt.therapyId, Number(tt.feePerSession));
+            }
+            if (tt.therapist?.name) {
+                distinctTherapists.add(tt.therapist.name);
+            }
+        });
+
+        let totalFee = 0;
+        let presentCount = 0;
+        let absentCount = 0;
+        let excusedCount = 0;
+
+        child.sessions.forEach((s: any) => {
+            let fee = 0;
+            // Determine base fee
+            let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
+            // Override if custom
+            if (feeMap.has(s.therapyId)) {
+                feePerSession = feeMap.get(s.therapyId)!;
+            }
+
+            if (s.attendance === "PRESENT") {
+                fee = feePerSession;
+                presentCount++;
+                totalFee += fee;
+            } else if (s.attendance === "ABSENT") {
+                absentCount++;
+            } else if (s.attendance === "EXCUSED") {
+                excusedCount++;
+            }
+        });
+
+        return {
+            childId: child.id,
+            childName: child.name,
+            caseNumber: child.caseNumber,
+            parentName: child.parent?.name || "N/A",
+            therapistNames: Array.from(distinctTherapists).join(", ") || "",
+            totalSessions: child.sessions.length,
+            present: presentCount,
+            absent: absentCount,
+            excused: excusedCount,
+            totalFee,
+            lastSessionDate: child.sessions.length > 0 ? child.sessions[child.sessions.length - 1].date : null
+        };
+    });
+
+
+    // Sort by Total Fee Descending (High value first)
+    return report.sort((a, b) => b.totalFee - a.totalFee);
+}
+
+export async function fetchGlobalSessionHistory(
+    filters?: {
+        startDate?: Date;
+        endDate?: Date;
+        therapyId?: string;
+        therapistId?: string;
+        childId?: string;
+        status?: string;
+        attendance?: string;
+        page?: number;
+        limit?: number;
+    }
+) {
+    const session = await auth();
+    if (!session?.user) return {
+        sessions: [],
+        pagination: { total: 0, pages: 0, current: 1 },
+        summary: { totalFee: 0, totalPresent: 0 }
+    };
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    const offset = (page - 1) * limit;
+
+    // Access Control
+    // Parents can only see their own children
+    if (session.user.role === "PARENT") {
+        // If childId is provided, check if it belongs to parent
+        if (filters?.childId) {
+            const child = await db.query.children.findFirst({
+                where: and(eq(children.id, filters.childId), eq(children.parentId, session.user.id))
+            });
+            if (!child) return {
+                sessions: [],
+                pagination: { total: 0, pages: 0, current: page },
+                summary: { totalFee: 0, totalPresent: 0 }
+            };
+        }
+        // Logic for PARENT fetching global history might be restricted effectively to their kids.
+        // For now, let's assume this page is primarily for ADMIN/THERAPIST.
+        // If PARENT accesses, we force filter by their children.
+        // But the requirement implies "All Children", usually for Admin.
+    }
+
+    const conditions = [];
+
+    if (filters?.startDate) {
+        conditions.push(gte(sessions.date, filters.startDate));
+    }
+    if (filters?.endDate) {
+        const endOfDay = new Date(filters.endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        conditions.push(lte(sessions.date, endOfDay));
+    }
+    if (filters?.therapyId && filters.therapyId !== "ALL") {
+        conditions.push(eq(sessions.therapyId, filters.therapyId));
+    }
+    if (filters?.therapistId && filters.therapistId !== "ALL") {
+        conditions.push(eq(sessions.therapistId, filters.therapistId));
+    }
+    if (filters?.childId && filters.childId !== "ALL") {
+        conditions.push(eq(sessions.childId, filters.childId));
+    }
+    if (filters?.status && filters.status !== "ALL") {
+        // Cast to any if strictly typed enum issues arise, or ensure filter values match enum
+        conditions.push(eq(sessions.status, filters.status as any));
+    }
+    if (filters?.attendance && filters.attendance !== "ALL") {
+        conditions.push(eq(sessions.attendance, filters.attendance as any));
+    }
+
+    // Role based additional filters
+    if (session.user.role === "PARENT") {
+        // Find all children IDs for this parent
+        const parentChildren = await db.query.children.findMany({
+            where: eq(children.parentId, session.user.id),
+            columns: { id: true }
+        });
+        const kidIds = parentChildren.map(c => c.id);
+        if (kidIds.length === 0) return {
+            sessions: [],
+            pagination: { total: 0, pages: 0, current: page },
+            summary: { totalFee: 0, totalPresent: 0 }
+        }; // No kids, no sessions
+
+        // If specific child requested, check if in list
+        if (filters?.childId && !kidIds.includes(filters.childId)) return {
+            sessions: [],
+            pagination: { total: 0, pages: 0, current: page },
+            summary: { totalFee: 0, totalPresent: 0 }
+        };
+
+        if (!filters?.childId) {
+            // Drizzle doesn't have `inArray` imported yet? Let's check imports.
+            // If not, we iterate or use `or`. `inArray` is better.
+            // Let's assume we can add `inArray` import or use `or`.
+            // For now, let's stick to what we have. A parent usually has few kids.
+            // conditions.push(inArray(sessions.childId, kidIds));
+            // I'll add `inArray` to imports in next step if needed. 
+            // For safety without `inArray`, I'll map `eq` with `or`.
+            conditions.push(or(...kidIds.map(id => eq(sessions.childId, id))));
+        }
+    } else if (session.user.role === "THERAPIST") {
+        // Therapists can generally see all sessions or just theirs? 
+        // "Global Session History" typically implies Admin view. 
+        // If Therapist views, maybe they can see all or just assigned.
+        // Let's allow THERAPIST to see all for now, or filter by their assignment if requested.
+        // Requirement said "Session History need all child seperate page".
+    }
+
+    // 1. Fetch All Matching Data (No Limit/Offset)
+    // We fetch everything to ensure we can calculate accurate Total Fees and Counts for the filter.
+    const history = await db.query.sessions.findMany({
+        where: and(...conditions),
+        orderBy: [desc(sessions.date)],
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true
+        }
+    });
+
+    // Calculate Fees (simple logic: feePerSession from therapy or override)
+    // Let's fetch all fee overrides.
+    const allOverrides = await db.query.childTherapies.findMany();
+    const feeMap = new Map<string, number>(); // key: `${childId}-${therapyId}`
+    allOverrides.forEach(o => {
+        if (o.feePerSession) {
+            feeMap.set(`${o.childId}-${o.therapyId}`, Number(o.feePerSession));
+        }
+    });
+
+    let totalFee = 0;
+    let totalPresent = 0;
+
+    const enrichedSessions = history.map(s => {
+        let fee = 0;
+        let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
+        const key = `${s.childId}-${s.therapyId}`;
+        if (feeMap.has(key)) {
+            feePerSession = feeMap.get(key)!;
+        }
+
+        if (s.attendance === "PRESENT") {
+            fee = feePerSession;
+            totalPresent++;
+            totalFee += fee;
+        }
+
+        return {
+            ...s,
+            fee
+        };
+    });
+
+    const total = enrichedSessions.length;
+    const totalPages = Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedSessions = enrichedSessions.slice(start, end);
+
+    return {
+        sessions: paginatedSessions,
+        pagination: {
+            total,
+            pages: totalPages,
+            current: page
+        },
+        summary: {
+            totalFee,
+            totalPresent
+        }
+    };
 }

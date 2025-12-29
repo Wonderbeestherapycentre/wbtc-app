@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deleteChild } from "@/lib/actions";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { intervalToDuration } from "date-fns";
 import ChildModal from "./ChildModal";
@@ -235,6 +235,13 @@ export default function ChildSettings({
                                         </td>
                                         <td className="py-1 px-1 md:py-2 md:px-6 text-right">
                                             <div className="flex items-center justify-end gap-1 md:gap-2">
+                                                <Link
+                                                    href={`/fees/${child.id}`}
+                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-green-600 transition-colors"
+                                                    title="View Fees & Attendance"
+                                                >
+                                                    <CreditCard className="w-4 h-4" />
+                                                </Link>
                                                 <Link
                                                     href={`/childrens/${child.id}`}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"

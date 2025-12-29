@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, Clipboard as ClipboardIcon } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, Clipboard as ClipboardIcon, History as HistoryIcon } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
@@ -24,13 +24,17 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
     const ADMIN_NAV = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" }, // Added
+        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
         { icon: Home, label: "Home Programs", href: "/home-programs" },
-        // { icon: IndianRupee, label: "All Expenses", href: "/expenses" },
+
+        { isHeader: true, label: "Reports" },
+        { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
+        { icon: HistoryIcon, label: "Session History", href: "/session-history" },
+
+        { isHeader: true, label: "Management" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
         { icon: FileText, label: "Session Notes", href: "/session-notes" },
-        // { icon: Clock, label: "Due List", href: "/dues" },
         { icon: Users, label: "Users", href: "/users" },
         { icon: Heart, label: "Services", href: "/therapies" },
     ];
@@ -39,11 +43,10 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         { icon: Home, label: "Home Programs", href: "/home-programs" },
         { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" }, // Added
+        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
         { icon: Baby, label: "Childrens", href: "/childrens" },
         { icon: Tags, label: "Goals", href: "/goals" },
         { icon: FileText, label: "Session Notes", href: "/session-notes" },
-        // { icon: Heart, label: "Services", href: "/therapies" },
     ];
 
     const PARENT_NAV = [
@@ -55,7 +58,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         { icon: FileText, label: "Session Notes", href: "/session-notes" },
     ];
 
-    let navItems = ADMIN_NAV;
+    let navItems: any[] = ADMIN_NAV;
     if (role === "THERAPIST") navItems = THERAPIST_NAV;
     if (role === "PARENT") navItems = PARENT_NAV;
 
@@ -116,7 +119,17 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                         {/* Navigation */}
                         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto custom-scrollbar mt-4">
                             {!isCollapsed && <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 transition-opacity duration-300">Menu</p>}
-                            {navItems.map((item) => {
+                            {navItems.map((item, index) => {
+                                if (item.isHeader) {
+                                    return !isCollapsed ? (
+                                        <p key={`header-${index}`} className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 transition-opacity duration-300">
+                                            {item.label}
+                                        </p>
+                                    ) : (
+                                        <div key={`header-${index}`} className="my-2 h-px bg-gray-200 dark:bg-neutral-800 mx-2" />
+                                    );
+                                }
+
                                 const isActive = pathname === item.href;
 
                                 return (
