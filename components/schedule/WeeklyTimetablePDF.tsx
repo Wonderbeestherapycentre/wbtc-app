@@ -205,7 +205,7 @@ export default function WeeklyTimetablePDF({ sessions, weekStartDate, selectedTh
                 lunchEnd.setMinutes(lunchEnd.getMinutes() + 45);
 
                 slots.push({
-                    label: "1.00-1.45",
+                    label: "1.45-2.30",
                     startTime: new Date(currentTime),
                     endTime: lunchEnd,
                     isBreak: true,
