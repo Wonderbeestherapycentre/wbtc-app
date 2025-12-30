@@ -10,7 +10,7 @@ interface User {
     id: string;
     name: string;
     email: string;
-    role: "ADMIN" | "THERAPIST" | "PARENT";
+    role: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     qualification?: string | null;
     specialization?: string | null;
     mobile1?: string | null;
@@ -26,7 +26,7 @@ interface UserModalProps {
     isOpen: boolean;
     onClose: () => void;
     user?: User | null;
-    currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
+    currentUserRole: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     allChildren?: { id: string; name: string; caseNumber?: string; parent?: { id: string; name: string } | null }[];
     therapies?: { id: string; name: string; status: string }[];
 }
@@ -35,7 +35,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
 
-    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "">(user?.role || "PARENT");
+    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER" | "">(user?.role || "PARENT");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
     const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
@@ -165,6 +165,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                     <option value="ADMIN">Admin</option>
                                     <option value="THERAPIST">Therapist</option>
                                     <option value="PARENT">Parent</option>
+                                    <option value="ATTENDER">Attender</option>
                                 </select>
                                 {fieldErrors.role && (
                                     <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.role[0]}</p>

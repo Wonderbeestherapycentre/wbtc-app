@@ -14,7 +14,7 @@ export default function AppLayout({
 }: {
     children: React.ReactNode;
     familyChildren?: any[];
-    role?: "ADMIN" | "THERAPIST" | "PARENT";
+    role?: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     user?: any;
 }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 export default async function UsersPage() {
     const session = await auth();
     // Cast user role from DB 
-    const currentUserRole = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT") || "PARENT";
+    const currentUserRole = (session?.user?.role as "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER") || "PARENT";
 
     if (currentUserRole !== "ADMIN") redirect("/dashboard");
 

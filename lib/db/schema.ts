@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueI
 import { relations } from "drizzle-orm";
 
 // 1. Enums
-export const roleEnum = pgEnum("role", ["ADMIN", "THERAPIST", "PARENT"]);
+export const roleEnum = pgEnum("role", ["ADMIN", "THERAPIST", "PARENT", "ATTENDER"]);
 export const transactionTypeEnum = pgEnum("transaction_type", ["EXPENSE", "INCOME", "DUE"]);
 export const sessionStatusEnum = pgEnum("session_status", ["SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED"]);
 export const attendanceStatusEnum = pgEnum("attendance_status", ["PRESENT", "ABSENT", "EXCUSED"]);
@@ -261,7 +261,7 @@ export const expenses = pgTable("expenses", {
     title: text("title").notNull(),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     date: date("date").notNull(),
-    category: text("category", { enum: ["SALARY", "RENT", "MAINTENANCE", "EQUIPMENT", "OTHER"] }).default("OTHER").notNull(),
+    category: text("category").notNull(), // Dynamic: can be standard category or therapy service name
     description: text("description"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });

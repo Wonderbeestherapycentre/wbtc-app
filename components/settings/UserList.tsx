@@ -12,7 +12,7 @@ interface User {
     id: string;
     name: string;
     email: string;
-    role: "ADMIN" | "THERAPIST" | "PARENT";
+    role: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     color?: string | null;
     qualification?: string | null;
     specialization?: string | null;
@@ -27,7 +27,7 @@ interface User {
 
 interface UserListProps {
     users: User[];
-    currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
+    currentUserRole: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     currentUserId: string;
     allChildren?: { id: string; name: string; caseNumber?: string; dob?: string | null; parent?: { id: string; name: string } | null }[];
     therapies?: { id: string; name: string; status: string }[];
@@ -69,7 +69,7 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
         });
     };
 
-    const [selectedRole, setSelectedRole] = useState<"ALL" | "ADMIN" | "THERAPIST" | "PARENT">("ALL");
+    const [selectedRole, setSelectedRole] = useState<"ALL" | "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER">("ALL");
 
     // Filter users based on selected role
     const filteredUsers = users.filter(user => {
@@ -90,6 +90,7 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                     <option value="ADMIN">Admins</option>
                     <option value="THERAPIST">Therapists</option>
                     <option value="PARENT">Parents</option>
+                    <option value="ATTENDER">Attenders</option>
                 </select>
                 {currentUserRole === "ADMIN" && (
                     <button
@@ -189,7 +190,9 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
                                             : user.role === 'THERAPIST'
                                                 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                : user.role === 'PARENT'
+                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                                    : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
                                             }`}>
                                             {user.role}
                                         </span>

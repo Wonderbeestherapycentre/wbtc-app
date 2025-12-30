@@ -1214,7 +1214,7 @@ export async function fetchExpenses(startDate: Date, endDate: Date) {
 
     const data = await db.query.expenses.findMany({
         where: and(gte(expenses.date, startStr), lte(expenses.date, endStr)),
-        orderBy: [desc(expenses.date)]
+        orderBy: [desc(expenses.createdAt)]
     });
 
     return data;

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, Clipboard as ClipboardIcon, History as HistoryIcon } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
@@ -13,57 +13,95 @@ import Link from "next/link";
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
-    role?: "ADMIN" | "THERAPIST" | "PARENT";
+    role?: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     user?: any;
 }
 
 export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = React.useState(false);
+    const [collapsedSections, setCollapsedSections] = React.useState<Record<string, boolean>>({
+        "FinTrack": true,
+        "Management": true
+    });
+
+    const toggleSection = (label: string) => {
+        setCollapsedSections(prev => ({
+            ...prev,
+            [label]: !prev[label]
+        }));
+    };
 
     const ADMIN_NAV = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
-        { icon: Home, label: "Home Programs", href: "/home-programs" },
-
-        { isHeader: true, label: "Reports" },
-        { icon: LayoutDashboard, label: "Caseload", href: "/caseload" },
-        { icon: IndianRupee, label: "Profit & Loss", href: "/profit-loss" },
-        { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
-        { icon: HistoryIcon, label: "Session History", href: "/session-history" },
-
-        { isHeader: true, label: "Management" },
-        { icon: ClipboardIcon, label: "Staff Attendance", href: "/staff-attendance" },
-        { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Tags, label: "Goals", href: "/goals" },
-        { icon: FileText, label: "Session Notes", href: "/session-notes" },
-        { icon: Users, label: "Users", href: "/users" },
-        { icon: Heart, label: "Services", href: "/therapies" },
+        {
+            items: [
+                { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+                { icon: Calendar, label: "Schedule", href: "/schedule" },
+                { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
+                { icon: Home, label: "Home Programs", href: "/home-programs" },
+            ]
+        },
+        {
+            label: "FinTrack",
+            items: [
+                { icon: LayoutDashboard, label: "Caseload", href: "/caseload" },
+                { icon: IndianRupee, label: "Income / Expense", href: "/income-expense" },
+                { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
+            ]
+        },
+        {
+            label: "Management",
+            items: [
+                { icon: ClipboardIcon, label: "Staff Attendance", href: "/staff-attendance" },
+                { icon: Baby, label: "Childrens", href: "/childrens" },
+                { icon: Tags, label: "Goals", href: "/goals" },
+                { icon: FileText, label: "Session Notes", href: "/session-notes" },
+                { icon: Users, label: "Users", href: "/users" },
+                { icon: Heart, label: "Services", href: "/therapies" },
+            ]
+        }
     ];
 
     const THERAPIST_NAV = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Home, label: "Home Programs", href: "/home-programs" },
-        { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
-        { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Tags, label: "Goals", href: "/goals" },
-        { icon: FileText, label: "Session Notes", href: "/session-notes" },
+        {
+            items: [
+                { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+                { icon: Home, label: "Home Programs", href: "/home-programs" },
+                { icon: Calendar, label: "Schedule", href: "/schedule" },
+                { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
+                { icon: Baby, label: "Childrens", href: "/childrens" },
+                { icon: Tags, label: "Goals", href: "/goals" },
+                { icon: FileText, label: "Session Notes", href: "/session-notes" },
+            ]
+        }
     ];
 
     const PARENT_NAV = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: Home, label: "Home Programs", href: "/home-programs" },
-        { icon: Calendar, label: "Schedule", href: "/schedule" },
-        { icon: Baby, label: "Childrens", href: "/childrens" },
-        { icon: Tags, label: "Goals", href: "/goals" },
-        { icon: FileText, label: "Session Notes", href: "/session-notes" },
+        {
+            items: [
+                { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+                { icon: Home, label: "Home Programs", href: "/home-programs" },
+                { icon: Calendar, label: "Schedule", href: "/schedule" },
+                { icon: Baby, label: "Childrens", href: "/childrens" },
+                { icon: Tags, label: "Goals", href: "/goals" },
+                { icon: FileText, label: "Session Notes", href: "/session-notes" },
+            ]
+        }
     ];
 
-    let navItems: any[] = ADMIN_NAV;
-    if (role === "THERAPIST") navItems = THERAPIST_NAV;
-    if (role === "PARENT") navItems = PARENT_NAV;
+    const ATTENDER_NAV = [
+        {
+            items: [
+                { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+                { icon: ClipboardIcon, label: "Staff Attendance", href: "/staff-attendance" },
+            ]
+        }
+    ];
+
+    let navGroups = ADMIN_NAV;
+    if (role === "THERAPIST") navGroups = THERAPIST_NAV;
+    if (role === "PARENT") navGroups = PARENT_NAV;
+    if (role === "ATTENDER") navGroups = ATTENDER_NAV;
 
     return (
         <>
@@ -119,47 +157,67 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                             </button>
                         </div>
 
-                        {/* Navigation */}
                         <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto custom-scrollbar mt-4">
                             {!isCollapsed && <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2 transition-opacity duration-300">Menu</p>}
-                            {navItems.map((item, index) => {
-                                if (item.isHeader) {
-                                    return !isCollapsed ? (
-                                        <p key={`header-${index}`} className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6 transition-opacity duration-300">
-                                            {item.label}
-                                        </p>
-                                    ) : (
-                                        <div key={`header-${index}`} className="my-2 h-px bg-gray-200 dark:bg-neutral-800 mx-2" />
-                                    );
-                                }
 
-                                const isActive = pathname === item.href;
+                            {navGroups.map((group, groupIndex) => {
+                                const isSectionCollapsed = group.label ? collapsedSections[group.label] : false;
 
                                 return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        title={isCollapsed ? item.label : ""}
-                                        className={cn(
-                                            "group flex items-center w-full rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
-                                            isCollapsed ? "justify-center p-3" : "px-4 py-3",
-                                            isActive
-                                                ? "text-blue-600 bg-blue-50 dark:bg-blue-900/10"
-                                                : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-200"
+                                    <div key={`group-${groupIndex}`} className="mb-4">
+                                        {group.label && (
+                                            !isCollapsed ? (
+                                                <button
+                                                    onClick={() => toggleSection(group.label!)}
+                                                    className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                                >
+                                                    <span>{group.label}</span>
+                                                    {isSectionCollapsed ? (
+                                                        <ChevronRight className="w-3 h-3" />
+                                                    ) : (
+                                                        <ChevronDown className="w-3 h-3" />
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <div className="my-2 h-px bg-gray-200 dark:bg-neutral-800 mx-2" title={group.label} />
+                                            )
                                         )}
-                                    >
-                                        {isActive && (
-                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full" />
-                                        )}
-                                        <item.icon className={cn(
-                                            "w-5 h-5 transition-colors flex-shrink-0",
-                                            isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300",
-                                            !isCollapsed && "mr-3"
-                                        )} />
-                                        <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
-                                            {item.label}
-                                        </span>
-                                    </Link>
+
+                                        <div className={cn(
+                                            "space-y-1.5 transition-all duration-300 ease-in-out",
+                                            group.label && isSectionCollapsed && !isCollapsed ? "max-h-0 overflow-hidden opacity-0" : "max-h-[500px] opacity-100"
+                                        )}>
+                                            {group.items.map((item: any) => {
+                                                const isActive = pathname === item.href;
+                                                return (
+                                                    <Link
+                                                        key={item.href}
+                                                        href={item.href}
+                                                        title={isCollapsed ? item.label : ""}
+                                                        className={cn(
+                                                            "group flex items-center w-full rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
+                                                            isCollapsed ? "justify-center p-2.5" : "px-4 py-2.5",
+                                                            isActive
+                                                                ? "text-blue-600 bg-blue-50 dark:bg-blue-900/10"
+                                                                : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-200"
+                                                        )}
+                                                    >
+                                                        {isActive && (
+                                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full" />
+                                                        )}
+                                                        <item.icon className={cn(
+                                                            "w-5 h-5 transition-colors flex-shrink-0",
+                                                            isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300",
+                                                            !isCollapsed && "mr-3"
+                                                        )} />
+                                                        <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
+                                                            {item.label}
+                                                        </span>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 );
                             })}
                         </nav>

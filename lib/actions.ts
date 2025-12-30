@@ -1520,13 +1520,18 @@ export async function addExpense(formData: FormData) {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
 
-    const title = formData.get("title") as string;
+    let title = formData.get("title") as string;
     const amount = parseFloat(formData.get("amount") as string);
     const dateStr = formData.get("date") as string;
-    const category = (formData.get("category") as "SALARY" | "RENT" | "MAINTENANCE" | "EQUIPMENT" | "OTHER") || "OTHER";
+    const category = (formData.get("category") as string) || "OTHER";
     const description = (formData.get("description") as string) || "";
 
-    if (!title || isNaN(amount) || !dateStr) return { message: "Missing required fields" };
+    // If title is missing, use Category as title
+    if (!title || title.trim() === "") {
+        title = category.charAt(0) + category.slice(1).toLowerCase(); // e.g. "Salary"
+    }
+
+    if (isNaN(amount) || !dateStr) return { message: "Missing required fields" };
 
     try {
         await db.insert(expenses).values({
@@ -1537,11 +1542,47 @@ export async function addExpense(formData: FormData) {
             description
         });
 
-        revalidatePath("/profit-loss");
+        revalidatePath("/income-expense");
         return { message: "Expense added" };
     } catch (error) {
         console.error("addExpense error:", error);
         return { message: "Failed to add expense" };
+    }
+}
+
+export async function updateExpense(id: string, formData: FormData) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    let title = formData.get("title") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const dateStr = formData.get("date") as string;
+    const category = (formData.get("category") as string) || "OTHER";
+    const description = (formData.get("description") as string) || "";
+
+    // If title is missing, use Category as title
+    if (!title || title.trim() === "") {
+        title = category.charAt(0) + category.slice(1).toLowerCase();
+    }
+
+    if (isNaN(amount) || !dateStr) return { message: "Missing required fields" };
+
+    try {
+        await db.update(expenses)
+            .set({
+                title,
+                amount: amount.toString(),
+                date: dateStr,
+                category,
+                description
+            })
+            .where(eq(expenses.id, id));
+
+        revalidatePath("/income-expense");
+        return { message: "Expense updated" };
+    } catch (error) {
+        console.error("updateExpense error:", error);
+        return { message: "Failed to update expense" };
     }
 }
 
@@ -1551,7 +1592,7 @@ export async function deleteExpense(id: string) {
 
     try {
         await db.delete(expenses).where(eq(expenses.id, id));
-        revalidatePath("/profit-loss");
+        revalidatePath("/income-expense");
         return { message: "Expense deleted" };
     } catch (error) {
         return { message: "Failed to delete expense" };
