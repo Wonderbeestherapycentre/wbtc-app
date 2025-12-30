@@ -1,9 +1,12 @@
-import { fetchChildFeeDetails, fetchChildren, fetchTherapies } from "@/lib/data"; // update import
+import { fetchChildFeeDetails, fetchChildren, fetchTherapies } from "@/lib/data";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 import FeeFilterControls from "./FeeFilterControls";
 import { formatDateToLocal } from "@/lib/utils";
+import PaymentHistoryList from "@/components/fees/PaymentHistoryList";
 
 export default async function ChildFeePage({
     params,
@@ -41,15 +44,24 @@ export default async function ChildFeePage({
         notFound();
     }
 
-    const { child, summary, sessions } = data;
+    const { child, summary, sessions, payments } = data;
 
     return (
         <AppLayout familyChildren={activeChildren} role={session.user.role as any} user={session.user}>
             <div className="container mx-auto space-y-3 animate-fade-in">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{child.name}</h1>
-                        <p className="text-gray-500 dark:text-gray-400">Case No: {child.caseNumber || "N/A"} • Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${child.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{child.status}</span></p>
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/fees"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                            title="Back to Fees"
+                        >
+                            <ArrowLeft className="w-6 h-6" />
+                        </Link>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{child.name}</h1>
+                            <p className="text-gray-500 dark:text-gray-400">1111 {child.caseNumber || "N/A"} • Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${child.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{child.status}</span></p>
+                        </div>
                     </div>
                     {/* Filters */}
                     <FeeFilterControls
@@ -61,7 +73,7 @@ export default async function ChildFeePage({
                 </div>
 
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Fees</h3>
                         <div className="mt-2 flex items-baseline">
@@ -69,15 +81,24 @@ export default async function ChildFeePage({
                         </div>
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sessions</h3>
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Paid Amount</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-gray-900 dark:text-white">{summary.totalSessions}</span>
+                            <span className="text-3xl font-bold text-emerald-600">₹{summary.paidFee.toLocaleString()}</span>
                         </div>
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Present</h3>
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Amount</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-green-600">{summary.present}</span>
+                            <span className={`text-3xl font-bold ${summary.pendingFees > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                                ₹{summary.pendingFees.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Sessions (Present)</h3>
+                        <div className="mt-2 flex items-baseline">
+                            <span className="text-3xl font-bold text-gray-900 dark:text-white">{summary.present}</span>
+                            <span className="ml-2 text-sm text-gray-500">/ {summary.totalSessions}</span>
                         </div>
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
@@ -114,10 +135,10 @@ export default async function ChildFeePage({
                                         </td>
                                     </tr>
                                 ) : (
-                                    sessions.map((session) => (
-                                        <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
+                                    sessions.map((s) => (
+                                        <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
                                             <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
-                                                {new Date(session.date).toLocaleDateString('en-IN', {
+                                                {new Date(s.date).toLocaleDateString('en-IN', {
                                                     day: 'numeric',
                                                     month: 'short',
                                                     year: 'numeric',
@@ -125,32 +146,32 @@ export default async function ChildFeePage({
                                                     minute: '2-digit'
                                                 })}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-900 dark:text-white">{session.therapy.name}</td>
-                                            <td className="px-6 py-4 text-gray-900 dark:text-white">{session.therapist.name}</td>
+                                            <td className="px-6 py-4 text-gray-900 dark:text-white">{s.therapy.name}</td>
+                                            <td className="px-6 py-4 text-gray-900 dark:text-white">{s.therapist.name}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                                                    ${session.status === 'COMPLETED' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-900' :
-                                                        session.status === 'SCHEDULED' ? 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-neutral-800 dark:text-gray-400 dark:border-neutral-700' :
-                                                            session.status === 'CANCELLED' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900' :
+                                                    ${s.status === 'COMPLETED' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-900' :
+                                                        s.status === 'SCHEDULED' ? 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-neutral-800 dark:text-gray-400 dark:border-neutral-700' :
+                                                            s.status === 'CANCELLED' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900' :
                                                                 'bg-gray-50 text-gray-600'}`}>
-                                                    {session.status}
+                                                    {s.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                {session.attendance ? (
+                                                {s.attendance ? (
                                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                                        ${session.attendance === 'PRESENT' ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                            session.attendance === 'ABSENT' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                                session.attendance === 'EXCUSED' ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                                        ${s.attendance === 'PRESENT' ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                            s.attendance === 'ABSENT' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                                s.attendance === 'EXCUSED' ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
                                                                     'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400'}`}>
-                                                        {session.attendance}
+                                                        {s.attendance}
                                                     </span>
                                                 ) : (
                                                     <span className="text-gray-400 text-xs">-</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right font-medium text-gray-900 dark:text-white">
-                                                {session.attendance === 'PRESENT' ? `₹${session.fee.toLocaleString()}` : <span className="text-gray-400">-</span>}
+                                                {s.attendance === 'PRESENT' ? `₹${s.fee.toLocaleString()}` : <span className="text-gray-400">-</span>}
                                             </td>
                                         </tr>
                                     ))
@@ -159,6 +180,13 @@ export default async function ChildFeePage({
                         </table>
                     </div>
                 </div>
+
+                {/* Payment History Section */}
+                <PaymentHistoryList
+                    payments={payments}
+                    child={child}
+                    summary={{ paidFee: summary.paidFee }}
+                />
             </div>
         </AppLayout>
     );

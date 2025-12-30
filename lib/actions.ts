@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses } from "./db/schema"; // Added reporting tables
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
 import { eq, desc, asc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
@@ -1588,13 +1588,90 @@ export async function updateExpense(id: string, formData: FormData) {
 
 export async function deleteExpense(id: string) {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+    if (!session?.user || session.user.role !== "ADMIN") return { error: "Unauthorized" };
 
     try {
         await db.delete(expenses).where(eq(expenses.id, id));
         revalidatePath("/income-expense");
         return { message: "Expense deleted" };
     } catch (error) {
-        return { message: "Failed to delete expense" };
+        console.error("Failed to delete expense:", error);
+        return { error: "Failed to delete expense" };
+    }
+}
+
+export async function addPayment(formData: FormData) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return { error: "Unauthorized" };
+
+    const childId = formData.get("childId") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const date = formData.get("date") as string;
+    const mode = formData.get("mode") as "CASH" | "UPI" | "BANK_TRANSFER";
+    const remarks = formData.get("remarks") as string;
+
+    if (!childId || isNaN(amount) || !date || !mode) {
+        return { error: "Missing required fields" };
+    }
+
+    try {
+        await db.insert(payments).values({
+            childId,
+            amount: amount.toString(),
+            date: date,
+            mode: mode,
+            remarks: remarks || null,
+        });
+
+        revalidatePath("/fees");
+        return { message: "Payment recorded" };
+    } catch (error) {
+        console.error("Failed to record payment:", error);
+        return { error: "Failed to record payment" };
+    }
+}
+
+export async function updatePayment(id: string, formData: FormData) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return { error: "Unauthorized" };
+
+    const amount = parseFloat(formData.get("amount") as string);
+    const date = formData.get("date") as string;
+    const mode = formData.get("mode") as "CASH" | "UPI" | "BANK_TRANSFER";
+    const remarks = formData.get("remarks") as string;
+
+    if (isNaN(amount) || !date || !mode) {
+        return { error: "Missing required fields" };
+    }
+
+    try {
+        await db.update(payments)
+            .set({
+                amount: amount.toString(),
+                date: date,
+                mode: mode,
+                remarks: remarks || null,
+            })
+            .where(eq(payments.id, id));
+
+        revalidatePath("/fees");
+        return { message: "Payment updated" };
+    } catch (error) {
+        console.error("Failed to update payment:", error);
+        return { error: "Failed to update payment" };
+    }
+}
+
+export async function deletePayment(id: string) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") return { error: "Unauthorized" };
+
+    try {
+        await db.delete(payments).where(eq(payments.id, id));
+        revalidatePath("/fees");
+        return { message: "Payment deleted" };
+    } catch (error) {
+        console.error("Failed to delete payment:", error);
+        return { error: "Failed to delete payment" };
     }
 }

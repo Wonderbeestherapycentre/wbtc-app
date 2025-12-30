@@ -6,6 +6,7 @@ export const roleEnum = pgEnum("role", ["ADMIN", "THERAPIST", "PARENT", "ATTENDE
 export const transactionTypeEnum = pgEnum("transaction_type", ["EXPENSE", "INCOME", "DUE"]);
 export const sessionStatusEnum = pgEnum("session_status", ["SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED"]);
 export const attendanceStatusEnum = pgEnum("attendance_status", ["PRESENT", "ABSENT", "EXCUSED"]);
+export const paymentModeEnum = pgEnum("payment_mode", ["CASH", "UPI", "BANK_TRANSFER"]);
 
 // 2. Users Table (Admin, Therapist, Parent)
 export const users = pgTable("users", {
@@ -266,9 +267,25 @@ export const expenses = pgTable("expenses", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+
+// 13. Payments
+export const payments = pgTable("payments", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    childId: uuid("child_id").references(() => children.id).notNull(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    date: date("date").notNull(),
+    mode: paymentModeEnum("mode").default("CASH").notNull(),
+    remarks: text("remarks"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const staffAttendanceRelations = relations(staffAttendance, ({ one }) => ({
     user: one(users, { fields: [staffAttendance.userId], references: [users.id] }),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+    child: one(children, { fields: [payments.childId], references: [children.id] }),
 }));
 
 

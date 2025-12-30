@@ -75,13 +75,13 @@ export default function FeeFilterControls({
                     ))}
                 </select>
             </div>
-            <button
+            {/* <button
                 onClick={clearFilters}
                 className="px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-1 h-[38px]"
                 title="Clear Filters"
             >
                 <X className="w-4 h-4" />
-            </button>
+            </button> */}
         </div>
     );
 }

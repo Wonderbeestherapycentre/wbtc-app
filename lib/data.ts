@@ -1,9 +1,10 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, roleEnum, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses } from "./db/schema";
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses, payments } from "./db/schema";
 
-import { eq, desc, and, asc, sql, count, gte, lte, ilike, or } from "drizzle-orm";
+import { eq, desc, and, asc, sql, count, gte, lte, ilike, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { convertUTCToIST } from "./utils/timezone";
+import { formatDateToLocal } from "./utils";
 
 export async function fetchUsers() {
     const session = await auth();
@@ -83,11 +84,11 @@ export async function fetchChildren(includeInactive = false) {
         conditions.push(eq(children.parentId, session.user.id));
     } else if (session.user.role === "THERAPIST") {
         conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "child_therapies" 
+            sql`EXISTS(
+    SELECT 1 FROM "child_therapies" 
                 WHERE "child_therapies"."child_id" = ${children.id} 
                 AND "child_therapies"."therapist_id" = ${session.user.id}
-            )`
+)`
         );
     }
 
@@ -121,16 +122,16 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
         conditions.push(eq(children.parentId, session.user.id));
     } else if (session.user.role === "THERAPIST") {
         conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "child_therapies" 
+            sql`EXISTS(
+    SELECT 1 FROM "child_therapies" 
                 WHERE "child_therapies"."child_id" = ${children.id} 
                 AND "child_therapies"."therapist_id" = ${session.user.id}
-            )`
+)`
         );
     }
 
     if (search) {
-        conditions.push(ilike(children.name, `%${search}%`));
+        conditions.push(ilike(children.name, `% ${search}% `));
     }
 
     // Get Total Count
@@ -277,11 +278,11 @@ export async function fetchGoals(childId?: string) {
 
     if (session.user.role === "PARENT") {
         conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "children" 
+            sql`EXISTS(
+    SELECT 1 FROM "children" 
                 WHERE "children"."id" = "goals"."child_id" 
                 AND "children"."parent_id" = ${session.user.id}
-            )`
+)`
         );
     } else if (session.user.role === "THERAPIST") {
         if (!childId) {
@@ -325,11 +326,11 @@ export async function fetchGoalsPaginated(page: number, limit: number, childId?:
 
     if (session.user.role === "PARENT") {
         conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "children" 
+            sql`EXISTS(
+    SELECT 1 FROM "children" 
                 WHERE "children"."id" = "goals"."child_id" 
                 AND "children"."parent_id" = ${session.user.id}
-            )`
+)`
         );
     } else if (session.user.role === "THERAPIST" && !childId) {
         conditions.push(eq(goals.therapistId, session.user.id));
@@ -337,11 +338,11 @@ export async function fetchGoalsPaginated(page: number, limit: number, childId?:
 
     if (search) {
         conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "children" 
+            sql`EXISTS(
+    SELECT 1 FROM "children" 
                 WHERE "children"."id" = "goals"."child_id" 
                 AND "children"."name" ILIKE ${`%${search}%`}
-            )`
+)`
         );
     }
 
@@ -392,7 +393,7 @@ export async function fetchSessionNotes() {
         conditions.push(eq(sessionNotes.therapistId, session.user.id));
     } else if (session.user.role === "PARENT") {
         // Parents shouldn't access this, but just in case filter by their children
-        conditions.push(sql`${sessionNotes.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+        conditions.push(sql`${sessionNotes.childId} IN(SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
     }
     // Admins see all
 
@@ -426,7 +427,7 @@ export async function fetchHomePrograms(childId?: string) {
     }
 
     if (session.user.role === "PARENT") {
-        conditions.push(sql`${homePrograms.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+        conditions.push(sql`${homePrograms.childId} IN(SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
     } else if (session.user.role === "THERAPIST" && !childId) {
         conditions.push(eq(homePrograms.therapistId, session.user.id));
     }
@@ -461,7 +462,7 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
     }
 
     if (session.user.role === "PARENT") {
-        conditions.push(sql`${homePrograms.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+        conditions.push(sql`${homePrograms.childId} IN(SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
     } else if (session.user.role === "THERAPIST") {
         conditions.push(eq(homePrograms.therapistId, session.user.id));
     }
@@ -469,12 +470,12 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
     if (search) {
         conditions.push(
             or(
-                ilike(homePrograms.title, `%${search}%`),
-                sql`EXISTS (
-                    SELECT 1 FROM "children" 
+                ilike(homePrograms.title, `% ${search}% `),
+                sql`EXISTS(
+    SELECT 1 FROM "children" 
                     WHERE "children"."id" = ${homePrograms.childId} 
                     AND "children"."name" ILIKE ${`%${search}%`}
-                )`
+)`
             )
         );
     }
@@ -642,8 +643,22 @@ export async function fetchChildFeeDetails(
         orderBy: [desc(sessions.date)],
         with: {
             therapy: true,
-            therapist: true
+            therapist: true,
         }
+    });
+
+    // Fetch all payments for the period
+    const paymentConditions = [eq(payments.childId, childId)];
+    if (filters?.startDate) {
+        paymentConditions.push(gte(payments.date, formatDateToLocal(filters.startDate)));
+    }
+    if (filters?.endDate) {
+        paymentConditions.push(lte(payments.date, formatDateToLocal(filters.endDate)));
+    }
+
+    const childPayments = await db.query.payments.findMany({
+        where: and(...paymentConditions),
+        orderBy: [desc(payments.date)]
     });
 
     const detailedSessions = await Promise.all(childSessions.map(async (s) => {
@@ -707,6 +722,11 @@ export async function fetchChildFeeDetails(
         };
     });
 
+    let paidAmount = 0;
+    childPayments.forEach(p => {
+        paidAmount += Number(p.amount);
+    });
+
     return {
         child,
         summary: {
@@ -715,9 +735,11 @@ export async function fetchChildFeeDetails(
             absent: absentCount,
             excused: excusedCount,
             totalFee,
-            pendingFees: 0 // Placeholder if we track payments later
+            paidFee: paidAmount,
+            pendingFees: totalFee - paidAmount
         },
-        sessions: sessionData
+        sessions: sessionData,
+        payments: childPayments
     };
 }
 
@@ -725,111 +747,221 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date) 
     const session = await auth();
     if (!session?.user) return [];
 
-    const conditions = [];
-    // Default to active children for the report
-    conditions.push(eq(children.status, "ACTIVE"));
+    const start = startDate;
+    let end = endDate;
+
+    if (end) {
+        end = new Date(end);
+        end.setHours(23, 59, 59, 999);
+    }
+
+    // Access Control - Filter children based on user role
+    const childConditions = [];
+    childConditions.push(eq(children.status, "ACTIVE"));
 
     if (session.user.role === "PARENT") {
-        conditions.push(eq(children.parentId, session.user.id));
+        childConditions.push(eq(children.parentId, session.user.id));
     } else if (session.user.role === "THERAPIST") {
-        // Therapists see children they are assigned to OR have sessions with.
-        // For simplicity and performance in this summary, let's stick to assigned or explicitly associated.
-        conditions.push(
-            sql`EXISTS (
-                SELECT 1 FROM "child_therapies" 
+        childConditions.push(
+            sql`EXISTS(
+    SELECT 1 FROM "child_therapies" 
                 WHERE "child_therapies"."child_id" = ${children.id} 
                 AND "child_therapies"."therapist_id" = ${session.user.id}
-            )`
+)`
         );
     }
 
-    // Fetch children with necessary relations
-    const kids = await db.query.children.findMany({
-        where: and(...conditions),
-        orderBy: [asc(children.name)],
+    // 1. Fetch All Sessions within the date range, filtered by role
+    const sessionFilterConditions = [];
+    if (start) sessionFilterConditions.push(gte(sessions.date, start));
+    if (end) sessionFilterConditions.push(lte(sessions.date, end));
+
+    if (session.user.role === "PARENT") {
+        const parentChildren = await db.query.children.findMany({
+            where: eq(children.parentId, session.user.id),
+            columns: { id: true }
+        });
+        const kidIds = parentChildren.map(c => c.id);
+        if (kidIds.length === 0) return [];
+        sessionFilterConditions.push(or(...kidIds.map(id => eq(sessions.childId, id))));
+    } else if (session.user.role === "THERAPIST") {
+        const therapistChildren = await db.query.childTherapies.findMany({
+            where: eq(childTherapies.therapistId, session.user.id),
+            columns: { childId: true }
+        });
+        const kidIds = [...new Set(therapistChildren.map(ct => ct.childId))];
+        if (kidIds.length === 0) return [];
+        sessionFilterConditions.push(or(...kidIds.map(id => eq(sessions.childId, id))));
+    }
+
+    const childSessions = await db.query.sessions.findMany({
+        where: and(...sessionFilterConditions),
         with: {
-            parent: true,
-            therapyTypes: {
+            child: {
                 with: {
-                    therapist: true
+                    therapyTypes: true // to get custom fees
                 }
-            }, // For custom fees and therapist info
-            sessions: {
-                where: (sessions, { and, gte, lte }) => {
-                    const conditions = [];
-                    if (startDate) conditions.push(gte(sessions.date, startDate));
-                    if (endDate) {
-                        const end = new Date(endDate);
-                        end.setHours(23, 59, 59, 999);
-                        conditions.push(lte(sessions.date, end));
-                    }
-                    return conditions.length > 0 ? and(...conditions) : undefined;
-                },
-                with: {
-                    therapy: true
-                }
+            },
+            therapy: true,
+            therapist: true
+        }
+    });
+
+    // 2. Fetch Payments for this period
+    // Note: Payments are date-based. Should we track pending strictly by date range?
+    // Usually pending is cumulative, but for "Fee Report" vs "Bill", let's show 
+    // payments made in this period vs fees incurred in this period.
+    // Or should we fetch ALL payments to show total pending?
+    // User asked: "total sesstions from filtered date, total fee, paid fee, pending fee"
+    // "Paid Fee" implies payments made within the range (or total paid ever?)
+    // "Pending Fee" implies (Total Fee - Paid Fee).
+    // Let's stick to the filtered date range for both fees incurred and payments made, 
+    // BUT for Pending, it's tricky if they paid for last month in this month.
+    // Let's assume Filter is for "What happened this month".
+
+    // Actually, for "Pending Fee", it usually means current balance.
+    // To accurately show pending fee, we'd need running balance from start of time.
+    // For simplicity in this report: 
+    // Total Fee = Sum of sessions in date range
+    // Paid Fee = Sum of payments in date range
+    // Pending Fee = Total Fee - Paid Fee (Net for this period)
+    // If user wants Total Outstanding, that's a different query (all time).
+    // Let's stick to "Period Report" for now.
+
+    // Convert start/end to date strings for Payment query (date column type)
+    const paymentFilterConditions = [];
+    if (start) paymentFilterConditions.push(gte(payments.date, start.toISOString().split('T')[0]));
+    if (end) paymentFilterConditions.push(lte(payments.date, end.toISOString().split('T')[0]));
+
+    if (session.user.role === "PARENT") {
+        const parentChildren = await db.query.children.findMany({
+            where: eq(children.parentId, session.user.id),
+            columns: { id: true }
+        });
+        const kidIds = parentChildren.map(c => c.id);
+        if (kidIds.length === 0) return [];
+        paymentFilterConditions.push(or(...kidIds.map(id => eq(payments.childId, id))));
+    } else if (session.user.role === "THERAPIST") {
+        // Therapists don't directly own payments, so this filter might not apply or needs adjustment
+        // For now, let's assume therapists can see payments for children they are assigned to.
+        const therapistChildren = await db.query.childTherapies.findMany({
+            where: eq(childTherapies.therapistId, session.user.id),
+            columns: { childId: true }
+        });
+        const kidIds = [...new Set(therapistChildren.map(ct => ct.childId))];
+        if (kidIds.length === 0) return [];
+        paymentFilterConditions.push(or(...kidIds.map(id => eq(payments.childId, id))));
+    }
+
+    const periodPayments = await db.query.payments.findMany({
+        where: and(...paymentFilterConditions)
+    });
+
+
+    // 3. Aggregate Data by Child
+    // Let's Refactor slightly: Fetch ALL active children to ensure we capture everyone
+    // active children are needed for the report anyway
+    const allChildren = await db.query.children.findMany({
+        where: and(...childConditions), // Apply role-based conditions here
+        with: {
+            parent: true
+        }
+    });
+
+    // Re-initialize map with all active children
+    const fullSummaryMap = new Map<string, {
+        childId: string;
+        childName: string;
+        caseNumber: string;
+        parentName: string;
+        therapistNames: Set<string>;
+        present: number;
+        absent: number;
+        excused: number;
+        totalFee: number;
+        totalAssignedFee: number;
+        paidFee: number;
+        therapyBreakdown: Record<string, number>;
+        assignedTherapyBreakdown: Record<string, number>;
+    }>();
+
+    allChildren.forEach(child => {
+        fullSummaryMap.set(child.id, {
+            childId: child.id,
+            childName: child.name,
+            caseNumber: child.caseNumber || "",
+            parentName: child.parent?.name || "-",
+            therapistNames: new Set(),
+            present: 0,
+            absent: 0,
+            excused: 0,
+            totalFee: 0,
+            totalAssignedFee: 0,
+            paidFee: 0,
+            therapyBreakdown: {},
+            assignedTherapyBreakdown: {}
+        });
+    });
+
+    // Fill Session Data
+    childSessions.forEach(session => {
+        const entry = fullSummaryMap.get(session.childId);
+        if (entry) {
+            entry.therapistNames.add(session.therapist.name);
+
+            const customFeeObj = session.child.therapyTypes.find(ct => ct.therapyId === session.therapyId);
+            const feePerSession = customFeeObj?.feePerSession ? Number(customFeeObj.feePerSession) : Number(session.therapy.chargePerSession || 0);
+
+            // Total Assigned Fee includes EVERY session in the period
+            entry.totalAssignedFee += feePerSession;
+
+            // Therapy short name calculation
+            const shortName = session.therapy.name
+                .split(" ")
+                .map(word => word[0])
+                .join("")
+                .toUpperCase();
+
+            // All assigned sessions breakdown
+            entry.assignedTherapyBreakdown[shortName] = (entry.assignedTherapyBreakdown[shortName] || 0) + 1;
+
+            if (session.attendance === "PRESENT") {
+                entry.present++;
+                entry.totalFee += feePerSession;
+
+                // Update present breakdown (already calculated shortName above)
+                const shortName = session.therapy.name
+                    .split(" ")
+                    .map(word => word[0])
+                    .join("")
+                    .toUpperCase();
+
+                entry.therapyBreakdown[shortName] = (entry.therapyBreakdown[shortName] || 0) + 1;
+            } else if (session.attendance === "ABSENT") {
+                entry.absent++;
+            } else if (session.attendance === "EXCUSED") {
+                entry.excused++;
             }
         }
     });
 
-    // Calculate details for each child
-    const report = kids.map(child => {
-        // Create Fee Map for this child
-        const feeMap = new Map<string, number>();
-        const distinctTherapists = new Set<string>();
-
-        child.therapyTypes.forEach((tt: any) => {
-            if (tt.feePerSession) {
-                feeMap.set(tt.therapyId, Number(tt.feePerSession));
-            }
-            if (tt.therapist?.name) {
-                distinctTherapists.add(tt.therapist.name);
-            }
-        });
-
-        let totalFee = 0;
-        let presentCount = 0;
-        let absentCount = 0;
-        let excusedCount = 0;
-
-        child.sessions.forEach((s: any) => {
-            let fee = 0;
-            // Determine base fee
-            let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
-            // Override if custom
-            if (feeMap.has(s.therapyId)) {
-                feePerSession = feeMap.get(s.therapyId)!;
-            }
-
-            if (s.attendance === "PRESENT") {
-                fee = feePerSession;
-                presentCount++;
-                totalFee += fee;
-            } else if (s.attendance === "ABSENT") {
-                absentCount++;
-            } else if (s.attendance === "EXCUSED") {
-                excusedCount++;
-            }
-        });
-
-        return {
-            childId: child.id,
-            childName: child.name,
-            caseNumber: child.caseNumber,
-            parentName: child.parent?.name || "N/A",
-            therapistNames: Array.from(distinctTherapists).join(", ") || "",
-            totalSessions: child.sessions.length,
-            present: presentCount,
-            absent: absentCount,
-            excused: excusedCount,
-            totalFee,
-            lastSessionDate: child.sessions.length > 0 ? child.sessions[child.sessions.length - 1].date : null
-        };
+    // Fill Payment Data
+    periodPayments.forEach(payment => {
+        const entry = fullSummaryMap.get(payment.childId);
+        if (entry) {
+            entry.paidFee += Number(payment.amount);
+        }
     });
 
+    // Convert to array
+    const report = Array.from(fullSummaryMap.values()).map(item => ({
+        ...item,
+        therapistNames: Array.from(item.therapistNames).join(", ")
+    })).filter(item => item.present > 0 || item.absent > 0 || item.paidFee > 0); // Only show relevant
 
-    // Sort by Total Fee Descending (High value first)
-    return report.sort((a, b) => b.totalFee - a.totalFee);
+
+    // Sort by Child Name Ascending
+    return report.sort((a, b) => a.childName.localeCompare(b.childName));
 }
 
 export async function fetchGlobalSessionHistory(
@@ -957,10 +1089,10 @@ export async function fetchGlobalSessionHistory(
     // Calculate Fees (simple logic: feePerSession from therapy or override)
     // Let's fetch all fee overrides.
     const allOverrides = await db.query.childTherapies.findMany();
-    const feeMap = new Map<string, number>(); // key: `${childId}-${therapyId}`
+    const feeMap = new Map<string, number>(); // key: `${ childId } -${ therapyId } `
     allOverrides.forEach(o => {
         if (o.feePerSession) {
-            feeMap.set(`${o.childId}-${o.therapyId}`, Number(o.feePerSession));
+            feeMap.set(`${o.childId} -${o.therapyId} `, Number(o.feePerSession));
         }
     });
 
@@ -970,7 +1102,7 @@ export async function fetchGlobalSessionHistory(
     const enrichedSessions = history.map(s => {
         let fee = 0;
         let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
-        const key = `${s.childId}-${s.therapyId}`;
+        const key = `${s.childId} -${s.therapyId} `;
         if (feeMap.has(key)) {
             feePerSession = feeMap.get(key)!;
         }
