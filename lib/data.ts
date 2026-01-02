@@ -760,7 +760,7 @@ export async function fetchChildFeeDetails(
     };
 }
 
-export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, therapyId?: string) {
+export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, therapyId?: string, childId?: string) {
     const session = await auth();
     if (!session?.user) return [];
 
@@ -775,6 +775,10 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
     // Access Control - Filter children based on user role
     const childConditions = [];
     childConditions.push(eq(children.status, "ACTIVE"));
+
+    if (childId && childId !== "ALL") {
+        childConditions.push(eq(children.id, childId));
+    }
 
     if (session.user.role === "PARENT") {
         childConditions.push(eq(children.parentId, session.user.id));
@@ -794,6 +798,9 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
     if (end) sessionFilterConditions.push(lte(sessions.date, end));
     if (therapyId && therapyId !== "ALL") {
         sessionFilterConditions.push(eq(sessions.therapyId, therapyId));
+    }
+    if (childId && childId !== "ALL") {
+        sessionFilterConditions.push(eq(sessions.childId, childId));
     }
 
     if (session.user.role === "PARENT") {
@@ -980,7 +987,12 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
     const report = Array.from(fullSummaryMap.values()).map(item => ({
         ...item,
         therapistNames: Array.from(item.therapistNames).join(", ")
-    })).filter(item => item.present > 0 || item.absent > 0 || item.paidFee > 0); // Only show relevant
+    })).filter(item => {
+        const hasSessions = item.totalAssignedFee > 0;
+        const hasPayments = item.paidFee > 0;
+        if (therapyId && therapyId !== "ALL") return hasSessions;
+        return hasSessions || hasPayments;
+    });
 
 
     // Sort by Child Name Ascending

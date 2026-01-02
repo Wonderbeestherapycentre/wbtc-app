@@ -38,6 +38,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
                 { icon: Calendar, label: "Schedule", href: "/schedule" },
                 { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
+                { icon: FileText, label: "Session Notes", href: "/session-notes" },
                 { icon: Home, label: "Home Programs", href: "/home-programs" },
             ]
         },
@@ -55,7 +56,6 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: ClipboardIcon, label: "Staff Attendance", href: "/staff-attendance" },
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
-                { icon: FileText, label: "Session Notes", href: "/session-notes" },
                 { icon: Users, label: "Users", href: "/users" },
                 { icon: Heart, label: "Services", href: "/therapies" },
             ]

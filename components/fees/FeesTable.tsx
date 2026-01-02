@@ -103,13 +103,6 @@ export default function FeesTable({ data }: FeesTableProps) {
                                                             </span>
                                                         );
                                                     })}
-                                                    {Object.keys(item.assignedTherapyBreakdown).length > 0 && (
-                                                        <div className="mt-1 pt-1 border-t border-gray-100 dark:border-neutral-800">
-                                                            <span className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400">
-                                                                Total {Object.values(item.assignedTherapyBreakdown).join("+")}={Object.values(item.assignedTherapyBreakdown).reduce((a, b) => a + b, 0)}
-                                                            </span>
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
@@ -157,48 +150,6 @@ export default function FeesTable({ data }: FeesTableProps) {
                                 })
                             )}
                         </tbody>
-                        {data.length > 0 && (
-                            <tfoot className="bg-gray-50/80 dark:bg-neutral-800/80 border-t-2 border-gray-200 dark:border-neutral-700 font-bold">
-                                <tr>
-                                    <td className="px-6 py-4 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Grand Total</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col gap-0.5">
-                                            {Object.entries(data.reduce((acc, item) => {
-                                                Object.entries(item.assignedTherapyBreakdown).forEach(([k, v]) => {
-                                                    acc[k] = (acc[k] || 0) + v;
-                                                });
-                                                return acc;
-                                            }, {} as Record<string, number>)).map(([k, count]) => (
-                                                <span key={k} className="text-[11px] text-blue-700 dark:text-blue-300">
-                                                    {k}({count})
-                                                </span>
-                                            ))}
-                                            <div className="mt-1 pt-1 border-t border-gray-200 dark:border-neutral-700">
-                                                <span className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                                                    Total Sessions: {data.reduce((acc, item) => acc + Object.values(item.assignedTherapyBreakdown).reduce((a, b) => a + b, 0), 0)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <span className="text-sm font-extrabold text-gray-900 dark:text-white">
-                                            ₹{data.reduce((acc, item) => acc + item.totalAssignedFee, 0).toLocaleString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <span className="text-sm font-extrabold text-emerald-600">
-                                            ₹{data.reduce((acc, item) => acc + item.paidFee, 0).toLocaleString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <span className="text-sm font-extrabold text-red-600">
-                                            ₹{(data.reduce((acc, item) => acc + item.totalAssignedFee, 0) - data.reduce((acc, item) => acc + item.paidFee, 0)).toLocaleString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4"></td>
-                                </tr>
-                            </tfoot>
-                        )}
                     </table>
                 </div>
             </div>

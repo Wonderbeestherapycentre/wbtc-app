@@ -4,39 +4,48 @@ export const ITEMS_PER_PAGE = 20;
 export const PROMPT_OPTIONS = [
     {
         key: "independent",
-        value: "Independent (Child completes the task without any help)",
+        value: "Independent",
+        desc: "Child completes the task without any help",
     },
     {
         key: "verbal_prompt",
-        value: "Verbal Prompt (Spoken instruction, no physical support)",
+        value: "Verbal Prompt",
+        desc: "Spoken instruction, no physical support",
     },
     {
         key: "gestural_prompt",
-        value: "Gestural Prompt (Pointing, showing, modeling; visual cue without touch)",
+        value: "Gestural Prompt",
+        desc: "Pointing, showing, modeling; visual cue without touch",
     },
     {
         key: "modeling",
-        value: "Modeling (Therapist demonstrates the task; child imitates)",
+        value: "Modeling",
+        desc: "Therapist demonstrates the task; child imitates",
     },
     {
         key: "partial_physical_prompt",
-        value: "Partial Physical Prompt (Light touch or guiding part of movement)",
+        value: "Partial Physical Prompt",
+        desc: "Light touch or guiding part of movement",
     },
     {
         key: "full_physical_prompt",
-        value: "Full Physical Prompt (Hand-over-hand assistance; maximum support)",
+        value: "Full Physical Prompt",
+        desc: "Hand-over-hand assistance; maximum support",
     },
     {
         key: "repeated_prompt",
-        value: "Repeated Prompt (Same instruction repeated multiple times)",
+        value: "Repeated Prompt",
+        desc: "Same instruction repeated multiple times",
     },
     {
         key: "time_delay",
-        value: "Time Delay (Wait time before giving prompt – 3 to 10 seconds)",
+        value: "Time Delay",
+        desc: "Wait time before giving prompt – 3 to 10 seconds",
     },
     {
         key: "visual_prompt",
-        value: "Visual Prompt (Picture cards, visual schedules, PECS)",
+        value: "Visual Prompt",
+        desc: "Picture cards, visual schedules, PECS",
     },
 ];
 

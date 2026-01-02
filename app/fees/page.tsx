@@ -10,7 +10,7 @@ import FeeReportsFilter from "./FeeReportsFilter";
 import { formatDateToLocal } from "@/lib/utils";
 import FeesTable from "@/components/fees/FeesTable";
 
-export default async function FeesPage(props: { searchParams: Promise<{ startDate?: string; endDate?: string; therapyId?: string }> }) {
+export default async function FeesPage(props: { searchParams: Promise<{ startDate?: string; endDate?: string; therapyId?: string; childId?: string }> }) {
     const searchParams = await props.searchParams;
     const session = await auth();
     if (!session) return <div>Please sign in</div>;
@@ -25,13 +25,14 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
     const startDateStr = searchParams?.startDate || defaultStartDate;
     const endDateStr = searchParams?.endDate || defaultEndDate;
     const therapyId = searchParams?.therapyId || "ALL";
+    const childId = searchParams?.childId || "ALL";
 
 
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
 
     const [summaryData, activeChildren, therapiesList] = await Promise.all([
-        fetchChildrenFeeSummary(startDate, endDate, therapyId),
+        fetchChildrenFeeSummary(startDate, endDate, therapyId, childId),
         fetchChildren(),
         db.query.therapies.findMany({ where: eq(therapiesTable.status, "ACTIVE"), orderBy: [asc(therapiesTable.name)] })
     ]);
@@ -63,14 +64,10 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                     </div>
 
                     <div className="flex flex-wrap gap-3">
-                        <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-                            <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider block">Total Sessions</span>
-                            <div className="flex items-baseline gap-2">
-                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{totalSessions}</p>
-                                <span className="text-[10px] font-bold text-blue-500/80">
-                                    ({Object.entries(grandBreakdown).map(([k, v]) => `${k}:${v}`).join(", ")})
-                                </span>
-                            </div>
+
+                        <div className="px-4 py-2 bg-blue-50 dark:bg-neutral-800 rounded-xl border border-blue-100 dark:border-neutral-700">
+                            <span className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wider block">Total Sessions</span>
+                            <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{totalSessions}</p>
                         </div>
                         <div className="px-4 py-2 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
                             <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Total Bill</span>
@@ -91,6 +88,7 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                     defaultStartDate={defaultStartDate}
                     defaultEndDate={defaultEndDate}
                     therapies={therapiesList}
+                    children={activeChildren}
                 />
 
                 <FeesTable data={summaryData} />

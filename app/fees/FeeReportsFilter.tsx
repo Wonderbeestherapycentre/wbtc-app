@@ -8,9 +8,10 @@ interface FeeReportsFilterProps {
     defaultStartDate: string;
     defaultEndDate: string;
     therapies: any[];
+    children: any[];
 }
 
-export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, therapies }: FeeReportsFilterProps) {
+export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, therapies, children }: FeeReportsFilterProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -18,8 +19,9 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
     const [startDate, setStartDate] = useState(searchParams.get("startDate") || defaultStartDate);
     const [endDate, setEndDate] = useState(searchParams.get("endDate") || defaultEndDate);
     const [therapyId, setTherapyId] = useState(searchParams.get("therapyId") || "ALL");
+    const [childId, setChildId] = useState(searchParams.get("childId") || "ALL");
 
-    const applyFilters = (start: string, end: string, therapy: string) => {
+    const applyFilters = (start: string, end: string, therapy: string, child: string) => {
         const params = new URLSearchParams(searchParams.toString());
 
         if (start) params.set("startDate", start);
@@ -31,31 +33,41 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
         if (therapy && therapy !== "ALL") params.set("therapyId", therapy);
         else params.delete("therapyId");
 
+        if (child && child !== "ALL") params.set("childId", child);
+        else params.delete("childId");
+
         router.replace(`?${params.toString()}`);
     };
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setStartDate(val);
-        applyFilters(val, endDate, therapyId);
+        applyFilters(val, endDate, therapyId, childId);
     };
 
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setEndDate(val);
-        applyFilters(startDate, val, therapyId);
+        applyFilters(startDate, val, therapyId, childId);
     };
 
     const handleTherapyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
         setTherapyId(val);
-        applyFilters(startDate, endDate, val);
+        applyFilters(startDate, endDate, val, childId);
+    };
+
+    const handleChildChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setChildId(val);
+        applyFilters(startDate, endDate, therapyId, val);
     };
 
     const clearFilters = () => {
         setStartDate("");
         setEndDate("");
         setTherapyId("ALL");
+        setChildId("ALL");
         router.replace("?");
     };
 
@@ -100,6 +112,22 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
                 </select>
             </div>
 
+            <div className="space-y-1 min-w-[200px]">
+                <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-2">
+                    Child
+                </label>
+                <select
+                    value={childId}
+                    onChange={handleChildChange}
+                    className="block w-full px-3 py-2 text-sm bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none appearance-none"
+                >
+                    <option value="ALL">All Children</option>
+                    {children.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                </select>
+            </div>
+
             {/* {(startDate || endDate) && (
                 <button
                     onClick={clearFilters}
@@ -110,6 +138,6 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
                     Clear
                 </button>
             )} */}
-        </div>
+        </div >
     );
 }
