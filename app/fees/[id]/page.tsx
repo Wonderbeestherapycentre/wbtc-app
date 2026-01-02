@@ -75,9 +75,15 @@ export default async function ChildFeePage({
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Fees</h3>
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Bill</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{summary.totalFee.toLocaleString()}</span>
+                            <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{summary.totalAssignedFee.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Attended Fee</h3>
+                        <div className="mt-2 flex items-baseline">
+                            <span className="text-3xl font-bold text-blue-600">₹{summary.totalFee.toLocaleString()}</span>
                         </div>
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
@@ -96,9 +102,27 @@ export default async function ChildFeePage({
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Sessions (Present)</h3>
-                        <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-gray-900 dark:text-white">{summary.present}</span>
-                            <span className="ml-2 text-sm text-gray-500">/ {summary.totalSessions}</span>
+                        <div className="mt-2 flex flex-col gap-1">
+                            <span className="text-3xl font-bold text-gray-900 dark:text-white">
+                                {summary.present} <span className="text-sm text-gray-500 font-normal"> / {summary.totalSessions}</span>
+                            </span>
+                            <div className="flex flex-col gap-0.5 mt-1">
+                                {Object.entries(summary.assignedTherapyBreakdown || {}).map(([k, count]) => {
+                                    const rate = summary.therapyFees[k] || 0;
+                                    return (
+                                        <span key={k} className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                                            {k}({count}){rate}={(count * rate).toLocaleString()}
+                                        </span>
+                                    );
+                                })}
+                                {Object.keys(summary.assignedTherapyBreakdown || {}).length > 0 && (
+                                    <div className="mt-1 pt-1 border-t border-blue-50 dark:border-blue-900/30">
+                                        <span className="text-[10px] font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-tight">
+                                            Total {Object.values(summary.assignedTherapyBreakdown).join("+")}={Object.values(summary.assignedTherapyBreakdown).reduce((a: number, b: number) => a + b, 0)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">

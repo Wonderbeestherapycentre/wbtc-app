@@ -688,9 +688,12 @@ export async function fetchChildFeeDetails(
     });
 
     let totalFee = 0;
+    let totalAssignedFee = 0;
     let presentCount = 0;
     let absentCount = 0;
     let excusedCount = 0;
+    const therapyFees: Record<string, number> = {};
+    const assignedTherapyBreakdown: Record<string, number> = {};
 
     const sessionData = detailedSessions.map(s => {
         let fee = 0;
@@ -705,6 +708,17 @@ export async function fetchChildFeeDetails(
         if (feeMap.has(s.therapyId)) {
             feePerSession = Number(feeMap.get(s.therapyId));
         }
+
+        const shortName = s.therapy.name
+            .split(" ")
+            .map(word => word[0])
+            .join("")
+            .toUpperCase();
+        therapyFees[shortName] = feePerSession;
+        assignedTherapyBreakdown[shortName] = (assignedTherapyBreakdown[shortName] || 0) + 1;
+
+        // All assigned sessions count towards Total Assigned Fee
+        totalAssignedFee += feePerSession;
 
         if (s.attendance === "PRESENT") {
             fee = feePerSession;
@@ -734,9 +748,12 @@ export async function fetchChildFeeDetails(
             present: presentCount,
             absent: absentCount,
             excused: excusedCount,
-            totalFee,
+            totalFee, // Attended Fee
+            totalAssignedFee, // Total Bill Fee
             paidFee: paidAmount,
-            pendingFees: totalFee - paidAmount
+            pendingFees: totalAssignedFee - paidAmount,
+            therapyFees,
+            assignedTherapyBreakdown
         },
         sessions: sessionData,
         payments: childPayments
@@ -886,6 +903,7 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
         paidFee: number;
         therapyBreakdown: Record<string, number>;
         assignedTherapyBreakdown: Record<string, number>;
+        therapyFees: Record<string, number>;
     }>();
 
     allChildren.forEach(child => {
@@ -902,7 +920,8 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
             totalAssignedFee: 0,
             paidFee: 0,
             therapyBreakdown: {},
-            assignedTherapyBreakdown: {}
+            assignedTherapyBreakdown: {},
+            therapyFees: {}
         });
     });
 
@@ -927,6 +946,7 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
 
             // All assigned sessions breakdown
             entry.assignedTherapyBreakdown[shortName] = (entry.assignedTherapyBreakdown[shortName] || 0) + 1;
+            entry.therapyFees[shortName] = feePerSession; // Store fee for this therapy
 
             if (session.attendance === "PRESENT") {
                 entry.present++;

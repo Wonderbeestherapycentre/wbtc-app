@@ -234,15 +234,15 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </button>
-                                                {/* {currentUserRole === "ADMIN" && currentUserId !== user.id && (
-                                                <button
-                                                    onClick={() => handleDeleteClick(user.id)}
-                                                    disabled={isPending}
-                                                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            )} */}
+                                                {currentUserRole === "ADMIN" && currentUserId !== user.id && (
+                                                    <button
+                                                        onClick={() => handleDeleteClick(user.id)}
+                                                        disabled={isPending}
+                                                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </td>

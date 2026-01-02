@@ -37,10 +37,16 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
     ]);
 
     // Calculate Totals
-    const grandTotal = summaryData.reduce((acc, curr) => acc + curr.totalFee, 0);
-    const totalPaid = summaryData.reduce((acc, curr) => acc + curr.paidFee, 0);
+    const grandTotal = summaryData.reduce((acc: number, curr: any) => acc + curr.totalAssignedFee, 0);
+    const totalPaid = summaryData.reduce((acc: number, curr: any) => acc + curr.paidFee, 0);
     const totalPending = grandTotal - totalPaid;
-    const totalSessions = summaryData.reduce((acc, curr) => acc + curr.present, 0);
+    const grandBreakdown = summaryData.reduce((acc: Record<string, number>, curr: any) => {
+        Object.entries(curr.assignedTherapyBreakdown || {}).forEach(([k, v]) => {
+            acc[k] = (acc[k] || 0) + (v as number);
+        });
+        return acc;
+    }, {} as Record<string, number>);
+    const totalSessions = Object.values(grandBreakdown).reduce((a, b) => a + b, 0);
 
     return (
         <AppLayout familyChildren={activeChildren} role={session.user.role as any} user={session.user}>
@@ -59,10 +65,15 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                     <div className="flex flex-wrap gap-3">
                         <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
                             <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider block">Total Sessions</span>
-                            <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{totalSessions}</p>
+                            <div className="flex items-baseline gap-2">
+                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{totalSessions}</p>
+                                <span className="text-[10px] font-bold text-blue-500/80">
+                                    ({Object.entries(grandBreakdown).map(([k, v]) => `${k}:${v}`).join(", ")})
+                                </span>
+                            </div>
                         </div>
                         <div className="px-4 py-2 bg-gray-50 dark:bg-neutral-800 rounded-xl border border-gray-100 dark:border-neutral-700">
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Total Invoiced</span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Total Bill</span>
                             <p className="text-lg font-bold text-gray-700 dark:text-gray-300">₹{grandTotal.toLocaleString()}</p>
                         </div>
                         <div className="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
