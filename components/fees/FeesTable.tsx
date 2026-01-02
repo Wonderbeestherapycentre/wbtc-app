@@ -41,7 +41,7 @@ export default function FeesTable({ data }: FeesTableProps) {
                         <thead className="bg-gray-50 dark:bg-neutral-800 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Child Name</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Parent</th>
+                                {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Parent</th> */}
                                 {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Therapist(s)</th> */}
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sessions</th>
@@ -68,9 +68,9 @@ export default function FeesTable({ data }: FeesTableProps) {
                                                 <div className="font-medium text-gray-900 dark:text-white">{item.childName}</div>
                                                 <div className="text-xs text-gray-400">{item.caseNumber}</div>
                                             </td>
-                                            <td className="px-6 py-4 hidden md:table-cell">
+                                            {/* <td className="px-6 py-4 hidden md:table-cell">
                                                 <span className="text-sm text-gray-600 dark:text-gray-300">{item.parentName}</span>
-                                            </td>
+                                            </td> */}
                                             {/* <td className="px-6 py-4 hidden lg:table-cell">
                                                 <span className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px] block" title={item.therapistNames}>
                                                     {item.therapistNames || "-"}
@@ -82,20 +82,32 @@ export default function FeesTable({ data }: FeesTableProps) {
                                                     <span className="text-red-500 font-medium" title="Absent">{item.absent}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            {/* <td className="px-6 py-4">
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">{item.present}</span>
                                                     <span className="text-[10px] text-gray-400 font-medium">
                                                         ({Object.entries(item.therapyBreakdown).map(([k, v]) => `${k}=${v}`).join(", ")})
                                                     </span>
                                                 </div>
+                                            </td> */}
+
+                                            <td className="px-6 py-4 ">
+                                                <div className="flex flex-col ">
+                                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                        {/* ₹{item.totalAssignedFee.toLocaleString()} */}
+                                                        {item.present + item.absent} total
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400 font-medium">
+                                                        ({Object.entries(item.assignedTherapyBreakdown).map(([k, v]) => `${k}=${v}`).join(", ")})
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex flex-col items-end">
                                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">₹{item.totalAssignedFee.toLocaleString()}</span>
-                                                    <span className="text-[10px] text-gray-400 font-medium">
+                                                    {/* <span className="text-[10px] text-gray-400 font-medium">
                                                         {item.present + item.absent} total ({Object.entries(item.assignedTherapyBreakdown).map(([k, v]) => `${k}=${v}`).join(", ")})
-                                                    </span>
+                                                    </span> */}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right">

@@ -216,7 +216,7 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                                     Timings
                                 </th>
                                 {weekDays.map(day => (
-                                    <th key={day.toString()} className="p-3 text-xs font-black uppercase tracking-wider border-r border-blue-500 min-w-[120px]">
+                                    <th key={day.toString()} className="p-3 text-[10px] font-black uppercase tracking-wider border-r border-blue-500 min-w-[120px]">
                                         {format(day, "EEEE")}
                                     </th>
                                 ))}
@@ -227,13 +227,16 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                                 <tr key={index} className={`hover:bg-gray-50 dark:hover:bg-neutral-800/50 ${slot.isBreak ? "bg-orange-50 dark:bg-orange-900/10" : ""}`}>
                                     <td className={`p-3 text-xs font-bold text-gray-500 border-r border-gray-100 dark:border-neutral-800 whitespace-nowrap ${slot.isBreak ? "text-orange-700 dark:text-orange-500 italic" : "bg-gray-50/50 dark:bg-neutral-900/50"}`}>
                                         {slot.label}
-                                        {slot.isBreak && <span className="ml-2 px-1.5 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded uppercase font-black tracking-wider">{slot.breakLabel || "BREAK"}</span>}
+                                        {/* {slot.isBreak && <span className="ml-2 px-1.5 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded uppercase font-black tracking-wider">{slot.breakLabel || "BREAK"}</span>} */}
                                     </td>
                                     {weekDays.map(day => {
                                         if (slot.isBreak) {
                                             return (
                                                 <td key={day.toString()} className="p-2 border-r border-gray-200 dark:border-neutral-800 text-center relative h-10 bg-stripes-orange opacity-40">
                                                     {/* Break Area */}
+                                                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                                                        <span className="text-xs font-bold text-orange-700 dark:text-orange-500">{slot.breakLabel || "BREAK"}</span>
+                                                    </div>
                                                 </td>
                                             );
                                         }

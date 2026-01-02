@@ -26,7 +26,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
         fetchStaffMonthlyAttendance(startStr, endStr)
     ]);
 
-    const activeStaff = therapists.filter((u: any) => u.role === "THERAPIST" && u.status === "ACTIVE");
+    const activeStaff = therapists.filter((u: any) => (u.role === "THERAPIST" || u.role === "ATTENDER") && u.status === "ACTIVE");
 
     return (
         <AppLayout familyChildren={children} role="ADMIN" user={session?.user}>
@@ -34,7 +34,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Staff Attendance</h2>
-                        <p className="text-gray-500 text-sm">Mark attendance for therapists and staff.</p>
+                        <p className="text-gray-500 text-sm">Mark attendance for staff and therapists.</p>
                     </div>
                     <div className="flex-1 max-w-lg">
                         <StaffFilters currentDate={dateStr} />

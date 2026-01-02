@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     page: {
         flexDirection: "column",
         backgroundColor: "#FFFFFF",
-        padding: 10,
+        padding: 20,
         fontFamily: "Helvetica",
     },
     header: {
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         borderLeftWidth: 0,
         borderTopWidth: 0,
         borderColor: "#E5E7EB",
-        padding: 4,
+        padding: 2,
         justifyContent: "center",
     },
     tableColTimings: {
@@ -110,19 +110,20 @@ const styles = StyleSheet.create({
     },
     tableCell: {
         margin: "auto",
-        fontSize: 7,
+        fontSize: 10,
         color: "#374151",
+        fontWeight: "bold",
     },
     sessionCell: {
-        // backgroundColor: "#DBEAFE",
+        // backgroundColor: "#fedbdcff",
         padding: 2,
         borderRadius: 2,
         marginBottom: 1,
     },
     sessionText: {
-        fontSize: 12,
+        fontSize: 10,
         // color: "#1D4ED8",
-        fontWeight: "bold",
+        // fontWeight: "bold",
         textAlign: "center",
     },
     breakRow: {
@@ -256,7 +257,7 @@ export default function WeeklyTimetablePDF({ sessions, weekStartDate, selectedTh
                 <View style={styles.header}>
                     <Text style={styles.centerTitle}>
                         {selectedTherapistName
-                            ? `Therapist: ${selectedTherapistName}`
+                            ? `${selectedTherapistName}`
                             : "All Therapists"}
                     </Text>
 
@@ -288,12 +289,14 @@ export default function WeeklyTimetablePDF({ sessions, weekStartDate, selectedTh
                                 <Text style={styles.tableCell}>
                                     {slot.label}
                                 </Text>
-                                {slot.isBreak && <Text style={styles.breakText}>{slot.breakLabel}</Text>}
+                                {/* {slot.isBreak && <Text style={styles.breakText}>{slot.breakLabel}</Text>} */}
                             </View>
                             {weekDays.map(day => {
                                 if (slot.isBreak) {
                                     return (
-                                        <View key={day.toString()} style={[styles.tableCol, styles.breakArea]} />
+                                        <View key={day.toString()} style={[styles.tableCol, styles.breakArea]}>
+                                            <Text style={styles.breakText}>{slot.breakLabel}</Text>
+                                        </View>
                                     );
                                 }
 

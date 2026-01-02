@@ -52,7 +52,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: a
                     <div className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-xl p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Therapists</p>
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Staff</p>
                                 <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{activeTherapistCount}</p>
                             </div>
                             <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">

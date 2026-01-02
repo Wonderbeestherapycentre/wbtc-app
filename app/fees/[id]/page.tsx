@@ -60,7 +60,7 @@ export default async function ChildFeePage({
                         </Link>
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{child.name}</h1>
-                            <p className="text-gray-500 dark:text-gray-400">1111 {child.caseNumber || "N/A"} • Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${child.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{child.status}</span></p>
+                            <p className="text-gray-500 dark:text-gray-400">{child.caseNumber || "N/A"} • Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${child.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{child.status}</span></p>
                         </div>
                     </div>
                     {/* Filters */}

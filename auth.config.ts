@@ -8,7 +8,7 @@ export const authConfig = {
         authorized({ auth, request: { nextUrl } }) {
             const isLoggedIn = !!auth?.user;
             const userRole = (auth?.user as any)?.role;
-            const isValidRole = ["ADMIN", "THERAPIST", "PARENT"].includes(userRole);
+            const isValidRole = ["ADMIN", "THERAPIST", "PARENT", "ATTENDER"].includes(userRole);
 
             const isOnDashboard = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/expenses") || nextUrl.pathname.startsWith("/settings") || nextUrl.pathname.startsWith("/profile");
             const isOnHome = nextUrl.pathname === "/";

@@ -1,4 +1,7 @@
 import { fetchChildrenFeeSummary, fetchChildren } from "@/lib/data"; // importing fetchChildren just for layout prop
+import { db } from "@/lib/db";
+import { therapies as therapiesTable } from "@/lib/db/schema";
+import { eq, asc } from "drizzle-orm";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
 import Link from "next/link";
@@ -7,7 +10,7 @@ import FeeReportsFilter from "./FeeReportsFilter";
 import { formatDateToLocal } from "@/lib/utils";
 import FeesTable from "@/components/fees/FeesTable";
 
-export default async function FeesPage(props: { searchParams: Promise<{ startDate?: string; endDate?: string }> }) {
+export default async function FeesPage(props: { searchParams: Promise<{ startDate?: string; endDate?: string; therapyId?: string }> }) {
     const searchParams = await props.searchParams;
     const session = await auth();
     if (!session) return <div>Please sign in</div>;
@@ -21,13 +24,17 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
 
     const startDateStr = searchParams?.startDate || defaultStartDate;
     const endDateStr = searchParams?.endDate || defaultEndDate;
+    const therapyId = searchParams?.therapyId || "ALL";
 
 
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
 
-    const summaryData = await fetchChildrenFeeSummary(startDate, endDate);
-    const activeChildren = await fetchChildren(); // For layout sidebar
+    const [summaryData, activeChildren, therapiesList] = await Promise.all([
+        fetchChildrenFeeSummary(startDate, endDate, therapyId),
+        fetchChildren(),
+        db.query.therapies.findMany({ where: eq(therapiesTable.status, "ACTIVE"), orderBy: [asc(therapiesTable.name)] })
+    ]);
 
     // Calculate Totals
     const grandTotal = summaryData.reduce((acc, curr) => acc + curr.totalFee, 0);
@@ -69,7 +76,11 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                     </div>
                 </div>
 
-                <FeeReportsFilter defaultStartDate={defaultStartDate} defaultEndDate={defaultEndDate} />
+                <FeeReportsFilter
+                    defaultStartDate={defaultStartDate}
+                    defaultEndDate={defaultEndDate}
+                    therapies={therapiesList}
+                />
 
                 <FeesTable data={summaryData} />
             </div>

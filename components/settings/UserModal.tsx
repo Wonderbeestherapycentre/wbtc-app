@@ -35,7 +35,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
 
-    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER" | "">(user?.role || "PARENT");
+    const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER" | "">(user?.role || "");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
     const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
@@ -51,7 +51,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
         if (user?.role) {
             setSelectedRole(user.role);
         } else {
-            setSelectedRole("PARENT");
+            setSelectedRole("");
         }
 
         if (user?.children) {

@@ -743,7 +743,7 @@ export async function fetchChildFeeDetails(
     };
 }
 
-export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date) {
+export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, therapyId?: string) {
     const session = await auth();
     if (!session?.user) return [];
 
@@ -775,6 +775,9 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date) 
     const sessionFilterConditions = [];
     if (start) sessionFilterConditions.push(gte(sessions.date, start));
     if (end) sessionFilterConditions.push(lte(sessions.date, end));
+    if (therapyId && therapyId !== "ALL") {
+        sessionFilterConditions.push(eq(sessions.therapyId, therapyId));
+    }
 
     if (session.user.role === "PARENT") {
         const parentChildren = await db.query.children.findMany({
@@ -1165,7 +1168,7 @@ export async function fetchDashboardStats() {
     // Active Therapists
     const [activeTherapists] = await db.select({ count: count() })
         .from(users)
-        .where(and(eq(users.role, "THERAPIST"), eq(users.status, "ACTIVE")));
+        .where(and(or(eq(users.role, "THERAPIST"), eq(users.role, "ATTENDER")), eq(users.status, "ACTIVE")));
 
     // Today's Sessions
     const [todaySessions] = await db.select({ count: count() })

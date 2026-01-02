@@ -91,7 +91,7 @@ export default function StaffAttendanceList({ staff, attendance, date }: { staff
                     </tbody>
                 </table>
                 {staff.length === 0 && (
-                    <div className="text-center py-10 text-gray-500">No active therapists found.</div>
+                    <div className="text-center py-10 text-gray-500">No active staff found.</div>
                 )}
             </div>
         </div>

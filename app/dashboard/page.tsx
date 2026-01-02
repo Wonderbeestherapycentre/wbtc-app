@@ -20,6 +20,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: an
         case "PARENT":
             return <ParentDashboard />;
         case "THERAPIST":
+        case "ATTENDER":
             return <StaffDashboard />;
         default:
             return redirect("/api/auth/force-signout");
