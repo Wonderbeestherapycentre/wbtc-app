@@ -806,7 +806,8 @@ export async function getBackups() {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") return [];
 
-    const BACKUP_DIR = path.join(process.cwd(), "backups");
+    const { getBackupDir } = await import("@/scripts/backup-db");
+    const BACKUP_DIR = getBackupDir();
     if (!fs.existsSync(BACKUP_DIR)) return [];
 
     try {
@@ -832,8 +833,10 @@ export async function deleteBackupAction(fileName: string) {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") return { success: false, message: "Unauthorized" };
 
-    const filePath = path.join(process.cwd(), "backups", fileName);
-    if (!filePath.startsWith(path.join(process.cwd(), "backups"))) {
+    const { getBackupDir } = await import("@/scripts/backup-db");
+    const BACKUP_DIR = getBackupDir();
+    const filePath = path.join(BACKUP_DIR, fileName);
+    if (!filePath.startsWith(BACKUP_DIR)) {
         return { success: false, message: "Invalid file path" };
     }
 
@@ -855,11 +858,8 @@ export async function triggerBackupAction() {
     if (session?.user?.role !== "ADMIN") return { success: false, message: "Unauthorized" };
 
     try {
-        const { exec } = await import("child_process");
-        const { promisify } = await import("util");
-        const execPromise = promisify(exec);
-
-        await execPromise("npx tsx scripts/backup-db.ts");
+        const { runBackup } = await import("@/scripts/backup-db");
+        await runBackup();
         revalidatePath("/settings/backups");
         return { success: true, message: "Backup triggered successfully" };
     } catch (error) {

@@ -19,10 +19,12 @@ export async function GET(
         return new NextResponse("Filename is required", { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), "backups", filename);
+    const { getBackupDir } = await import("@/scripts/backup-db");
+    const BACKUP_DIR = getBackupDir();
+    const filePath = path.join(BACKUP_DIR, filename);
 
     // Security check: ensure the file is within the backups directory
-    if (!filePath.startsWith(path.join(process.cwd(), "backups"))) {
+    if (!filePath.startsWith(BACKUP_DIR)) {
         return new NextResponse("Invalid file path", { status: 400 });
     }
 

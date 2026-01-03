@@ -14,25 +14,37 @@ if (!DATABASE_URL) {
 
 const sql = neon(DATABASE_URL);
 
-async function backup() {
-    const BACKUP_DIR = path.join(process.cwd(), "backups");
+/**
+ * Gets the backup directory path, handling Vercel's ephemeral storage if needed.
+ */
+export function getBackupDir() {
+    // On Vercel, the only writable directory is /tmp
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        return path.join('/tmp', 'backups');
+    }
+    return path.join(process.cwd(), "backups");
+}
+
+export async function runBackup() {
+    const BACKUP_DIR = getBackupDir();
     if (!fs.existsSync(BACKUP_DIR)) {
-        fs.mkdirSync(BACKUP_DIR);
+        fs.mkdirSync(BACKUP_DIR, { recursive: true });
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(BACKUP_DIR, `backup_${timestamp}.sql`);
+    const filename = `backup_${timestamp}.sql`;
+    const backupPath = path.join(BACKUP_DIR, filename);
 
     console.log(`Starting database backup to ${backupPath}...`);
 
     try {
         // 1. Get all tables
-        const tables: any[] = await sql`
+        const tables: any[] = await (sql as any).query(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
       AND table_type = 'BASE TABLE'
-    `;
+    `);
 
         const stream = fs.createWriteStream(backupPath);
         stream.write(`-- Database Backup Created at ${new Date().toISOString()}\n\n`);
@@ -84,10 +96,14 @@ async function backup() {
             }
         }
 
+        return { success: true, filename, path: backupPath };
     } catch (error) {
         console.error("Backup failed:", error);
-        process.exit(1);
+        throw error;
     }
 }
 
-backup();
+// Allow running via CLI
+if (require.main === module) {
+    runBackup();
+}
