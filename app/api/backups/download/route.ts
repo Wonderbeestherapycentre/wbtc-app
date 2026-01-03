@@ -4,8 +4,7 @@ import fs from "fs";
 import path from "path";
 
 export async function GET(
-    request: NextRequest,
-    { params }: { params: { filename: string } }
+    request: NextRequest
 ) {
     const session = await auth();
 
