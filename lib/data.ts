@@ -1386,3 +1386,38 @@ export async function fetchExpenses(startDate: Date, endDate: Date) {
 
     return data;
 }
+
+export async function fetchChildMonthlyAttendance(startDate: Date, endDate: Date, therapyId?: string, therapistId?: string) {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [
+        gte(sessions.date, startDate),
+        lte(sessions.date, endDate)
+    ];
+
+    if (therapyId && therapyId !== "ALL") {
+        conditions.push(eq(sessions.therapyId, therapyId));
+    }
+
+    if (therapistId && therapistId !== "ALL") {
+        conditions.push(eq(sessions.therapistId, therapistId));
+    }
+
+    // Filter by role if needed - though usually ADMIN/THERAPIST needs this
+    if (session.user.role === "PARENT") {
+        return []; // Parents probably don't need the overview of all children
+    }
+
+    const data = await db.query.sessions.findMany({
+        where: and(...conditions),
+        with: {
+            child: true,
+        },
+    });
+
+    return data.map((s: any) => ({
+        ...s,
+        date: convertUTCToIST(s.date)
+    }));
+}

@@ -1,7 +1,8 @@
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
-import { fetchSessions, fetchChildren, fetchTherapists, fetchTherapies } from "@/lib/data";
+import { fetchSessions, fetchChildren, fetchTherapists, fetchTherapies, fetchChildMonthlyAttendance } from "@/lib/data";
 import AttendanceList from "@/components/attendance/AttendanceList";
+import ChildMonthlyAttendance from "@/components/attendance/ChildMonthlyAttendance";
 import { redirect } from "next/navigation";
 
 export default async function AttendancePage(props: {
@@ -62,6 +63,43 @@ export default async function AttendancePage(props: {
         sessions = sessions.filter((s: any) => s.therapistId === therapistId);
     }
 
+    // Monthly Overview Data
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    const [allChildren, monthlyAttendance] = await Promise.all([
+        fetchChildren(true),
+        fetchChildMonthlyAttendance(firstDay, lastDay, therapyId)
+    ]);
+
+    // Flatten children by their therapy assignments for the overview
+    let displayRows: any[] = [];
+    allChildren.forEach((child: any) => {
+        child.therapyTypes.forEach((tt: any) => {
+            displayRows.push({
+                id: `${child.id}-${tt.therapyId}`,
+                childId: child.id,
+                childName: child.name,
+                therapyId: tt.therapyId,
+                therapyName: tt.therapy?.name || "Unknown",
+                therapistId: tt.therapistId,
+                therapistName: tt.therapist?.name || "Unknown"
+            });
+        });
+    });
+
+    // Apply Filters to the flattened rows
+    if (therapyId && therapyId !== "ALL") {
+        displayRows = displayRows.filter(row => row.therapyId === therapyId);
+    }
+
+    // Sort by Therapist Name, then Child Name
+    displayRows.sort((a, b) => {
+        const therapistCompare = a.therapistName.localeCompare(b.therapistName);
+        if (therapistCompare !== 0) return therapistCompare;
+        return a.childName.localeCompare(b.childName);
+    });
+
     return (
         <AppLayout role={currentUserRole} user={session?.user}>
             <div className="space-y-3 animate-fade-in pb-10">
@@ -80,6 +118,15 @@ export default async function AttendancePage(props: {
                     selectedTherapyId={therapyId}
                     selectedTherapistId={therapistId}
                 />
+
+                {therapyId && therapyId !== "ALL" && (
+                    <ChildMonthlyAttendance
+                        children={displayRows}
+                        attendance={monthlyAttendance}
+                        monthStart={firstDay}
+                        monthEnd={lastDay}
+                    />
+                )}
             </div>
         </AppLayout>
     );
