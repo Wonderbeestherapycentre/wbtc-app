@@ -13,10 +13,14 @@ export const authConfig = {
             const isOnDashboard = nextUrl.pathname.startsWith("/dashboard") || nextUrl.pathname.startsWith("/expenses") || nextUrl.pathname.startsWith("/settings") || nextUrl.pathname.startsWith("/profile");
             const isOnHome = nextUrl.pathname === "/";
             const isOnRegister = nextUrl.pathname.startsWith("/register");
+            const isPublicPage = nextUrl.pathname.startsWith("/docs") ||
+                nextUrl.pathname.startsWith("/technical-documentation") ||
+                nextUrl.pathname.startsWith("/user-flow") ||
+                nextUrl.pathname.startsWith("/pricing");
 
-            if (isOnHome || isOnRegister) {
+            if (isOnHome || isOnRegister || isPublicPage) {
                 if (isLoggedIn && isValidRole && isOnHome) return Response.redirect(new URL("/dashboard", nextUrl));
-                return true; // Allow access to login/register
+                return true; // Allow access to login/register/public pages
             }
 
             if (isOnDashboard) {
