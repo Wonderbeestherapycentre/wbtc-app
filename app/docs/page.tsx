@@ -41,6 +41,20 @@ export default function DocsPage() {
                         </p>
                     </Link>
 
+                    <Link href="/admin-documentation" className="glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all">
+                        <h2 className="text-xl font-semibold mb-2">Admin Guide</h2>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Specialized documentation for system administrators and center managers.
+                        </p>
+                    </Link>
+
+                    <Link href="/competitors" className="glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all">
+                        <h2 className="text-xl font-semibold mb-2">Competitors</h2>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Market analysis and comparison between Wonderbees and other therapy platforms.
+                        </p>
+                    </Link>
+
                     <Link href="/" className="glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all border-dashed border-2 border-gray-200 dark:border-neutral-800">
                         <h2 className="text-xl font-semibold mb-2">Go to App</h2>
                         <p className="text-gray-500 dark:text-gray-400">

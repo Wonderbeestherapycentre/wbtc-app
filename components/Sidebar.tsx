@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.jpeg";
 
@@ -58,6 +58,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Tags, label: "Goals", href: "/goals" },
                 { icon: Users, label: "Users", href: "/users" },
                 { icon: Heart, label: "Services", href: "/therapies" },
+                { icon: Database, label: "Backups", href: "/settings/backups" },
             ]
         }
     ];

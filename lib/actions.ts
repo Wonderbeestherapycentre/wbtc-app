@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import fs from "fs";
+import path from "path";
 
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
@@ -797,6 +799,73 @@ export async function createChild(formData: FormData) {
     revalidatePath("/childrens");
     revalidatePath("/settings");
     return { message: "Child created" };
+}
+
+// --- Backup Management ---
+export async function getBackups() {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return [];
+
+    const BACKUP_DIR = path.join(process.cwd(), "backups");
+    if (!fs.existsSync(BACKUP_DIR)) return [];
+
+    try {
+        const files = fs.readdirSync(BACKUP_DIR);
+        return files
+            .filter(f => f.endsWith(".sql"))
+            .map(file => {
+                const stats = fs.statSync(path.join(BACKUP_DIR, file));
+                return {
+                    name: file,
+                    size: stats.size,
+                    createdAt: stats.mtime,
+                };
+            })
+            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+        console.error("Failed to read backups:", error);
+        return [];
+    }
+}
+
+export async function deleteBackupAction(fileName: string) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { success: false, message: "Unauthorized" };
+
+    const filePath = path.join(process.cwd(), "backups", fileName);
+    if (!filePath.startsWith(path.join(process.cwd(), "backups"))) {
+        return { success: false, message: "Invalid file path" };
+    }
+
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            revalidatePath("/settings/backups");
+            return { success: true, message: "Backup deleted" };
+        }
+        return { success: false, message: "File not found" };
+    } catch (error) {
+        console.error("Failed to delete backup:", error);
+        return { success: false, message: "Failed to delete backup" };
+    }
+}
+
+export async function triggerBackupAction() {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { success: false, message: "Unauthorized" };
+
+    try {
+        const { exec } = await import("child_process");
+        const { promisify } = await import("util");
+        const execPromise = promisify(exec);
+
+        await execPromise("npx tsx scripts/backup-db.ts");
+        revalidatePath("/settings/backups");
+        return { success: true, message: "Backup triggered successfully" };
+    } catch (error) {
+        console.error("Failed to trigger backup:", error);
+        return { success: false, message: "Failed to trigger backup" };
+    }
 }
 
 export async function updateChild(id: string, formData: FormData) {

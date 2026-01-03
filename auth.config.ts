@@ -16,7 +16,9 @@ export const authConfig = {
             const isPublicPage = nextUrl.pathname.startsWith("/docs") ||
                 nextUrl.pathname.startsWith("/technical-documentation") ||
                 nextUrl.pathname.startsWith("/user-flow") ||
-                nextUrl.pathname.startsWith("/pricing");
+                nextUrl.pathname.startsWith("/pricing") ||
+                nextUrl.pathname.startsWith("/admin-documentation") ||
+                nextUrl.pathname.startsWith("/competitors");
 
             if (isOnHome || isOnRegister || isPublicPage) {
                 if (isLoggedIn && isValidRole && isOnHome) return Response.redirect(new URL("/dashboard", nextUrl));
