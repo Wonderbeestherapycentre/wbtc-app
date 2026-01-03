@@ -38,6 +38,11 @@ export default function ChildMonthlyAttendance({ children, attendance, monthStar
         return undefined;
     };
 
+    const isSunday = (day: number) => {
+        const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), day);
+        return date.getDay() === 0;
+    };
+
     const renderIcon = (status?: string) => {
         switch (status) {
             case "PRESENT": return <div className="mx-auto w-6 h-6 rounded bg-green-100 flex items-center justify-center text-green-700" title="Present"><Check className="w-4 h-4" /></div>;
@@ -75,7 +80,7 @@ export default function ChildMonthlyAttendance({ children, attendance, monthStar
                                 Therapist
                             </th> */}
                             {days.map(d => (
-                                <th key={d} className="px-1 py-3 font-medium text-gray-500 bg-gray-50 dark:bg-neutral-800 border-b w-8">
+                                <th key={d} className={`px-1 py-3 font-medium border-b w-8 ${isSunday(d) ? 'bg-red-50 text-red-600 dark:bg-red-900/20' : 'text-gray-500 bg-gray-50 dark:bg-neutral-800'}`}>
                                     {d}
                                 </th>
                             ))}
@@ -104,7 +109,7 @@ export default function ChildMonthlyAttendance({ children, attendance, monthStar
                                         if (status === 'PRESENT') pCount++;
                                         if (status === 'ABSENT') aCount++;
                                         return (
-                                            <td key={d} className="border-r border-gray-50 dark:border-neutral-800">
+                                            <td key={d} className={`border-r border-gray-50 dark:border-neutral-800 ${isSunday(d) ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}>
                                                 {renderIcon(status)}
                                             </td>
                                         )
@@ -123,7 +128,7 @@ export default function ChildMonthlyAttendance({ children, attendance, monthStar
                                     return sum + (getStatus(child.childId, child.therapyId, child.therapistId, d) === 'PRESENT' ? 1 : 0);
                                 }, 0);
                                 return (
-                                    <td key={d} className="border-r border-gray-200 dark:border-neutral-700 text-green-600">
+                                    <td key={d} className={`border-r border-gray-200 dark:border-neutral-700 text-green-600 ${isSunday(d) ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}>
                                         {dailyTotal > 0 ? dailyTotal : ""}
                                     </td>
                                 );
