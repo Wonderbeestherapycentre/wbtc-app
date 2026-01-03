@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { format } from "date-fns";
 import { updateAttendance } from "@/lib/actions";
 import { useRouter } from "next/navigation";
@@ -22,51 +22,14 @@ interface Session {
 
 interface AttendanceListProps {
     sessions: Session[];
-    therapies: { id: string; name: string }[];
-    therapists: { id: string; name: string }[];
-    currentDate: Date;
-    currentUserRole: string;
-    selectedTherapyId?: string;
-    selectedTherapistId?: string;
 }
 
 export default function AttendanceList({
-    sessions,
-    therapies,
-    therapists,
-    currentDate,
-    currentUserRole,
-    selectedTherapyId,
-    selectedTherapistId
+    sessions
 }: AttendanceListProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [updatingId, setUpdatingId] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        return currentDate ? format(currentDate, "yyyy-MM-dd") : getTodayIST();
-    });
-
-    useEffect(() => {
-        if (currentDate) {
-            setSelectedDate(format(currentDate, "yyyy-MM-dd"));
-        }
-    }, [currentDate]);
-
-    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const date = e.target.value;
-        const params = new URLSearchParams(window.location.search);
-        if (date) params.set("date", date);
-        else params.delete("date");
-        setSelectedDate(date);
-        router.push(`/attendance?${params.toString()}`);
-    };
-
-    const handleFilterChange = (key: string, value: string) => {
-        const params = new URLSearchParams(window.location.search);
-        if (value && value !== "ALL") params.set(key, value);
-        else params.delete(key);
-        router.push(`/attendance?${params.toString()}`);
-    };
 
     const markAttendance = async (sessionId: string, status: "PRESENT" | "ABSENT" | "EXCUSED") => {
         setUpdatingId(sessionId);
@@ -83,44 +46,6 @@ export default function AttendanceList({
 
     return (
         <div className="space-y-6">
-            {/* Filters */}
-            <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-2 shadow-sm flex flex-col md:flex-row gap-2 items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-gray-500" />
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={handleDateChange}
-                        className="bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-medium"
-                    />
-                </div>
-
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <select
-                        className="px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm"
-                        value={selectedTherapyId || "ALL"}
-                        onChange={(e) => handleFilterChange("therapyId", e.target.value)}
-                    >
-                        <option value="ALL">All Therapies</option>
-                        {therapies.map(t => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                    </select>
-
-                    {currentUserRole === "ADMIN" && (
-                        <select
-                            className="px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-sm"
-                            value={selectedTherapistId || "ALL"}
-                            onChange={(e) => handleFilterChange("therapistId", e.target.value)}
-                        >
-                            <option value="ALL">All Therapists</option>
-                            {therapists.map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                        </select>
-                    )}
-                </div>
-            </div>
 
             {/* List */}
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">

@@ -2,11 +2,13 @@ import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
 import { fetchSessions, fetchChildren, fetchTherapists, fetchTherapies, fetchChildMonthlyAttendance } from "@/lib/data";
 import AttendanceList from "@/components/attendance/AttendanceList";
+import AttendanceFilters from "@/components/attendance/AttendanceFilters";
 import ChildMonthlyAttendance from "@/components/attendance/ChildMonthlyAttendance";
 import { redirect } from "next/navigation";
+import { Calendar } from "lucide-react";
 
 export default async function AttendancePage(props: {
-    searchParams: Promise<{ date?: string; therapyId?: string; therapistId?: string }>
+    searchParams: Promise<{ date?: string; therapyId?: string; therapistId?: string; tab?: string }>
 }) {
     const searchParams = await props.searchParams;
     const session = await auth();
@@ -27,6 +29,7 @@ export default async function AttendancePage(props: {
 
     const therapyId = searchParams.therapyId;
     const therapistId = searchParams.therapistId;
+    const activeTab = searchParams.tab || "daily";
 
     let sessions = await fetchSessions(startDate, endDate);
     const therapies = await fetchTherapies();
@@ -77,7 +80,7 @@ export default async function AttendancePage(props: {
     allChildren.forEach((child: any) => {
         child.therapyTypes.forEach((tt: any) => {
             displayRows.push({
-                id: `${child.id}-${tt.therapyId}`,
+                id: `${child.id}-${tt.therapyId}-${tt.therapistId}`,
                 childId: child.id,
                 childName: child.name,
                 therapyId: tt.therapyId,
@@ -102,31 +105,52 @@ export default async function AttendancePage(props: {
 
     return (
         <AppLayout role={currentUserRole} user={session?.user}>
-            <div className="space-y-3 animate-fade-in pb-10">
+            <div className="space-y-6 animate-fade-in pb-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Attendance</h2>
                     </div>
                 </div>
 
-                <AttendanceList
-                    sessions={sessions as any}
+                <AttendanceFilters
                     therapies={therapies as any}
                     therapists={therapists as any}
                     currentDate={currentDate}
                     currentUserRole={currentUserRole}
                     selectedTherapyId={therapyId}
                     selectedTherapistId={therapistId}
+                    activeTab={activeTab}
+                    searchParams={searchParams}
                 />
 
-                {therapyId && therapyId !== "ALL" && (
-                    <ChildMonthlyAttendance
-                        children={displayRows}
-                        attendance={monthlyAttendance}
-                        monthStart={firstDay}
-                        monthEnd={lastDay}
-                    />
-                )}
+                <div className="min-h-[400px]">
+                    {activeTab === "daily" ? (
+                        <AttendanceList
+                            sessions={sessions as any}
+                        />
+                    ) : (
+                        <>
+                            {therapyId && therapyId !== "ALL" ? (
+                                <ChildMonthlyAttendance
+                                    children={displayRows}
+                                    attendance={monthlyAttendance}
+                                    monthStart={firstDay}
+                                    monthEnd={lastDay}
+                                />
+                            ) : (
+                                <div className="bg-white dark:bg-neutral-900 border border-dashed border-gray-300 dark:border-neutral-800 rounded-2xl p-16 text-center shadow-sm">
+                                    <div className="mx-auto w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
+                                        <Calendar className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a Therapy</h3>
+                                    <p className="text-gray-500 dark:text-neutral-400 max-w-sm mx-auto mb-8">
+                                        Please select a therapy from the filters to view the monthly attendance overview for all assigned children and therapists.
+                                    </p>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </AppLayout>
     );
