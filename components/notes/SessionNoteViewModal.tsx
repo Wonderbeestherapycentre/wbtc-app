@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { PROMPT_OPTIONS } from "@/lib/constants";
 
 interface SessionNoteViewModalProps {
     isOpen: boolean;
@@ -36,10 +37,10 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
     }
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md  p-2 md:p-4 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-neutral-900 w-full max-w-3xl rounded-2xl shadow-xl border border-gray-100 dark:border-neutral-800 max-h-[90vh] overflow-y-auto">
 
-                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 sticky top-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md z-10 flex justify-between items-center">
+                <div className="p-2 border-b border-gray-100 dark:border-neutral-800 sticky top-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md z-10 flex justify-between items-center">
                     <div>
                         <h2 className="md:text-xl text-sm font-bold text-gray-900 dark:text-white">
                             {note.child.name} Session Note ({format(new Date(note.date), "MMM d, yyyy")})
@@ -58,21 +59,21 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                 </div>
 
 
-                <div className="p-6 space-y-6">
+                <div className="p-2 md:p-4 space-y-3">
 
                     {/* Objectives */}
                     {Object.keys(objectives).length > 0 && (
                         <div>
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block"> Today Goals</label>
-                            <div className="space-y-4 border border-gray-200 dark:border-neutral-700 rounded-xl p-4">
+                            <div className="space-y-2 border border-gray-200 dark:border-neutral-700 rounded-xl p-4">
                                 {Object.entries(objectives).map(([goalId, objectivesList]: [string, any]) => {
                                     // Find the goal to get its details
                                     const goal = goals.find(g => g.id === goalId);
                                     const goalTitle = goal ? goal.title : "Unknown Goal";
 
                                     return (
-                                        <div key={goalId} className="border-b border-gray-100 dark:border-neutral-800 pb-4 last:border-b-0 last:pb-0">
-                                            <div className="flex items-start justify-between mb-3">
+                                        <div key={goalId} className="border-b border-gray-100 dark:border-neutral-800 pb-1 last:border-b-0 last:pb-0">
+                                            <div className="flex items-start justify-between mb-1">
                                                 <div className="flex-1">
                                                     <div className="font-medium text-sm text-gray-900 dark:text-white">{goalTitle}</div>
                                                     {goal && (
@@ -88,7 +89,7 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                                                     )}
                                                 </div>
                                             </div>
-                                            {Array.isArray(objectivesList) && objectivesList.length > 0 && (
+                                            {/* {Array.isArray(objectivesList) && objectivesList.length > 0 && (
                                                 <div className="space-y-1.5 ml-4">
                                                     {objectivesList.map((objective, idx) => (
                                                         <div key={idx} className="flex items-start gap-2 text-sm">
@@ -97,7 +98,7 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                                                         </div>
                                                     ))}
                                                 </div>
-                                            )}
+                                            )} */}
                                         </div>
                                     );
                                 })}
@@ -115,12 +116,27 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                                         <div className="flex items-start gap-3">
                                             <span className="text-xs font-medium text-gray-400 bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded">{idx + 1}</span>
                                             <div className="flex-1 space-y-2">
-                                                <p className="text-sm text-gray-900 dark:text-white">{activity.description}</p>
-                                                {activity.prompt && (
-                                                    <span className="inline-block text-xs font-medium px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded">
-                                                        {activity.prompt}
-                                                    </span>
-                                                )}
+                                                <p className="text-md text-gray-900 dark:text-white">{activity.description}</p>
+                                                {activity.prompt && (() => {
+                                                    const option = PROMPT_OPTIONS.find(opt => opt.key === activity.prompt);
+                                                    if (!option) return (
+                                                        <span className="inline-block text-md font-medium px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded">
+                                                            {activity.prompt}
+                                                        </span>
+                                                    );
+                                                    return (
+                                                        <div className="space-y-1">
+                                                            <span className="inline-block text-xs font-bold px-2 py-1 bg-orange-200 text-gray-700 rounded shadow-sm">
+                                                                {option.value}
+                                                            </span>
+                                                            {option.desc && (
+                                                                <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed italic">
+                                                                    {option.desc}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>

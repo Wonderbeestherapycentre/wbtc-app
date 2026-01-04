@@ -4,9 +4,10 @@ import { useState, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { createSessionNote, updateSessionNote } from "@/lib/actions";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Baby } from "lucide-react";
 import { PROMPT_OPTIONS } from "@/lib/constants";
 import { getTodayIST } from "@/lib/utils/timezone";
+import SearchableDropdown from "../ui/SearchableDropdown";
 
 interface SessionNoteModalProps {
     isOpen: boolean;
@@ -38,6 +39,11 @@ export default function SessionNoteModal({
     const [activities, setActivities] = useState<{ description: string; prompt: string }[]>([
         { description: "", prompt: "" }
     ]);
+
+    const childOptions = childrenList.map(c => ({
+        value: c.id,
+        label: c.name
+    }));
 
     useEffect(() => {
         setMounted(true);
@@ -165,18 +171,14 @@ export default function SessionNoteModal({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Child</label>
-                            <select
-                                required
+                            <SearchableDropdown
+                                options={childOptions}
                                 value={selectedChildId}
-                                onChange={(e) => setSelectedChildId(e.target.value)}
+                                onChange={setSelectedChildId}
                                 disabled={!!note}
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all disabled:opacity-50"
-                            >
-                                <option value="">Select Child</option>
-                                {childrenList.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} {c.caseNumber ? `(${c.caseNumber})` : ''}</option>
-                                ))}
-                            </select>
+                                placeholder="Select Child"
+                                icon={<Baby className="w-4 h-4" />}
+                            />
                         </div>
 
                         <div className="space-y-2">
@@ -279,16 +281,26 @@ export default function SessionNoteModal({
                                             placeholder="Activity description..."
                                             className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
                                         />
-                                        <select
-                                            value={activity.prompt}
-                                            onChange={(e) => handleActivityChange(index, "prompt", e.target.value)}
-                                            className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
-                                        >
-                                            <option value="">Select Prompt</option>
-                                            {PROMPT_OPTIONS.map(opt => (
-                                                <option key={opt.key} value={opt.key}>{opt.value}</option>
-                                            ))}
-                                        </select>
+                                        <div className="space-y-1">
+                                            <select
+                                                value={activity.prompt}
+                                                onChange={(e) => handleActivityChange(index, "prompt", e.target.value)}
+                                                className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
+                                            >
+                                                <option value="">Select Prompt</option>
+                                                {PROMPT_OPTIONS.map(opt => (
+                                                    <option key={opt.key} value={opt.key}>{opt.value}</option>
+                                                ))}
+                                            </select>
+                                            {activity.prompt && (() => {
+                                                const option = PROMPT_OPTIONS.find(opt => opt.key === activity.prompt);
+                                                return option?.desc ? (
+                                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 px-1 leading-tight">
+                                                        {option.desc}
+                                                    </p>
+                                                ) : null;
+                                            })()}
+                                        </div>
                                     </div>
                                     {activities.length > 1 && (
                                         <button

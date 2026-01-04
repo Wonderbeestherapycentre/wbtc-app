@@ -16,6 +16,7 @@ interface SearchableDropdownProps {
     label?: string;
     icon?: React.ReactNode;
     className?: string;
+    disabled?: boolean;
 }
 
 export default function SearchableDropdown({
@@ -25,7 +26,8 @@ export default function SearchableDropdown({
     placeholder = "Select...",
     label,
     icon,
-    className = ""
+    className = "",
+    disabled = false
 }: SearchableDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -61,8 +63,10 @@ export default function SearchableDropdown({
         <div className={`relative ${className}`} ref={dropdownRef}>
             {/* Trigger Button */}
             <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700 min-w-[180px] w-full justify-between text-left transition-colors hover:bg-gray-100 dark:hover:bg-neutral-800"
+                type="button"
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
+                className={`flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700 min-w-[180px] w-full justify-between text-left transition-colors hover:bg-gray-100 dark:hover:bg-neutral-800 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
                 <div className="flex items-center gap-2 overflow-hidden">
                     {icon && <span className="text-gray-400 flex-shrink-0">{icon}</span>}
@@ -90,6 +94,11 @@ export default function SearchableDropdown({
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                    }
+                                }}
                             />
                         </div>
                     </div>
@@ -106,13 +115,14 @@ export default function SearchableDropdown({
                             filteredOptions.map((option) => (
                                 <button
                                     key={option.value}
+                                    type="button"
                                     onClick={() => {
                                         onChange(option.value);
                                         setIsOpen(false);
                                     }}
                                     className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-between group ${value === option.value
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
+                                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
                                         }`}
                                 >
                                     {option.label}
