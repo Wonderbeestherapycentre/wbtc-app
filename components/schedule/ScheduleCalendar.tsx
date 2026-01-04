@@ -90,7 +90,13 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
     const filteredSessions = sessions.filter(session => {
         const matchesTherapist = !filterTherapistId || session.therapist.id === filterTherapistId;
         const matchesChild = !filterChildId || session.child.id === filterChildId;
-        return matchesTherapist && matchesChild;
+
+        // If therapist is logged in and viewing as a list, only show current date
+        const matchesDate = (currentUserRole === "THERAPIST" && view === "TABLE")
+            ? isSameDay(new Date(session.date), currentDate)
+            : true;
+
+        return matchesTherapist && matchesChild && matchesDate;
     });
 
     const getSessionsForDay = (day: Date) => {
@@ -202,12 +208,12 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 gap-1">
+                    {/* <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 gap-1">
                         {[
                             { id: "TABLE", label: "List", icon: TableIcon },
-                            { id: "DAY", label: "Day", icon: CalendarDays },
-                            { id: "WEEK", label: "Week", icon: LayoutList },
-                            { id: "MONTH", label: "Month", icon: CalendarIcon }
+                            currentUserRole === "ADMIN" ? { id: "DAY", label: "Day", icon: CalendarDays } : null,
+                            currentUserRole === "ADMIN" ? { id: "WEEK", label: "Week", icon: LayoutList } : null,
+                            currentUserRole === "ADMIN" ? { id: "MONTH", label: "Month", icon: CalendarIcon } : null,
                         ].map(v => (
                             <button
                                 key={v.id}
@@ -218,7 +224,31 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                 {v.label}
                             </button>
                         ))}
+                    </div> */}
+
+                    <div className="flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 gap-1">
+                        {[
+                            { id: "TABLE", label: "List", icon: TableIcon },
+                            currentUserRole === "ADMIN" ? { id: "DAY", label: "Day", icon: CalendarDays } : null,
+                            currentUserRole === "ADMIN" ? { id: "WEEK", label: "Week", icon: LayoutList } : null,
+                            currentUserRole === "ADMIN" ? { id: "MONTH", label: "Month", icon: CalendarIcon } : null,
+                        ]
+                            .filter(Boolean)
+                            .map((v: any) => (
+                                <button
+                                    key={v.id}
+                                    onClick={() => setView(v.id)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v.id
+                                        ? "bg-white dark:bg-neutral-700 text-blue-600 shadow-sm"
+                                        : "text-gray-500 hover:text-gray-700"
+                                        }`}
+                                >
+                                    <v.icon className="w-3.5 h-3.5" />
+                                    {v.label}
+                                </button>
+                            ))}
                     </div>
+
 
                     <div className={`flex items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 hidden md:flex ${view === "TABLE" ? "opacity-50 pointer-events-none" : ""}`}>
                         <button onClick={prevRange} className="p-1.5 hover:bg-white dark:hover:bg-neutral-700 rounded-lg transition-all">
@@ -287,12 +317,14 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                     <tr>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Date & Time</th>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Child</th>
-                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Therapy</th>
-                                        {currentUserRole !== "PARENT" && (
+                                        {currentUserRole !== "THERAPIST" && (
+                                            <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Therapy</th>
+                                        )}
+                                        {currentUserRole === "ADMIN" && (
                                             <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Therapist</th>
                                         )}
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Status</th>
-                                        {currentUserRole !== "PARENT" && (
+                                        {currentUserRole == "ADMIN" && (
                                             <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                                         )}
                                     </tr>
@@ -300,7 +332,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                 <tbody className="divide-y divide-gray-50 dark:divide-neutral-800/50">
                                     {filteredSessions.length === 0 ? (
                                         <tr>
-                                            <td colSpan={currentUserRole !== "PARENT" ? 6 : 4} className="py-12 text-center text-gray-400 text-sm">
+                                            <td colSpan={currentUserRole === "ADMIN" ? 6 : 4} className="py-12 text-center text-gray-400 text-sm">
                                                 No sessions found for the selected filters.
                                             </td>
                                         </tr>
@@ -310,16 +342,16 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                             .map((session) => (
                                                 <tr
                                                     key={session.id}
-                                                    onClick={() => currentUserRole !== "PARENT" && handleEditSession(session)}
+                                                    onClick={() => currentUserRole == "ADMIN" && handleEditSession(session)}
                                                     className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
                                                 >
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-4 px-6 whitespace-nowrap">
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white">
                                                                 {format(session.date as Date, "MMM d, yyyy")}
                                                             </span>
                                                             <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">
-                                                                <Clock className="w-3 h-3" />
+                                                                {/* <Clock className="w-3 h-3" /> */}
                                                                 {(() => {
                                                                     const d = session.date as Date;
                                                                     const endDate = new Date(d.getTime() + (session.durationMinutes || 45) * 60000);
@@ -330,18 +362,17 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     </td>
                                                     <td className="py-4 px-6">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                                                {session.child.name.charAt(0)}
-                                                            </div>
                                                             <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{session.child.name}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="py-4 px-6">
-                                                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600">
-                                                            {session.therapy.name}
-                                                        </span>
-                                                    </td>
-                                                    {currentUserRole !== "PARENT" && (
+                                                    {currentUserRole !== "THERAPIST" && (
+                                                        <td className="py-4 px-6">
+                                                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600">
+                                                                {session.therapy.name}
+                                                            </span>
+                                                        </td>
+                                                    )}
+                                                    {currentUserRole === "ADMIN" && (
                                                         <td className="py-4 px-6">
                                                             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                                                                 <User className="w-3.5 h-3.5" />
@@ -354,7 +385,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                             {session.status || "SCHEDULED"}
                                                         </span>
                                                     </td>
-                                                    {currentUserRole !== "PARENT" && (
+                                                    {currentUserRole == "ADMIN" && (
                                                         <td className="py-4 px-6 text-right">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <button

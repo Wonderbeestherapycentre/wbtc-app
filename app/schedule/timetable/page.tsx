@@ -14,7 +14,11 @@ export default async function WeeklyTimetablePage() {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 90);
 
-    const sessions = await fetchSessions(startDate, endDate);
+    const sessions = await fetchSessions(
+        startDate,
+        endDate,
+        currentUserRole === "THERAPIST" ? session?.user?.id : undefined
+    );
     const therapists = await fetchTherapists();
 
     return (
@@ -22,7 +26,12 @@ export default async function WeeklyTimetablePage() {
             <div className="space-y-6 animate-fade-in pb-10">
 
 
-                <WeeklyTimetable sessions={sessions as any} therapists={therapists as any} />
+                <WeeklyTimetable
+                    sessions={sessions as any}
+                    therapists={therapists as any}
+                    currentUserRole={currentUserRole}
+                    currentUserName={session?.user?.name || undefined}
+                />
             </div>
         </AppLayout>
     );

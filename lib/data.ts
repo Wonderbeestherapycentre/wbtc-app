@@ -145,7 +145,7 @@ export async function fetchChildrenPaginated(page: number, limit: number, includ
 
     const data = await db.query.children.findMany({
         where: and(...conditions),
-        orderBy: [desc(children.createdAt)],
+        orderBy: [asc(children.name)],
         limit: limit,
         offset: offset,
         with: {

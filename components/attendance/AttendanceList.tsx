@@ -22,10 +22,12 @@ interface Session {
 
 interface AttendanceListProps {
     sessions: Session[];
+    currentUserRole?: string;
 }
 
 export default function AttendanceList({
-    sessions
+    sessions,
+    currentUserRole
 }: AttendanceListProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -54,15 +56,17 @@ export default function AttendanceList({
                         <tr>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Child</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Therapy</th>
+                            {currentUserRole !== "THERAPIST" && (
+                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Therapy</th>
+                            )}
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                         {sessions.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                                    No sessions found for this date.
+                                <td colSpan={currentUserRole === "THERAPIST" ? 3 : 4} className="px-6 py-8 text-center text-gray-500">
+                                    No sessions found.
                                 </td>
                             </tr>
                         ) : (
@@ -81,14 +85,16 @@ export default function AttendanceList({
                                         <div className="text-sm font-bold text-gray-900 dark:text-white">{session.child.name}</div>
                                         <div className="text-xs text-brand-600 dark:text-brand-400">{session.child.caseNumber}</div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {session.therapy.name}
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            {session.therapist.name}
-                                        </div>
-                                    </td>
+                                    {currentUserRole !== "THERAPIST" && (
+                                        <td className="px-6 py-4">
+                                            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                                {session.therapy.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {session.therapist.name}
+                                            </div>
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {updatingId === session.id ? (

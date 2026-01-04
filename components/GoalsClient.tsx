@@ -80,16 +80,16 @@ export default function GoalsClient({
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case "COMPLETED": return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-            case "ARCHIVED": return <Archive className="w-4 h-4 text-gray-500" />;
+            case "ACHIEVED": return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+            case "PARTIALLY_ACHIEVED": return <Edit2 className="w-4 h-4 text-orange-500" />;
             default: return <Circle className="w-4 h-4 text-blue-500" />;
         }
     };
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "COMPLETED": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
-            case "ARCHIVED": return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400";
+            case "ACHIEVED": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+            case "PARTIALLY_ACHIEVED": return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
             default: return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
         }
     };
@@ -114,9 +114,9 @@ export default function GoalsClient({
                         className="px-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
                         <option value="ALL">All Status</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="ARCHIVED">Archived</option>
+                        <option value="EMERGING">Emerging</option>
+                        <option value="PARTIALLY_ACHIEVED">Partially achieved</option>
+                        <option value="ACHIEVED">Achieved</option>
                     </select>
 
                     {role !== "PARENT" && (
@@ -138,7 +138,7 @@ export default function GoalsClient({
                             <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium whitespace-nowrap">
                                 <th className="px-6 py-4 w-12">S.No</th>
                                 <th className="px-6 py-4 min-w-[200px]">Goal Description</th>
-                                <th className="px-6 py-4">Child (Name & ID)</th>
+                                <th className="px-6 py-4">Child Name</th>
                                 <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
@@ -162,18 +162,10 @@ export default function GoalsClient({
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[10px] font-bold text-blue-600 dark:text-blue-400 shrink-0">
-                                                    {goal.child.name[0]}
-                                                </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
                                                         {goal.child.name}
                                                     </span>
-                                                    {goal.child.caseNumber && (
-                                                        <span className="text-[10px] text-gray-400 font-normal">
-                                                            ID: {goal.child.caseNumber}
-                                                        </span>
-                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -201,7 +193,7 @@ export default function GoalsClient({
                                         <td className="px-6 py-4">
                                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1 ${getStatusColor(goal.status)}`}>
                                                 {getStatusIcon(goal.status)}
-                                                {goal.status.replace("_", " ")}
+                                                {goal.status.toLowerCase().replace("_", " ")}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -274,6 +266,7 @@ export default function GoalsClient({
                 goal={editingGoal}
                 childrenList={childrenList}
                 therapies={therapies}
+                role={role}
             />
         </>
     );

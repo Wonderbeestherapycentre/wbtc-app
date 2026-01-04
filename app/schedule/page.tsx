@@ -26,9 +26,7 @@ export default async function SchedulePage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Schedule</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">
-                            {currentUserRole === "PARENT" ? "Your child's therapy sessions" : "Manage therapy schedule"}
-                        </p>
+
                     </div>
                     <Link
                         href="/schedule/timetable"

@@ -27,9 +27,9 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "IN_PROGRESS": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
-            case "COMPLETED": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
-            case "ARCHIVED": return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400";
+            case "EMERGING": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+            case "PARTIALLY_ACHIEVED": return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
+            case "ACHIEVED": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
             default: return "bg-gray-100 text-gray-800";
         }
     };
@@ -83,7 +83,7 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(goal.status)}`}>
-                                            {goal.status.replace("_", " ")}
+                                            {goal.status.toLowerCase().replace("_", " ")}
                                         </span>
                                     </td>
                                     {role !== "PARENT" && (
@@ -146,6 +146,7 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
                 goal={editingGoal}
                 childrenList={childrenList}
                 therapies={therapies}
+                role={role}
             />
         </div>
     );

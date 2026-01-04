@@ -11,7 +11,7 @@ export const GoalSchema = z.object({
         message: "Invalid end date",
     }),
     objectives: z.string().min(1, "At least one objective is required"), // Validates the JSON string is not empty
-    status: z.enum(["IN_PROGRESS", "COMPLETED", "ARCHIVED"]).default("IN_PROGRESS"),
+    status: z.enum(["EMERGING", "PARTIALLY_ACHIEVED", "ACHIEVED"]).default("EMERGING"),
 });
 
 export const UpdateGoalSchema = GoalSchema.partial().extend({

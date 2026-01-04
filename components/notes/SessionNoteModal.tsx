@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { createSessionNote, updateSessionNote } from "@/lib/actions";
 import { X, Plus, Trash2, Baby } from "lucide-react";
 import { PROMPT_OPTIONS } from "@/lib/constants";
+import { SessionNoteSchema } from "@/lib/validations/session-note";
 import { getTodayIST } from "@/lib/utils/timezone";
 import SearchableDropdown from "../ui/SearchableDropdown";
 
@@ -39,6 +40,7 @@ export default function SessionNoteModal({
     const [activities, setActivities] = useState<{ description: string; prompt: string }[]>([
         { description: "", prompt: "" }
     ]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const childOptions = childrenList.map(c => ({
         value: c.id,
@@ -51,7 +53,6 @@ export default function SessionNoteModal({
 
     useEffect(() => {
         if (isOpen) {
-            console.log("Modal opened, therapistSpecialization:", therapistSpecialization);
             if (note) {
                 // Editing
                 setSelectedChildId(note.childId);
@@ -78,6 +79,7 @@ export default function SessionNoteModal({
                 setSelectedObjectives({});
                 setActivities([{ description: "", prompt: "" }]);
             }
+            setErrors({});
         }
     }, [isOpen, note, therapistSpecialization]);
 
@@ -90,6 +92,13 @@ export default function SessionNoteModal({
         const newActivities = [...activities];
         newActivities[index][field] = value;
         setActivities(newActivities);
+        if (errors[`activities.${index}.${field}`]) {
+            setErrors(prev => {
+                const newErrs = { ...prev };
+                delete newErrs[`activities.${index}.${field}`];
+                return newErrs;
+            });
+        }
     };
 
     const addActivity = () => {
@@ -124,13 +133,38 @@ export default function SessionNoteModal({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErrors({});
+
+        const validActivities = activities.filter(a => a.description.trim() !== "" || a.prompt !== "");
+
+        const validationResult = SessionNoteSchema.safeParse({
+            childId: selectedChildId,
+            therapyId: selectedTherapyId,
+            date: date,
+            goalsAddressed: JSON.stringify(selectedObjectives),
+            activities: JSON.stringify(validActivities),
+        });
+
+        if (!validationResult.success) {
+            const fieldErrors: Record<string, string> = {};
+            validationResult.error.issues.forEach(issue => {
+                const path = issue.path.join('.');
+                fieldErrors[path] = issue.message;
+            });
+            setErrors(fieldErrors);
+
+            // Focus on first error if it's a field
+            const firstError = validationResult.error.issues[0].message;
+            toast.error(firstError);
+            return;
+        }
 
         const formData = new FormData();
         formData.append("childId", selectedChildId);
         formData.append("therapyId", selectedTherapyId);
         formData.append("date", date);
         formData.append("goalsAddressed", JSON.stringify(selectedObjectives));
-        formData.append("activities", JSON.stringify(activities.filter(a => a.description.trim() !== "")));
+        formData.append("activities", JSON.stringify(validActivities));
 
         if (note) {
             formData.append("id", note.id);
@@ -143,8 +177,9 @@ export default function SessionNoteModal({
                 toast.success(result.message);
                 onClose();
             } else if ((result as any).errors) {
-                const errors = (result as any).errors;
-                const firstError = Object.values(errors).flat()[0];
+                const fieldErrors = (result as any).errors;
+                setErrors(fieldErrors);
+                const firstError = Object.values(fieldErrors)[0];
                 toast.error(String(firstError));
             } else {
                 toast.error(result.message);
@@ -174,8 +209,18 @@ export default function SessionNoteModal({
                             <SearchableDropdown
                                 options={childOptions}
                                 value={selectedChildId}
-                                onChange={setSelectedChildId}
+                                onChange={(val) => {
+                                    setSelectedChildId(val);
+                                    if (errors.childId) {
+                                        setErrors(prev => {
+                                            const { childId, ...rest } = prev;
+                                            return rest;
+                                        });
+                                    }
+                                }}
                                 disabled={!!note}
+                                required={true}
+                                error={errors.childId}
                                 placeholder="Select Child"
                                 icon={<Baby className="w-4 h-4" />}
                             />
@@ -211,9 +256,20 @@ export default function SessionNoteModal({
                                 required
                                 value={date}
                                 max={getTodayIST()}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                                onChange={(e) => {
+                                    setDate(e.target.value);
+                                    if (errors.date) {
+                                        setErrors(prev => {
+                                            const { date, ...rest } = prev;
+                                            return rest;
+                                        });
+                                    }
+                                }}
+                                className={`w-full px-4 py-2 bg-white dark:bg-neutral-800 border ${errors.date ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                             />
+                            {errors.date && (
+                                <p className="mt-1 text-xs text-red-500">{errors.date}</p>
+                            )}
                         </div>
                     </div>
 
@@ -279,19 +335,25 @@ export default function SessionNoteModal({
                                             value={activity.description}
                                             onChange={(e) => handleActivityChange(index, "description", e.target.value)}
                                             placeholder="Activity description..."
-                                            className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
+                                            className={`w-full px-3 py-2 bg-white dark:bg-neutral-800 border ${errors[`activities.${index}.description`] ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm`}
                                         />
+                                        {errors[`activities.${index}.description`] && (
+                                            <p className="mt-1 text-[10px] text-red-500 px-1">{errors[`activities.${index}.description`]}</p>
+                                        )}
                                         <div className="space-y-1">
                                             <select
                                                 value={activity.prompt}
                                                 onChange={(e) => handleActivityChange(index, "prompt", e.target.value)}
-                                                className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm"
+                                                className={`w-full px-3 py-2 bg-white dark:bg-neutral-800 border ${errors[`activities.${index}.prompt`] ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all text-sm`}
                                             >
                                                 <option value="">Select Prompt</option>
                                                 {PROMPT_OPTIONS.map(opt => (
                                                     <option key={opt.key} value={opt.key}>{opt.value}</option>
                                                 ))}
                                             </select>
+                                            {errors[`activities.${index}.prompt`] && (
+                                                <p className="mt-1 text-[10px] text-red-500 px-1">{errors[`activities.${index}.prompt`]}</p>
+                                            )}
                                             {activity.prompt && (() => {
                                                 const option = PROMPT_OPTIONS.find(opt => opt.key === activity.prompt);
                                                 return option?.desc ? (

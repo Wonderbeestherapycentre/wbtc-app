@@ -17,11 +17,18 @@ const notInFuture = (val: string | undefined) => {
 
 // Session Note schema for creation
 export const SessionNoteSchema = z.object({
-    childId: z.string().uuid("Invalid child ID"),
-    therapyId: z.string().uuid("Invalid therapy ID"),
+    childId: z.string().min(1, "Please select a child").uuid("Invalid child ID"),
+    therapyId: z.string().min(1, "Please select a therapy").uuid("Invalid therapy ID"),
     date: z.string().min(1, "Date is required").refine(notInFuture, "Date cannot be in the future"),
-    goalsAddressed: z.string().optional(), // JSON stringified array of goal IDs
-    activities: z.string().optional(), // JSON stringified array of activities
+    goalsAddressed: z.string().optional(),
+    activities: z.preprocess((val) => {
+        if (!val || typeof val !== 'string') return [];
+        try {
+            return JSON.parse(val);
+        } catch {
+            return [];
+        }
+    }, z.array(ActivitySchema).min(1, "Please add at least one activity")),
 });
 
 // Session Note update schema
@@ -31,5 +38,12 @@ export const UpdateSessionNoteSchema = z.object({
     therapyId: z.string().uuid("Invalid therapy ID").optional(),
     date: z.string().optional().refine(notInFuture, "Date cannot be in the future"),
     goalsAddressed: z.string().optional(),
-    activities: z.string().optional(),
+    activities: z.preprocess((val) => {
+        if (!val || typeof val !== 'string') return undefined; // Keep as undefined if not provided
+        try {
+            return JSON.parse(val);
+        } catch {
+            return [];
+        }
+    }, z.array(ActivitySchema).optional()),
 });

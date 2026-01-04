@@ -17,6 +17,8 @@ interface SearchableDropdownProps {
     icon?: React.ReactNode;
     className?: string;
     disabled?: boolean;
+    required?: boolean;
+    error?: string;
 }
 
 export default function SearchableDropdown({
@@ -27,7 +29,9 @@ export default function SearchableDropdown({
     label,
     icon,
     className = "",
-    disabled = false
+    disabled = false,
+    required = false,
+    error
 }: SearchableDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -66,7 +70,7 @@ export default function SearchableDropdown({
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
-                className={`flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700 min-w-[180px] w-full justify-between text-left transition-colors hover:bg-gray-100 dark:hover:bg-neutral-800 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className={`flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border ${error ? 'border-red-500' : 'border-gray-100 dark:border-neutral-700'} min-w-[180px] w-full justify-between text-left transition-colors hover:bg-gray-100 dark:hover:bg-neutral-800 ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
                 <div className="flex items-center gap-2 overflow-hidden">
                     {icon && <span className="text-gray-400 flex-shrink-0">{icon}</span>}
@@ -79,6 +83,20 @@ export default function SearchableDropdown({
                 </div>
                 <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
+
+            {/* Hidden Input for Form Validation */}
+            <input
+                type="text"
+                className="sr-only"
+                value={value}
+                onChange={() => { }}
+                required={required}
+                tabIndex={-1}
+            />
+
+            {error && (
+                <p className="mt-1 text-xs text-red-500">{error}</p>
+            )}
 
             {/* Dropdown Menu */}
             {isOpen && (

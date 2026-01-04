@@ -33,9 +33,11 @@ interface Session {
 interface WeeklyTimetableProps {
     sessions: Session[];
     therapists: { id: string; name: string }[];
+    currentUserRole?: string;
+    currentUserName?: string;
 }
 
-export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetableProps) {
+export default function WeeklyTimetable({ sessions, therapists, currentUserRole, currentUserName }: WeeklyTimetableProps) {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedTherapistId, setSelectedTherapistId] = useState("");
 
@@ -178,33 +180,36 @@ export default function WeeklyTimetable({ sessions, therapists }: WeeklyTimetabl
                         </button>
                     </div>
                 </div>
+                {currentUserRole === "ADMIN" && (
+                    <div className="flex items-center gap-3">
+                        <WeeklyTimetableDownload
+                            key={`${weekStartDate.toISOString()}-${selectedTherapistId}-${filteredSessions.length}`}
+                            sessions={filteredSessions}
+                            weekStartDate={weekStartDate}
+                            selectedTherapistName={therapists.find(t => t.id === selectedTherapistId)?.name}
+                        />
 
-                <div className="flex items-center gap-3">
-                    <WeeklyTimetableDownload
-                        key={`${weekStartDate.toISOString()}-${selectedTherapistId}-${filteredSessions.length}`}
-                        sessions={filteredSessions}
-                        weekStartDate={weekStartDate}
-                        selectedTherapistName={therapists.find(t => t.id === selectedTherapistId)?.name}
-                    />
 
-                    <button onClick={goToToday} className="text-xs font-bold text-blue-600 px-3 py-1.5 bg-blue-50 rounded-lg hover:bg-blue-100">
-                        Current Week
-                    </button>
+                        <button onClick={goToToday} className="text-xs font-bold text-blue-600 px-3 py-1.5 bg-blue-50 rounded-lg hover:bg-blue-100">
+                            Current Week
+                        </button>
 
-                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700">
-                        <Filter className="w-3.5 h-3.5 text-gray-400" />
-                        <select
-                            value={selectedTherapistId}
-                            onChange={(e) => setSelectedTherapistId(e.target.value)}
-                            className="bg-transparent border-none text-xs font-bold focus:ring-0 p-0 text-gray-700 dark:text-gray-300"
-                        >
-                            <option value="">All Therapists</option>
-                            {therapists.map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
-                        </select>
+
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2 rounded-xl border border-gray-100 dark:border-neutral-700">
+                            <Filter className="w-3.5 h-3.5 text-gray-400" />
+                            <select
+                                value={selectedTherapistId}
+                                onChange={(e) => setSelectedTherapistId(e.target.value)}
+                                className="bg-transparent border-none text-xs font-bold focus:ring-0 p-0 text-gray-700 dark:text-gray-300"
+                            >
+                                <option value="">All Therapists</option>
+                                {therapists.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <div className="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-800 overflow-hidden">

@@ -87,9 +87,9 @@ export default function ChildSettings({
             end: new Date()
         });
         const parts = [];
-        if (duration.years) parts.push(`${duration.years} yrs`);
-        if (duration.months) parts.push(`${duration.months} mos`);
-        return parts.join(' ') || "0 mos";
+        if (duration.years) parts.push(`${duration.years}y`);
+        if (duration.months) parts.push(`${duration.months}m`);
+        return parts.join(' ') || "0m";
     };
 
     const generateAvatarColor = (name: string) => {
@@ -146,9 +146,13 @@ export default function ChildSettings({
                         <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
                                 <th className="text-left py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
-                                <th className="text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Child ID</th>
+                                {
+                                    role === "ADMIN" && (
+                                        <th className="text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Child ID</th>)
+                                }
+
                                 <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Parent</th>
-                                <th className="hidden md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Gender / Age</th>
+                                <th className=" md:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase"> Age</th>
                                 <th className="hidden xl:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Diagnosis</th>
                                 {role === "ADMIN" && (
                                     <th className="hidden lg:table-cell text-left py-1 px-3 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Therapist(s)</th>
@@ -177,9 +181,7 @@ export default function ChildSettings({
                                                     <span className="font-medium text-gray-900 dark:text-white">
                                                         {child.name}
                                                     </span>
-                                                    <span className="md:hidden text-[10px] text-gray-500">
-                                                        {child.gender || "N/A"}{child.dob && ` • ${calculateAge(child.dob)}`}
-                                                    </span>
+
                                                     <span className={`md:hidden mt-0.5 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-medium ${child.status === 'ACTIVE'
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                                                         : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
@@ -189,20 +191,25 @@ export default function ChildSettings({
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="py-1 px-3 md:py-2 md:px-6">
-                                            <span className="text-sm font-mono text-gray-600 dark:text-gray-300">
-                                                {child.caseNumber || "-"}
-                                            </span>
-                                        </td>
+
+                                        {
+                                            role === "ADMIN" && (
+                                                <td className="py-1 px-3 md:py-2 md:px-6">
+                                                    <span className="text-sm font-mono text-gray-600 dark:text-gray-300">
+                                                        {child.caseNumber || "-"}
+                                                    </span>
+                                                </td>
+                                            )
+                                        }
                                         <td className="hidden lg:table-cell py-1 px-3 md:py-2 md:px-6">
                                             <span className="text-sm text-gray-600 dark:text-gray-300">
                                                 {child.parent?.name || "N/A"}
                                             </span>
                                         </td>
-                                        <td className="hidden md:table-cell py-1 px-3 md:py-2 md:px-6">
-                                            <span className="text-sm text-gray-600 dark:text-gray-300">
-                                                {child.gender || "N/A"}
-                                                {child.dob && ` / ${calculateAge(child.dob)}`}
+                                        <td className=" md:table-cell py-1 px-3 md:py-2 md:px-6">
+                                            <span className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap truncate">
+                                                {/* {child.gender || "N/A"} */}
+                                                {child.dob && ` ${calculateAge(child.dob)}`}
                                             </span>
                                         </td>
                                         <td className="hidden xl:table-cell py-1 px-3 md:py-2 md:px-6">
@@ -235,13 +242,17 @@ export default function ChildSettings({
                                         </td>
                                         <td className="py-1 px-1 md:py-2 md:px-6 text-right">
                                             <div className="flex items-center justify-end gap-1 md:gap-2">
-                                                <Link
-                                                    href={`/fees/${child.id}`}
-                                                    className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-green-600 transition-colors"
-                                                    title="View Fees & Attendance"
-                                                >
-                                                    <CreditCard className="w-4 h-4" />
-                                                </Link>
+                                                {
+                                                    role === "ADMIN" && (
+                                                        <Link
+                                                            href={`/fees/${child.id}`}
+                                                            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-green-600 transition-colors"
+                                                            title="View Fees & Attendance"
+                                                        >
+                                                            <CreditCard className="w-4 h-4" />
+                                                        </Link>
+                                                    )
+                                                }
                                                 <Link
                                                     href={`/childrens/${child.id}`}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"

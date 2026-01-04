@@ -5,7 +5,8 @@ import { useTransition } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { createGoal, updateGoal } from "@/lib/actions";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, User } from "lucide-react";
+import SearchableDropdown from "./ui/SearchableDropdown";
 
 interface GoalModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ interface GoalModalProps {
     childId?: string; // Pre-select child if available
     childrenList: { id: string; name: string; caseNumber?: string; assignedTherapies: string[] }[];
     therapies: { id: string; name: string }[];
+    role?: "ADMIN" | "THERAPIST" | "PARENT";
 }
 
 export default function GoalModal({
@@ -22,7 +24,8 @@ export default function GoalModal({
     goal,
     childId,
     childrenList,
-    therapies
+    therapies,
+    role
 }: GoalModalProps) {
     const [isPending, startTransition] = useTransition();
 
@@ -32,7 +35,7 @@ export default function GoalModal({
     const [selectedTherapyId, setSelectedTherapyId] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [status, setStatus] = useState("IN_PROGRESS");
+    const [status, setStatus] = useState("EMERGING");
 
     // Objectives List
     const [objectives, setObjectives] = useState<string[]>([""]);
@@ -63,11 +66,25 @@ export default function GoalModal({
                 const future = new Date();
                 future.setMonth(future.getMonth() + 3);
                 setEndDate(future.toISOString().split('T')[0]);
-                setStatus("IN_PROGRESS");
+                setStatus("EMERGING");
                 setObjectives([""]);
             }
         }
     }, [isOpen, goal, childId]);
+
+    // Auto-select therapy if only one is available for the child
+    useEffect(() => {
+        if (selectedChildId) {
+            const availableTherapies = therapies.filter(t => {
+                const child = childrenList.find(c => c.id === selectedChildId);
+                return child?.assignedTherapies?.includes(t.id);
+            });
+
+            if (availableTherapies.length === 1 && !selectedTherapyId) {
+                setSelectedTherapyId(availableTherapies[0].id);
+            }
+        }
+    }, [selectedChildId, therapies, childrenList, selectedTherapyId]);
 
     const handleObjectiveChange = (index: number, value: string) => {
         const newObjectives = [...objectives];
@@ -152,22 +169,21 @@ export default function GoalModal({
                 <form onSubmit={handleSubmit} className="py-2 px-4 space-y-2">
                     {/* Basic Info */}
 
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Child</label>
-                            <select
-                                required
+                            <SearchableDropdown
+                                options={childrenList.map(c => ({
+                                    value: c.id,
+                                    label: c.name
+                                }))}
                                 value={selectedChildId}
-                                onChange={(e) => setSelectedChildId(e.target.value)}
-                                disabled={!!childId || !!goal} // Lock if pre-selected or editing
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all disabled:opacity-50"
-                            >
-                                <option value="">Select Child</option>
-                                {childrenList.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} {c.caseNumber ? `(${c.caseNumber})` : ''}</option>
-                                ))}
-                            </select>
+                                onChange={(val) => setSelectedChildId(val)}
+                                disabled={!!childId || !!goal}
+                                placeholder="Search & Select Child"
+                                icon={<User className="w-3.5 h-3.5" />}
+                                required
+                            />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Therapy</label>
@@ -175,7 +191,11 @@ export default function GoalModal({
                                 required
                                 value={selectedTherapyId}
                                 onChange={(e) => setSelectedTherapyId(e.target.value)}
-                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                                disabled={(role === "THERAPIST" && therapies.filter(t => {
+                                    const child = childrenList.find(c => c.id === selectedChildId);
+                                    return child?.assignedTherapies?.includes(t.id);
+                                }).length <= 1) || !!goal}
+                                className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all disabled:opacity-50"
                             >
                                 <option value="">Select Therapy</option>
                                 {therapies
@@ -276,9 +296,9 @@ export default function GoalModal({
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
                             >
-                                <option value="IN_PROGRESS">In Progress</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="ARCHIVED">Archived</option>
+                                <option value="EMERGING">Emerging</option>
+                                <option value="PARTIALLY_ACHIEVED">Partially achieved</option>
+                                <option value="ACHIEVED">Achieved</option>
                             </select>
                         </div>
                     </div>

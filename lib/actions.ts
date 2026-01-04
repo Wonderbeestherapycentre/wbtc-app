@@ -1137,7 +1137,7 @@ export async function createSessionNote(formData: FormData) {
             return { message: "Unauthorized" };
         }
 
-        const validated = SessionNoteSchema.safeParse({
+        const validationResult = SessionNoteSchema.safeParse({
             childId: formData.get("childId"),
             therapyId: formData.get("therapyId"),
             date: formData.get("date"),
@@ -1145,14 +1145,14 @@ export async function createSessionNote(formData: FormData) {
             activities: formData.get("activities"),
         });
 
-        if (!validated.success) {
+        if (!validationResult.success) {
             return {
                 message: "Validation failed",
-                errors: validated.error.flatten().fieldErrors,
+                errors: formatZodErrors(validationResult.error),
             };
         }
 
-        const { childId, therapyId, date, goalsAddressed, activities } = validated.data;
+        const { childId, therapyId, date, goalsAddressed, activities } = validationResult.data;
 
         await db.insert(sessionNotes).values({
             childId,
@@ -1160,7 +1160,7 @@ export async function createSessionNote(formData: FormData) {
             therapistId: session.user.id,
             date,
             goalsAddressed: goalsAddressed || null,
-            activities: activities || null,
+            activities: activities ? JSON.stringify(activities) : null,
         });
 
         revalidatePath("/session-notes");
@@ -1178,7 +1178,7 @@ export async function updateSessionNote(formData: FormData) {
             return { message: "Unauthorized" };
         }
 
-        const validated = UpdateSessionNoteSchema.safeParse({
+        const validationResult = UpdateSessionNoteSchema.safeParse({
             id: formData.get("id"),
             childId: formData.get("childId"),
             therapyId: formData.get("therapyId"),
@@ -1187,19 +1187,26 @@ export async function updateSessionNote(formData: FormData) {
             activities: formData.get("activities"),
         });
 
-        if (!validated.success) {
+        if (!validationResult.success) {
             return {
                 message: "Validation failed",
-                errors: validated.error.flatten().fieldErrors,
+                errors: formatZodErrors(validationResult.error),
             };
         }
 
-        const { id, ...updateData } = validated.data;
+        const { id, ...updateData } = validationResult.data;
 
-        // Filter out undefined values
-        const filteredData = Object.fromEntries(
-            Object.entries(updateData).filter(([_, v]) => v !== undefined)
-        );
+        // Filter out undefined values and JSON stringify nested fields
+        const filteredData: Record<string, any> = {};
+        Object.entries(updateData).forEach(([key, value]) => {
+            if (value !== undefined) {
+                if (key === 'activities' && value !== null) {
+                    filteredData[key] = JSON.stringify(value);
+                } else {
+                    filteredData[key] = value;
+                }
+            }
+        });
 
         if (Object.keys(filteredData).length === 0) {
             return { message: "No fields to update" };

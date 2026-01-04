@@ -113,7 +113,7 @@ export const goals = pgTable("goals", {
     objectives: text("objectives"), // JSON array stringified or simple text
     startDate: date("start_date").notNull(),
     endDate: date("end_date").notNull(),
-    status: text("status", { enum: ["IN_PROGRESS", "COMPLETED", "ARCHIVED"] }).default("IN_PROGRESS").notNull(),
+    status: text("status", { enum: ["EMERGING", "PARTIALLY_ACHIEVED", "ACHIEVED"] }).default("EMERGING").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

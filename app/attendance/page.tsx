@@ -112,21 +112,28 @@ export default async function AttendancePage(props: {
                     </div>
                 </div>
 
-                <AttendanceFilters
-                    therapies={therapies as any}
-                    therapists={therapists as any}
-                    currentDate={currentDate}
-                    currentUserRole={currentUserRole}
-                    selectedTherapyId={therapyId}
-                    selectedTherapistId={therapistId}
-                    activeTab={activeTab}
-                    searchParams={searchParams}
-                />
+
+
+
+                {
+                    currentUserRole === "ADMIN" ? <AttendanceFilters
+                        therapies={therapies as any}
+                        therapists={therapists as any}
+                        currentDate={currentDate}
+                        currentUserRole={currentUserRole}
+                        selectedTherapyId={therapyId}
+                        selectedTherapistId={therapistId}
+                        activeTab={activeTab}
+                        searchParams={searchParams}
+                    /> : <></>
+                }
+
 
                 <div className="min-h-[400px]">
                     {activeTab === "daily" ? (
                         <AttendanceList
                             sessions={sessions as any}
+                            currentUserRole={currentUserRole}
                         />
                     ) : (
                         <>
