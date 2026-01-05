@@ -80,9 +80,6 @@ export default async function ParentDashboard() {
                         <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                             Welcome, {session?.user?.name?.split(' ')[0]}!
                         </h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">
-                            Here&apos;s a quick overview of your children&apos;s therapy progress.
-                        </p>
                     </div>
                     <div className="text-right hidden md:block">
                         <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">{format(now, "EEEE")}</p>
@@ -92,12 +89,12 @@ export default async function ParentDashboard() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <StatCard
+                    {/* <StatCard
                         title="Children"
                         value={totalKids}
                         icon={Users}
                         color="blue"
-                    />
+                    /> */}
                     <StatCard
                         title="Next Session"
                         value={nextSession ? format(new Date(nextSession.date), "do MMM") : "None"}
@@ -273,13 +270,13 @@ export default async function ParentDashboard() {
                                     icon={CreditCard}
                                     color="red"
                                 />
-                                <QuickLink
+                                {/* <QuickLink
                                     href="/attendance"
                                     title="Attendance"
                                     desc="View history"
                                     icon={CheckCircle2}
                                     color="emerald"
-                                />
+                                /> */}
                             </div>
                         </section>
                     </div>
@@ -300,14 +297,14 @@ function StatCard({ title, value, subValue, icon: Icon, color, isCurrency }: any
 
     return (
         <div className="p-4 md:p-5 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", colorClasses[color])}>
+            {/* <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", colorClasses[color])}>
                 <Icon className="w-5 h-5" />
-            </div>
+            </div> */}
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
             <div className="mt-1 flex items-baseline gap-2">
                 <span className={cn(
                     "font-black tracking-tight text-gray-900 dark:text-white",
-                    isCurrency ? "text-lg md:text-2xl" : "text-2xl md:text-3xl"
+                    isCurrency ? "text-md md:text-xl" : "text-md md:text-xl"
                 )}>
                     {value}
                 </span>
