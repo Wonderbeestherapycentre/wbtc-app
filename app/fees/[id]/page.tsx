@@ -73,29 +73,33 @@ export default async function ChildFeePage({
                 </div>
 
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-4">
+                    <div className="bg-white dark:bg-neutral-900 p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Bill</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-gray-900 dark:text-white">₹{summary.totalAssignedFee.toLocaleString()}</span>
+                            <span className="text-md md:text-3xl font-bold text-gray-900 dark:text-white">₹{summary.totalAssignedFee.toLocaleString()}</span>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Attended Fee</h3>
+                    {
+                        session.user.role === "ADMIN" && (
+                            <div className="bg-white dark:bg-neutral-900 p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Attended Fee</h3>
+                                <div className="mt-2 flex items-baseline">
+                                    <span className="text-md md:text-3xl font-bold text-blue-600">₹{summary.totalFee.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        )
+                    }
+                    <div className="bg-white dark:bg-neutral-900 p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Paid</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-blue-600">₹{summary.totalFee.toLocaleString()}</span>
+                            <span className="text-md md:text-3xl font-bold text-emerald-600">₹{summary.paidFee.toLocaleString()}</span>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Paid Amount</h3>
+                    <div className="bg-white dark:bg-neutral-900 p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Due</h3>
                         <div className="mt-2 flex items-baseline">
-                            <span className="text-3xl font-bold text-emerald-600">₹{summary.paidFee.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-neutral-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-neutral-800">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Amount</h3>
-                        <div className="mt-2 flex items-baseline">
-                            <span className={`text-3xl font-bold ${summary.pendingFees > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                            <span className={`text-md md:text-3xl font-bold ${summary.pendingFees > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
                                 ₹{summary.pendingFees.toLocaleString()}
                             </span>
                         </div>
@@ -210,6 +214,7 @@ export default async function ChildFeePage({
                     payments={payments}
                     child={child}
                     summary={{ paidFee: summary.paidFee }}
+                    role={session.user.role}
                 />
             </div>
         </AppLayout>

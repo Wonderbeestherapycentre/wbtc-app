@@ -72,7 +72,7 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
     };
 
     return (
-        <div className="flex flex-wrap items-end gap-3 bg-white dark:bg-neutral-900 mb-6 p-4 rounded-xl border border-gray-100 dark:border-neutral-800 shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-white dark:bg-neutral-900 mb-6 p-4 rounded-xl border border-gray-100 dark:border-neutral-800 shadow-sm">
             <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-2">
                     Start Date
@@ -96,7 +96,7 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
                 />
             </div>
 
-            <div className="space-y-1 min-w-[200px]">
+            <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-2">
                     Therapy Type
                 </label>
@@ -112,7 +112,7 @@ export default function FeeReportsFilter({ defaultStartDate, defaultEndDate, the
                 </select>
             </div>
 
-            <div className="space-y-1 min-w-[200px]">
+            <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-2">
                     Child
                 </label>

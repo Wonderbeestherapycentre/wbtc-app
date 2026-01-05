@@ -81,11 +81,12 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         {
             items: [
                 { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+                { icon: FileText, label: "Session Notes", href: "/session-notes" },
                 { icon: Home, label: "Home Programs", href: "/home-programs" },
                 { icon: Calendar, label: "Schedule", href: "/schedule" },
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
-                { icon: FileText, label: "Session Notes", href: "/session-notes" },
+                { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
             ]
         }
     ];

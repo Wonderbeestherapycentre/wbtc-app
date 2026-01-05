@@ -142,7 +142,11 @@ export default function GoalsClient({
                                 <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-center">Actions</th>
+                                {
+                                    role !== "PARENT" && (
+                                        <th className="px-6 py-4 text-center">Actions</th>
+                                    )
+                                }
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -196,9 +200,9 @@ export default function GoalsClient({
                                                 {goal.status.toLowerCase().replace("_", " ")}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-                                                {role !== "PARENT" && (
+                                        {role !== "PARENT" && (
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center justify-center gap-2">
                                                     <button
                                                         onClick={() => handleEdit(goal)}
                                                         className="p-1.5 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
@@ -206,9 +210,10 @@ export default function GoalsClient({
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-                                                )}
-                                            </div>
-                                        </td>
+
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (

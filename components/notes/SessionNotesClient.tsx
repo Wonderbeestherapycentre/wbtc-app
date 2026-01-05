@@ -70,18 +70,18 @@ export default function SessionNotesClient({
 
     return (
         <>
-            <div className="flex flex-row  gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by child name"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                    />
-                </div>
-                {role !== "PARENT" && (
+            {role !== "PARENT" && (
+                <div className="flex flex-row  gap-4 mb-6">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search by child name"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                        />
+                    </div>
                     <button
                         onClick={handleCreate}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 whitespace-nowrap"
@@ -89,9 +89,8 @@ export default function SessionNotesClient({
                         <Plus className="w-4 h-4" />
                         <span className=" sm:inline">New Note</span>
                     </button>
-                )}
-            </div>
-
+                </div>
+            )}
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -118,7 +117,7 @@ export default function SessionNotesClient({
                                         >
                                             <td className="px-6 py-4 align-top" onClick={() => handleView(note)}>
                                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                                    <Calendar className="hidden md:block w-4 h-4 text-gray-400" />
                                                     {format(noteDate, "MMM d, yyyy")}
                                                 </div>
                                             </td>

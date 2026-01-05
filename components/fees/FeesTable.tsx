@@ -23,9 +23,10 @@ interface FeeSummaryItem {
 
 interface FeesTableProps {
     data: FeeSummaryItem[];
+    role?: string;
 }
 
-export default function FeesTable({ data }: FeesTableProps) {
+export default function FeesTable({ data, role }: FeesTableProps) {
     const [selectedChild, setSelectedChild] = useState<{ id: string; name: string; caseNumber?: string } | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -68,7 +69,7 @@ export default function FeesTable({ data }: FeesTableProps) {
                                         <tr key={item.childId} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="font-medium text-gray-900 dark:text-white">{item.childName}</div>
-                                                <div className="text-xs text-gray-400">{item.caseNumber}</div>
+                                                {/* <div className="text-xs text-gray-400">{item.caseNumber}</div> */}
                                             </td>
                                             {/* <td className="px-6 py-4 hidden md:table-cell">
                                                 <span className="text-sm text-gray-600 dark:text-gray-300">{item.parentName}</span>
@@ -129,13 +130,18 @@ export default function FeesTable({ data }: FeesTableProps) {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-1">
-                                                    <button
-                                                        onClick={() => handleAddPayment({ id: item.childId, name: item.childName, caseNumber: item.caseNumber })}
-                                                        className="inline-flex items-center justify-center p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
-                                                        title="Record Payment"
-                                                    >
-                                                        <Plus className="w-4 h-4" />
-                                                    </button>
+                                                    {
+                                                        role === "ADMIN" && (
+                                                            <button
+                                                                onClick={() => handleAddPayment({ id: item.childId, name: item.childName, caseNumber: item.caseNumber })}
+                                                                className="inline-flex items-center justify-center p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                                                                title="Record Payment"
+                                                            >
+                                                                <Plus className="w-4 h-4" />
+                                                            </button>
+                                                        )
+                                                    }
+
                                                     <Link
                                                         href={`/fees/${item.childId}`}
                                                         className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"

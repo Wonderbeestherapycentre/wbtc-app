@@ -19,9 +19,10 @@ interface PaymentHistoryListProps {
     payments: Payment[];
     child: { id: string; name: string; caseNumber?: string | null };
     summary: { paidFee: number };
+    role?: string;
 }
 
-export default function PaymentHistoryList({ payments, child, summary }: PaymentHistoryListProps) {
+export default function PaymentHistoryList({ payments, child, summary, role }: PaymentHistoryListProps) {
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isReadOnly, setIsReadOnly] = useState(false);
@@ -82,13 +83,17 @@ export default function PaymentHistoryList({ payments, child, summary }: Payment
                         <span className="text-sm text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 rounded-full">
                             Total Paid: ₹{summary.paidFee.toLocaleString()}
                         </span>
-                        <button
-                            onClick={handleAdd}
-                            className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
-                            title="Add Payment"
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
+                        {
+                            role === "ADMIN" && (
+                                <button
+                                    onClick={handleAdd}
+                                    className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
+                                    title="Add Payment"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+                            )
+                        }
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -142,20 +147,24 @@ export default function PaymentHistoryList({ payments, child, summary }: Payment
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleEdit(payment)}
-                                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
-                                                    title="Edit Payment"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(payment.id)}
-                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                    title="Delete Payment"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                {role === "ADMIN" && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleEdit(payment)}
+                                                            className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                                                            title="Edit Payment"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteClick(payment.id)}
+                                                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                            title="Delete Payment"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

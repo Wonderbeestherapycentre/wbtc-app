@@ -58,9 +58,6 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                             <CreditCard className="w-6 h-6 text-emerald-600" />
                             Fee Details
                         </h2>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">
-                            Financial overview and payment tracking
-                        </p>
                     </div>
 
                     <div className="flex flex-wrap gap-3">
@@ -91,7 +88,7 @@ export default async function FeesPage(props: { searchParams: Promise<{ startDat
                     children={activeChildren}
                 />
 
-                <FeesTable data={summaryData} />
+                <FeesTable data={summaryData} role={session.user.role} />
             </div>
         </AppLayout>
     );
