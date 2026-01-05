@@ -19,7 +19,7 @@ export async function sendCredentialsEmail(
     password: string
 ) {
     try {
-        const logoPath = path.join(process.cwd(), 'app/assets/logo.jpeg');
+        const logoPath = path.join(process.cwd(), 'app/assets/logo.png');
 
         const mailOptions = {
             from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
@@ -74,7 +74,7 @@ export async function sendCredentialsEmail(
                 </html>
             `,
             attachments: [{
-                filename: 'logo.jpeg',
+                filename: 'logo.png',
                 path: logoPath,
                 cid: 'logo' // same cid value as in the html img src
             }]

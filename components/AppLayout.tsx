@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-// import logo from "@/app/assets/logo.jpeg"; 
+// import logo from "@/app/assets/logo.png"; 
 // import NextImage from "next/image";
 
 export default function AppLayout({

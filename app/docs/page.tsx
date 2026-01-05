@@ -1,6 +1,6 @@
 import Link from "next/link";
 import NextImage from "next/image";
-import logo from "../assets/logo.jpeg";
+import logo from "../assets/logo.png";
 
 export default function DocsPage() {
     return (

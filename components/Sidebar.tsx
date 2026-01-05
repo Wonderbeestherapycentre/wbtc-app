@@ -4,7 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database } from "lucide-react";
 import Image from "next/image";
-import logo from "@/app/assets/logo.jpeg";
+import logo from "@/app/assets/logo.png";
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -135,15 +135,15 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                         {/* Header */}
                         <div className={cn("flex items-center justify-between transition-all duration-300", isCollapsed ? "p-4 justify-center" : "p-6 pb-2")}>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
-                                    <Image
-                                        src={logo}
-                                        alt="Wonderbees Logo"
-                                        width={40}
-                                        height={40}
-                                        className="object-cover"
-                                    />
-                                </div>
+                                {/* <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0"> */}
+                                <Image
+                                    src={logo}
+                                    alt="Wonderbees Logo"
+                                    width={40}
+                                    height={40}
+                                    className="object-cover"
+                                />
+                                {/* </div> */}
                                 <div className={cn("transition-all duration-300 overflow-hidden", isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100")}>
                                     <h1 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent leading-none whitespace-nowrap">
                                         Wonderbees

@@ -7,7 +7,7 @@ import NextImage from "next/image";
 import card1 from "./assets/1.jpeg";
 import card2 from "./assets/2.jpeg";
 import card3 from "./assets/3.jpeg";
-import logo from "./assets/logo.jpeg";
+import logo from "./assets/logo.png";
 export default function LoginPage() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
   const [email, setEmail] = useState("");
@@ -99,7 +99,7 @@ export default function LoginPage() {
               alt="Wonderbees Therapy Centre Logo"
               width={100}
               height={100}
-              className="rounded-xl shadow-lg"
+              className=""
               placeholder="blur"
             />
           </div>
