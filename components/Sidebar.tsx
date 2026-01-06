@@ -58,6 +58,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Tags, label: "Goals", href: "/goals" },
                 { icon: Users, label: "Users", href: "/users" },
                 { icon: Heart, label: "Services", href: "/therapies" },
+                { icon: Calendar, label: "Holidays", href: "/admin/holidays" },
                 // { icon: Database, label: "Backups", href: "/settings/backups" },
             ]
         }

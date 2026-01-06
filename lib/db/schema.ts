@@ -280,6 +280,18 @@ export const payments = pgTable("payments", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 14. Holidays
+export const holidays = pgTable("holidays", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    date: date("date").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: uniqueIndex("holidays_date_idx").on(t.date),
+}));
+
 // Relations
 export const staffAttendanceRelations = relations(staffAttendance, ({ one }) => ({
     user: one(users, { fields: [staffAttendance.userId], references: [users.id] }),

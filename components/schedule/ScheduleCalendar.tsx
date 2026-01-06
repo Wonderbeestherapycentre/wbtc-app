@@ -30,6 +30,7 @@ interface ScheduleCalendarProps {
     allTherapists: any[];
     currentUserRole: "ADMIN" | "THERAPIST" | "PARENT";
     userId: string;
+    holidays: any[];
 }
 
 
@@ -39,7 +40,15 @@ const SLOT_MINUTES = 60; // 45-minute intervals
 const SLOT_HEIGHT = 48; // px per 45-minute slot
 
 
-export default function ScheduleCalendar({ sessions, childrenData, allTherapists, currentUserRole, userId }: ScheduleCalendarProps) {
+export default function ScheduleCalendar({ sessions, childrenData, allTherapists, currentUserRole, userId, holidays }: ScheduleCalendarProps & { holidays: any[] }) {
+    // existing code ...
+    // In MONTH view, after sessions list, add holiday display
+    // Inside monthDays.map loop, after sessionsForDay rendering, add:
+    // const holidaysForDay = holidays.filter(h => isSameDay(new Date(h.date), day));
+    // {holidaysForDay.map(h => (
+    //   <div key={h.id} className="text-xs text-red-600">{h.name}</div>
+    // ))}
+
     const router = useRouter();
 
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH" | "TABLE">("TABLE");
@@ -330,88 +339,123 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-neutral-800/50">
-                                    {filteredSessions.length === 0 ? (
+                                    {filteredSessions.length === 0 && holidays.length === 0 ? (
                                         <tr>
                                             <td colSpan={currentUserRole === "ADMIN" ? 6 : 4} className="py-12 text-center text-gray-400 text-sm">
-                                                No sessions found for the selected filters.
+                                                No sessions or holidays found for the selected filters.
                                             </td>
                                         </tr>
                                     ) : (
-                                        [...filteredSessions]
-                                            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                                            .map((session) => (
-                                                <tr
-                                                    key={session.id}
-                                                    onClick={() => currentUserRole == "ADMIN" && handleEditSession(session)}
-                                                    className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
-                                                >
-                                                    <td className="py-4 px-6 whitespace-nowrap">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                                                {format(session.date as Date, "MMM d, yyyy")}
-                                                            </span>
-                                                            <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">
-                                                                {/* <Clock className="w-3 h-3" /> */}
-                                                                {(() => {
-                                                                    const d = session.date as Date;
-                                                                    const endDate = new Date(d.getTime() + (session.durationMinutes || 45) * 60000);
-                                                                    return `${format(d, "h:mm a")} - ${format(endDate, "h:mm a")}`;
-                                                                })()}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-6">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{session.child.name}</span>
-                                                        </div>
-                                                    </td>
-                                                    {currentUserRole !== "THERAPIST" && (
-                                                        <td className="py-4 px-6">
-                                                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600">
-                                                                {session.therapy.name}
-                                                            </span>
-                                                        </td>
-                                                    )}
-                                                    {currentUserRole === "ADMIN" && (
-                                                        <td className="py-4 px-6">
-                                                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                                                <User className="w-3.5 h-3.5" />
-                                                                {session.therapist.name}
+                                        [
+                                            ...filteredSessions.map(s => ({ type: 'session', data: s, date: new Date(s.date) })),
+                                            ...holidays.map(h => ({ type: 'holiday', data: h, date: new Date(h.date) }))
+                                        ]
+                                            .sort((a, b) => a.date.getTime() - b.date.getTime())
+                                            .map((item) => {
+                                                if (item.type === 'holiday') {
+                                                    const holiday = item.data;
+                                                    return (
+                                                        <tr key={`holiday-${holiday.id}`} className="bg-red-50/50 dark:bg-red-900/10 border-l-4 border-l-red-400">
+                                                            <td className="py-4 px-6 whitespace-nowrap">
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                                                                        {format(new Date(holiday.date), "MMM d, yyyy")}
+                                                                    </span>
+                                                                    <span className="text-xs font-medium text-red-400 flex items-center gap-1 mt-0.5">
+                                                                        All Day
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td colSpan={currentUserRole === "ADMIN" ? 4 : 2} className="py-4 px-6">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-sm font-bold text-red-600 dark:text-red-400">{holiday.name}</span>
+                                                                    {holiday.description && <span className="text-xs text-red-400">- {holiday.description}</span>}
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-4 px-6 text-center">
+                                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border bg-red-100 text-red-700 border-red-200">
+                                                                    HOLIDAY
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+
+                                                const session = item.data;
+                                                return (
+                                                    <tr
+                                                        key={session.id}
+                                                        onClick={() => currentUserRole == "ADMIN" && handleEditSession(session)}
+                                                        className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
+                                                    >
+                                                        <td className="py-4 px-6 whitespace-nowrap">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                                                    {format(session.date as Date, "MMM d, yyyy")}
+                                                                </span>
+                                                                <span className="text-xs font-medium text-gray-500 flex items-center gap-1 mt-0.5">
+                                                                    {/* <Clock className="w-3 h-3" /> */}
+                                                                    {(() => {
+                                                                        const d = session.date as Date;
+                                                                        const endDate = new Date(d.getTime() + (session.durationMinutes || 45) * 60000);
+                                                                        return `${format(d, "h:mm a")} - ${format(endDate, "h:mm a")}`;
+                                                                    })()}
+                                                                </span>
                                                             </div>
                                                         </td>
-                                                    )}
-                                                    <td className="py-4 px-6 text-center">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${getStatusColor(session.status)}`}>
-                                                            {session.status || "SCHEDULED"}
-                                                        </span>
-                                                    </td>
-                                                    {currentUserRole == "ADMIN" && (
-                                                        <td className="py-4 px-6 text-right">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleEditSession(session);
-                                                                    }}
-                                                                    className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
-                                                                >
-                                                                    Edit
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDelete(session.id);
-                                                                    }}
-                                                                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                    title="Delete Session"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
+                                                        <td className="py-4 px-6">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{session.child.name}</span>
                                                             </div>
                                                         </td>
-                                                    )}
-                                                </tr>
-                                            ))
+                                                        {currentUserRole !== "THERAPIST" && (
+                                                            <td className="py-4 px-6">
+                                                                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 dark:bg-neutral-800 text-gray-600">
+                                                                    {session.therapy.name}
+                                                                </span>
+                                                            </td>
+                                                        )}
+                                                        {currentUserRole === "ADMIN" && (
+                                                            <td className="py-4 px-6">
+                                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                                                    <User className="w-3.5 h-3.5" />
+                                                                    {session.therapist.name}
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                        <td className="py-4 px-6 text-center">
+                                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${getStatusColor(session.status)}`}>
+                                                                {session.status || "SCHEDULED"}
+                                                            </span>
+                                                        </td>
+                                                        {currentUserRole == "ADMIN" && (
+                                                            <td className="py-4 px-6 text-right">
+                                                                <div className="flex items-center justify-end gap-2">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleEditSession(session);
+                                                                        }}
+                                                                        className="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDelete(session.id);
+                                                                        }}
+                                                                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        title="Delete Session"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                    </tr>
+                                                );
+                                            })
                                     )}
                                 </tbody>
                             </table>
@@ -447,6 +491,12 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     <span className="truncate">{s.child.name}</span>
                                                 </div>
                                             ))}
+                                            {/* Holidays */}
+                                            {holidays
+                                                .filter(h => isSameDay(new Date(h.date), day))
+                                                .map(h => (
+                                                    <div key={h.id} className="text-xs text-red-600">{h.name}</div>
+                                                ))}
                                         </div>
                                     </div>
                                 );
@@ -504,6 +554,23 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                             return Array.from({ length: numSlots }).map((_, i) => (
                                                 <div key={i} className="border-b border-gray-50 dark:border-neutral-800/10" style={{ height: `${SLOT_HEIGHT}px` }} />
                                             ));
+                                        })()}
+
+                                        {/* Holidays Background Overlay */}
+                                        {(() => {
+                                            const dayHolidays = holidays.filter(h => isSameDay(new Date(h.date), day));
+                                            if (dayHolidays.length === 0) return null;
+
+                                            return (
+                                                <div className="absolute inset-0 z-0 bg-red-50/30 dark:bg-red-900/10 flex items-center justify-center pointer-events-none">
+                                                    <div className="transform -rotate-45 text-red-200 dark:text-red-900/30 font-black text-4xl uppercase tracking-widest select-none">
+                                                        {dayHolidays[0].name}
+                                                    </div>
+                                                    <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-red-500 bg-white/80 dark:bg-black/50 px-2 py-0.5 rounded-full border border-red-100 dark:border-red-900/30 shadow-sm backdrop-blur-sm z-10 w-max max-w-[90%] truncate">
+                                                        Wait! It's {dayHolidays[0].name}
+                                                    </div>
+                                                </div>
+                                            );
                                         })()}
 
                                         {/* Sessions */}
