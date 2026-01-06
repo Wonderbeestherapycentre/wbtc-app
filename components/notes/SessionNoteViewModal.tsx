@@ -20,6 +20,15 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
         setMounted(true);
     }, []);
 
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "EMERGING": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+            case "PARTIALLY_ACHIEVED": return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
+            case "ACHIEVED": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+            default: return "bg-gray-100 text-gray-800";
+        }
+    };
+
     if (!isOpen || !mounted || !note) return null;
 
     let objectives = {};
@@ -61,6 +70,18 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
 
                 <div className="p-2 md:p-4 space-y-3">
 
+                    {/* Little Wins */}
+                    {note.littleWins && (
+                        <div>
+                            <label className="text-sm font-medium text-green-700 dark:text-green-300 mb-3 block">Little Wins Today</label>
+                            <div className="border border-green-200 dark:border-neutral-700 rounded-xl p-2 bg-yellow-50/50 dark:bg-yellow-900/10">
+                                <p className="text-sm text-green-900 dark:text-white whitespace-pre-wrap leading-relaxed">
+                                    {note.littleWins}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Objectives */}
                     {Object.keys(objectives).length > 0 && (
                         <div>
@@ -78,11 +99,8 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                                                     <div className="font-medium text-sm text-gray-900 dark:text-white">{goalTitle}</div>
                                                     {goal && (
                                                         <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                                            <span>{format(new Date(goal.startDate), "MMM d, yyyy")} - {format(new Date(goal.endDate), "MMM d, yyyy")}</span>
-                                                            <span className={`px-2 py-0.5 rounded-full font-medium ${goal.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                                goal.status === 'COMPLETED' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                                    'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-                                                                }`}>
+                                                            {/* <span>{format(new Date(goal.startDate), "MMM d, yyyy")} - {format(new Date(goal.endDate), "MMM d, yyyy")}</span> */}
+                                                            <span className={`px-2 py-0.5 rounded-full font-medium ${getStatusColor(goal.status)}`}>
                                                                 {goal.status.replace('_', ' ')}
                                                             </span>
                                                         </div>
@@ -144,6 +162,7 @@ export default function SessionNoteViewModal({ isOpen, onClose, note, goals }: S
                             </div>
                         </div>
                     )}
+
 
                     <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-neutral-800">
                         <button

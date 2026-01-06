@@ -40,6 +40,7 @@ export default function SessionNoteModal({
     const [activities, setActivities] = useState<{ description: string; prompt: string }[]>([
         { description: "", prompt: "" }
     ]);
+    const [littleWins, setLittleWins] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const childOptions = childrenList.map(c => ({
@@ -70,6 +71,7 @@ export default function SessionNoteModal({
                 } catch (e) {
                     setActivities([{ description: "", prompt: "" }]);
                 }
+                setLittleWins(note.littleWins || "");
             } else {
                 // Creating new note - auto-select therapist's specialization
                 console.log("Creating new note, setting therapy to:", therapistSpecialization || "empty");
@@ -78,6 +80,7 @@ export default function SessionNoteModal({
                 setDate(getTodayIST());
                 setSelectedObjectives({});
                 setActivities([{ description: "", prompt: "" }]);
+                setLittleWins("");
             }
             setErrors({});
         }
@@ -143,6 +146,7 @@ export default function SessionNoteModal({
             date: date,
             goalsAddressed: JSON.stringify(selectedObjectives),
             activities: JSON.stringify(validActivities),
+            littleWins: littleWins,
         });
 
         if (!validationResult.success) {
@@ -165,6 +169,7 @@ export default function SessionNoteModal({
         formData.append("date", date);
         formData.append("goalsAddressed", JSON.stringify(selectedObjectives));
         formData.append("activities", JSON.stringify(validActivities));
+        formData.append("littleWins", littleWins);
 
         if (note) {
             formData.append("id", note.id);
@@ -377,6 +382,18 @@ export default function SessionNoteModal({
                                 </div>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Little Wins */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Little Wins Today</label>
+                        <textarea
+                            value={littleWins}
+                            onChange={(e) => setLittleWins(e.target.value)}
+                            placeholder="Small achievements to celebrate..."
+                            rows={2}
+                            className="w-full px-4 py-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                        />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 dark:border-neutral-800">

@@ -34,7 +34,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: a
                 </div>
 
                 {/* Key Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Active Children */}
                     <div className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-xl p-5 shadow-sm">
                         <div className="flex items-center justify-between">
