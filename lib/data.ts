@@ -1,10 +1,26 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses, payments } from "./db/schema";
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses, payments, holidays } from "./db/schema";
 
 import { eq, desc, and, asc, sql, count, gte, lte, ilike, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { convertUTCToIST } from "./utils/timezone";
 import { formatDateToLocal } from "./utils";
+
+// Fetch holidays within optional date range
+export async function fetchHolidays(startDate?: Date, endDate?: Date) {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [] as any[];
+    if (startDate) conditions.push(gte(holidays.date, formatDateToLocal(startDate)));
+    if (endDate) conditions.push(lte(holidays.date, formatDateToLocal(endDate)));
+
+    const data = await db.query.holidays.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        orderBy: [asc(holidays.date)],
+    });
+    return data;
+}
 
 export async function fetchUsers() {
     const session = await auth();

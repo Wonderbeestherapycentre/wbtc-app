@@ -7,10 +7,10 @@ import path from "path";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments } from "./db/schema"; // Added reporting tables
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments, holidays } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
-import { eq, desc, asc, and, isNotNull, like, inArray } from "drizzle-orm"; // Added inArray
+import { eq, desc, asc, and, isNotNull, like, inArray, gte, lte, or } from "drizzle-orm"; // Added inArray
 import { addDays, isSameDay, setHours, setMinutes, getDay, startOfToday } from "date-fns";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
@@ -309,6 +309,16 @@ export async function createSession(formData: FormData) {
         // which .toISOString() then renders as 15:15:00.000Z.
         const dateObj = new Date(Date.UTC(year, month - 1, day, hours, minutes));
 
+        // Validation: Check if date is a holiday
+        const dateString = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+        const holiday = await db.query.holidays.findFirst({
+            where: eq(holidays.date, dateString)
+        });
+
+        if (holiday) {
+            return { message: `Cannot schedule: ${holiday.name} is on this date.` };
+        }
+
         console.log('createSession Wall Time (Date.UTC):', {
             dateStr,
             timeStr,
@@ -418,6 +428,17 @@ export async function createMonthlySchedule(formData: FormData) {
                     continue;
                 }
 
+                // Check for Holiday
+                const dateString = sessionDate.toISOString().split('T')[0];
+                const holiday = await db.query.holidays.findFirst({
+                    where: eq(holidays.date, dateString)
+                });
+
+                if (holiday) {
+                    console.log(`Skipping holiday: ${holiday.name} on ${dateString}`);
+                    continue;
+                }
+
                 sessionsToInsert.push({
                     childId: validated.childId,
                     therapistId: validated.therapistId,
@@ -468,6 +489,16 @@ export async function updateSession(id: string, formData: FormData) {
         const dateObj = dateStr && timeStr ? new Date(Date.UTC(year, month - 1, day, hours, minutes)) : undefined;
 
         if (dateObj) {
+            // Validation: Check if date is a holiday
+            const dateString = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+            const holiday = await db.query.holidays.findFirst({
+                where: eq(holidays.date, dateString)
+            });
+
+            if (holiday) {
+                return { message: `Cannot reschedule: ${holiday.name} is on this date.` };
+            }
+
             console.log('updateSession Wall Time (Date.UTC):', {
                 dateStr,
                 timeStr,
@@ -1752,5 +1783,71 @@ export async function deletePayment(id: string) {
     } catch (error) {
         console.error("Failed to delete payment:", error);
         return { error: "Failed to delete payment" };
+    }
+}
+
+// --- Holiday Actions ---
+export async function createHoliday(formData: FormData) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    const name = formData.get("name") as string;
+    const dateStr = formData.get("date") as string;
+    const description = (formData.get("description") as string) || "";
+
+    if (!name || !dateStr) return { message: "Name and Date are required" };
+
+    // Validation: Check if sessions exist using "Wall Time" comparison
+    // Sessions are stored as UTC dates that represent Wall Time.
+    // e.g. 2025-01-01 10:00:00 UTC means "10:00 AM on Jan 1st"
+    // So we just need to check if any session falls on this YYYY-MM-DD.
+    // We can use the date string directly if we cast the timestamp column to date or use range.
+    // Drizzle/Postgres: where(sql`DATE(date) = ${dateStr}`) might work but timezones are tricky.
+    // Safer: check range [dateStr 00:00:00, dateStr 23:59:59] in terms of the stored UTC values.
+
+    const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
+    const endOfDay = new Date(`${dateStr}T23:59:59.999Z`);
+
+    const existingSession = await db.query.sessions.findFirst({
+        where: and(
+            gte(sessions.date, startOfDay),
+            lte(sessions.date, endOfDay),
+            // eq(sessions.status, "SCHEDULED") // Only check scheduled? Or existing at all? User said "sessions exist". Safest is "SCHEDULED" or "COMPLETED". "CANCELLED" is fine.
+            or(eq(sessions.status, "SCHEDULED"), eq(sessions.status, "COMPLETED"), eq(sessions.status, "RESCHEDULED"))
+        )
+    });
+
+    if (existingSession) {
+        return { message: "Cannot create holiday: Active sessions exist on this date. Please cancel or reschedule them first." };
+    }
+
+    try {
+        await db.insert(holidays).values({
+            name,
+            date: dateStr, // Date string YYYY-MM-DD
+            description,
+        });
+
+        revalidatePath("/admin/holidays");
+        revalidatePath("/schedule");
+        return { message: "Holiday created" };
+    } catch (error) {
+        console.error("Failed to create holiday:", error);
+        return { message: "Failed to create holiday" };
+    }
+}
+
+export async function deleteHoliday(id: string) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    try {
+        await db.delete(holidays).where(eq(holidays.id, id));
+        revalidatePath("/admin/holidays");
+        revalidatePath("/schedule");
+        return { message: "Holiday deleted" };
+    } catch (error) {
+        console.error("Failed to delete holiday:", error);
+        return { message: "Failed to delete holiday" };
     }
 }

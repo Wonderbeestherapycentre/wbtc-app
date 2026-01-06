@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { auth } from "@/auth";
-import { fetchSessions, fetchChildren, fetchTherapists } from "@/lib/data";
+import { fetchSessions, fetchChildren, fetchTherapists, fetchHolidays } from "@/lib/data";
 import Link from "next/link";
 import ScheduleCalendar from "@/components/schedule/ScheduleCalendar";
 
@@ -19,6 +19,7 @@ export default async function SchedulePage() {
     endDate.setDate(endDate.getDate() + 90);
 
     const sessions = await fetchSessions(startDate, endDate);
+    const holidays = await fetchHolidays(startDate, endDate);
 
     return (
         <AppLayout role={currentUserRole} user={session?.user}>
@@ -43,6 +44,7 @@ export default async function SchedulePage() {
                     allTherapists={therapists as any}
                     currentUserRole={currentUserRole}
                     userId={userId}
+                    holidays={holidays as any}
                 />
             </div>
         </AppLayout>
