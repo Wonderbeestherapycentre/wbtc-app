@@ -28,7 +28,6 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
     return (
         <AppLayout familyChildren={activeChildren} role={session?.user?.role as any} user={session?.user}>
             <div className="space-y-3 animate-fade-in">
-
                 <ChildSettings
                     children={childrenList as any}
                     parents={parents}
@@ -36,7 +35,6 @@ export default async function ChildrenPage({ searchParams }: { searchParams: any
                     therapies={therapies as any}
                     role={role}
                 />
-
                 <Pagination currentPage={meta.page} totalPages={meta.totalPages} />
             </div>
         </AppLayout>
