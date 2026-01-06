@@ -14,6 +14,7 @@ import { eq, desc, asc, and, isNotNull, like, inArray, gte, lte, or } from "driz
 import { addDays, isSameDay, setHours, setMinutes, getDay, startOfToday } from "date-fns";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
+import { CreateHolidaySchema } from "./validations/holiday";
 import { ChildSchema } from "./validations/child";
 import { GoalSchema, UpdateGoalSchema } from "./validations/goal";
 import { SessionNoteSchema, UpdateSessionNoteSchema } from "./validations/session-note";
@@ -1791,11 +1792,22 @@ export async function createHoliday(formData: FormData) {
     const session = await auth();
     if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
 
-    const name = formData.get("name") as string;
-    const dateStr = formData.get("date") as string;
-    const description = (formData.get("description") as string) || "";
+    const rawData = {
+        name: formData.get("name"),
+        date: formData.get("date"),
+        description: formData.get("description"),
+    };
 
-    if (!name || !dateStr) return { message: "Name and Date are required" };
+    const validated = CreateHolidaySchema.safeParse(rawData);
+
+    if (!validated.success) {
+        return {
+            errors: validated.error.flatten().fieldErrors,
+            message: "Validation Error",
+        };
+    }
+
+    const { name, date: dateStr, description } = validated.data;
 
     // Validation: Check if sessions exist using "Wall Time" comparison
     // Sessions are stored as UTC dates that represent Wall Time.
