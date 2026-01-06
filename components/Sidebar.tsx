@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const [collapsedSections, setCollapsedSections] = React.useState<Record<string, boolean>>({
         "FinTrack": true,
-        "Management": true
+        "Management": false
     });
 
     const toggleSection = (label: string) => {

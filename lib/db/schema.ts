@@ -74,6 +74,7 @@ export const sessionNotes = pgTable("session_notes", {
     goalsAddressed: text("goals_addressed"), // JSON stringified array of goal IDs
     activities: text("activities"), // JSON stringified array of {description: string, prompt: string}
     response: text("response"),
+    littleWins: text("little_wins"),
     remarks: text("remarks"),
     parentViewedAt: timestamp("parent_viewed_at"), // Track when parent viewed this note
     createdAt: timestamp("created_at").defaultNow().notNull(),

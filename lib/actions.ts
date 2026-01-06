@@ -1143,6 +1143,7 @@ export async function createSessionNote(formData: FormData) {
             date: formData.get("date"),
             goalsAddressed: formData.get("goalsAddressed"),
             activities: formData.get("activities"),
+            littleWins: formData.get("littleWins"),
         });
 
         if (!validationResult.success) {
@@ -1152,7 +1153,7 @@ export async function createSessionNote(formData: FormData) {
             };
         }
 
-        const { childId, therapyId, date, goalsAddressed, activities } = validationResult.data;
+        const { childId, therapyId, date, goalsAddressed, activities, littleWins } = validationResult.data;
 
         await db.insert(sessionNotes).values({
             childId,
@@ -1161,6 +1162,7 @@ export async function createSessionNote(formData: FormData) {
             date,
             goalsAddressed: goalsAddressed || null,
             activities: activities ? JSON.stringify(activities) : null,
+            littleWins: littleWins || null,
         });
 
         revalidatePath("/session-notes");
@@ -1185,6 +1187,7 @@ export async function updateSessionNote(formData: FormData) {
             date: formData.get("date"),
             goalsAddressed: formData.get("goalsAddressed"),
             activities: formData.get("activities"),
+            littleWins: formData.get("littleWins"),
         });
 
         if (!validationResult.success) {

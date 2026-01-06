@@ -29,6 +29,7 @@ export const SessionNoteSchema = z.object({
             return [];
         }
     }, z.array(ActivitySchema).min(1, "Please add at least one activity")),
+    littleWins: z.string().optional(),
 });
 
 // Session Note update schema
@@ -46,4 +47,5 @@ export const UpdateSessionNoteSchema = z.object({
             return [];
         }
     }, z.array(ActivitySchema).optional()),
+    littleWins: z.string().optional(),
 });

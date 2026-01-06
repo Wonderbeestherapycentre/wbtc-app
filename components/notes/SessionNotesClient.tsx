@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useState } from "react";
 import { Plus, Search, Calendar, FileText, Eye, Edit, Trash2 } from "lucide-react";
 import SessionNoteModal from "./SessionNoteModal";
@@ -25,6 +27,7 @@ export default function SessionNotesClient({
     role,
     therapistSpecialization
 }: SessionNotesClientProps) {
+    const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [editingNote, setEditingNote] = useState<any>(null);
@@ -47,6 +50,7 @@ export default function SessionNotesClient({
 
         if (role === "PARENT" && !note.parentViewedAt) {
             await markSessionNoteAsViewed(note.id);
+            router.refresh();
         }
     };
 
