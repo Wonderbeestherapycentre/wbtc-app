@@ -297,7 +297,6 @@ export default function SessionNoteModal({
 
                                     return (
                                         <div key={goal.id} className="border-b border-gray-100 dark:border-neutral-800 pb-3 last:border-b-0 last:pb-0">
-                                            <div className="font-medium text-sm text-gray-900 dark:text-white mb-2 px-2">{goal.title}</div>
                                             <div className="space-y-1.5">
                                                 {objectives.map((objective, idx) => (
                                                     <label key={idx} className="flex items-start gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 p-2 rounded-lg transition-colors">

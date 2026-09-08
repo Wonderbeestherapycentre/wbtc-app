@@ -17,6 +17,10 @@ import { JWT } from "next-auth/jwt"
 declare module "next-auth/jwt" {
     interface JWT {
         id: string
-        role: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER"
+        role?: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER"
+        /** Epoch ms of the last successful DB revalidation of this user. */
+        verifiedAt?: number
+        /** Set when the user was found deactivated/removed - forces logout. */
+        deactivated?: boolean
     }
 }

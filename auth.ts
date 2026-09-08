@@ -19,36 +19,68 @@ async function getUser(email: string) {
     }
 }
 
+// How often (ms) to re-check the DB that the logged-in user still exists and is
+// ACTIVE. The check runs in the `jwt` callback (only fires on token refresh),
+// not in `session` (fires on every request) - this keeps the Neon HTTP round
+// trip off the hot path and stops transient DB errors from spamming the console.
+const USER_REVALIDATE_INTERVAL = 5 * 60 * 1000;
+
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
     callbacks: {
         ...authConfig.callbacks,
-        async session({ session, token }) {
-            if (token?.id) {
-                // Hydrate from the JWT first so the header/sidebar always have the
-                // user, even when the verification query below is slow or fails.
-                session.user.id = token.id as string;
-                session.user.role = token.role as any;
-                if (token.name) session.user.name = token.name as string;
-                if (token.email) session.user.email = token.email as string;
-
-                try {
-                    const user = await db.query.users.findFirst({
-                        where: eq(users.id, token.id as string),
-                        columns: { name: true, status: true },
-                    });
-
-                    if (!user || user.status !== "ACTIVE") {
-                        return null as any; // Force logout for deactivated/removed users
-                    }
-
-                    session.user.name = user.name;
-                } catch (error) {
-                    // Transient DB error - keep the session alive using token data
-                    // instead of logging the user out / showing them as a guest.
-                    console.error("session callback: user verification failed, using token data", error);
-                }
+        async jwt({ token, user, trigger }) {
+            // Sign-in: seed the token from the authorized user.
+            if (user) {
+                token.id = user.id!;
+                token.role = (user as any).role;
+                if (user.name) token.name = user.name;
+                if (user.email) token.email = user.email;
+                token.verifiedAt = Date.now();
+                return token;
             }
+
+            if (!token.id) return token;
+
+            const verifiedAt = typeof token.verifiedAt === "number" ? token.verifiedAt : 0;
+            const isStale = Date.now() - verifiedAt > USER_REVALIDATE_INTERVAL;
+            if (trigger !== "update" && !isStale) return token;
+
+            try {
+                const dbUser = await db.query.users.findFirst({
+                    where: eq(users.id, token.id as string),
+                    columns: { name: true, status: true },
+                });
+
+                if (!dbUser || dbUser.status !== "ACTIVE") {
+                    // Deactivated/removed - drop role so `authorized` bounces them to login.
+                    token.role = undefined;
+                    token.deactivated = true;
+                    return token;
+                }
+
+                token.name = dbUser.name;
+                token.deactivated = false;
+                token.verifiedAt = Date.now();
+            } catch (error) {
+                // Transient DB error - keep the token as-is and back off so we
+                // don't retry (and log) on every single request.
+                token.verifiedAt = Date.now() - USER_REVALIDATE_INTERVAL + 30 * 1000;
+                console.warn("jwt callback: user revalidation skipped (DB unavailable)");
+            }
+
+            return token;
+        },
+        async session({ session, token }) {
+            if (token?.deactivated || !token?.id) {
+                return null as any; // Force logout for deactivated/removed users
+            }
+
+            session.user.id = token.id as string;
+            session.user.role = token.role as any;
+            if (token.name) session.user.name = token.name as string;
+            if (token.email) session.user.email = token.email as string;
+
             return session;
         },
     },
