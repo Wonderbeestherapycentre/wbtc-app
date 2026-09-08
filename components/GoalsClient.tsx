@@ -136,7 +136,7 @@ export default function GoalsClient({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium whitespace-nowrap">
-                                <th className="px-6 py-4 w-12">S.No</th>
+                                <th className="px-3 py-4 w-px whitespace-nowrap">#</th>
                                 <th className="px-6 py-4 min-w-[200px]">Goal Description</th>
                                 <th className="px-6 py-4">Child Name</th>
                                 <th className="px-6 py-4">Therapy</th>
@@ -156,7 +156,7 @@ export default function GoalsClient({
                                         key={goal.id}
                                         className="group hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 text-sm text-gray-400 font-medium">
+                                        <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-400 font-medium">
                                             {(meta.page - 1) * meta.limit + index + 1}
                                         </td>
                                         <td className="px-6 py-4">

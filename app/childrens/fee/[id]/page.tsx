@@ -67,6 +67,7 @@ export default async function ChildFeePage({ params }: { params: Promise<{ id: s
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 text-gray-500 font-medium">
                                 <tr>
+                                    <th className="px-3 py-3 w-px whitespace-nowrap">#</th>
                                     <th className="px-6 py-3">Date</th>
                                     <th className="px-6 py-3">Therapy</th>
                                     <th className="px-6 py-3">Therapist</th>
@@ -77,13 +78,14 @@ export default async function ChildFeePage({ params }: { params: Promise<{ id: s
                             <tbody className="divide-y divide-gray-100">
                                 {sessions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                             No sessions found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    sessions.map((session) => (
+                                    sessions.map((session, index) => (
                                         <tr key={session.id} className="hover:bg-gray-50/50">
+                                            <td className="px-3 py-4 w-px whitespace-nowrap text-gray-500">{index + 1}</td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 {new Date(session.date).toLocaleDateString('en-IN', {
                                                     day: 'numeric',

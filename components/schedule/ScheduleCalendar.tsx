@@ -324,6 +324,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-100 dark:border-neutral-800 sticky top-0 z-10 backdrop-blur-sm">
                                     <tr>
+                                        <th className="py-4 px-3 w-px whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-gray-400">#</th>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Date & Time</th>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Child</th>
                                         {currentUserRole !== "THERAPIST" && (
@@ -341,7 +342,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                 <tbody className="divide-y divide-gray-50 dark:divide-neutral-800/50">
                                     {filteredSessions.length === 0 && holidays.length === 0 ? (
                                         <tr>
-                                            <td colSpan={currentUserRole === "ADMIN" ? 6 : 4} className="py-12 text-center text-gray-400 text-sm">
+                                            <td colSpan={currentUserRole === "ADMIN" ? 7 : 5} className="py-12 text-center text-gray-400 text-sm">
                                                 No sessions or holidays found for the selected filters.
                                             </td>
                                         </tr>
@@ -351,11 +352,12 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                             ...holidays.map(h => ({ type: 'holiday', data: h, date: new Date(h.date) }))
                                         ]
                                             .sort((a, b) => a.date.getTime() - b.date.getTime())
-                                            .map((item) => {
+                                            .map((item, index) => {
                                                 if (item.type === 'holiday') {
                                                     const holiday = item.data;
                                                     return (
                                                         <tr key={`holiday-${holiday.id}`} className="bg-red-50/50 dark:bg-red-900/10 border-l-4 border-l-red-400">
+                                                            <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                                             <td className="py-4 px-6 whitespace-nowrap">
                                                                 <div className="flex flex-col">
                                                                     <span className="text-sm font-bold text-red-600 dark:text-red-400">
@@ -388,6 +390,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                         onClick={() => currentUserRole == "ADMIN" && handleEditSession(session)}
                                                         className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
                                                     >
+                                                        <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                                         <td className="py-4 px-6 whitespace-nowrap">
                                                             <div className="flex flex-col">
                                                                 <span className="text-sm font-bold text-gray-900 dark:text-white">

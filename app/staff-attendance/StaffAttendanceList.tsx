@@ -34,19 +34,21 @@ export default function StaffAttendanceList({ staff, attendance, date }: { staff
                 <table className="w-full">
                     <thead>
                         <tr className="text-left text-sm text-gray-500 border-b border-gray-100 dark:border-neutral-800">
+                            <th className="pb-3 px-3 w-px whitespace-nowrap">#</th>
                             <th className="pb-3 px-4">Staff Name</th>
                             <th className="pb-3 px-4">Status</th>
                             <th className="pb-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-neutral-800">
-                        {staff.map(user => {
+                        {staff.map((user, index) => {
                             const record = attendance.find(a => a.userId === user.id);
                             const currentStatus = record?.status;
                             const isLoading = loadingMap[user.id];
 
                             return (
                                 <tr key={user.id} className="group hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                    <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                     <td className="py-4 px-4 font-medium">{user.name}</td>
                                     <td className="py-4 px-4">
                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${currentStatus === "PRESENT" ? "bg-green-100 text-green-700" :

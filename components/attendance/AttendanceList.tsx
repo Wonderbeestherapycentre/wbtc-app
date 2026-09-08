@@ -54,6 +54,7 @@ export default function AttendanceList({
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 dark:bg-neutral-800 border-b border-gray-100 dark:border-neutral-800">
                         <tr>
+                            <th className="px-3 py-4 w-px whitespace-nowrap text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
                             <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Child</th>
                             {currentUserRole !== "THERAPIST" && (
@@ -65,13 +66,14 @@ export default function AttendanceList({
                     <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                         {sessions.length === 0 ? (
                             <tr>
-                                <td colSpan={currentUserRole === "THERAPIST" ? 3 : 4} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={currentUserRole === "THERAPIST" ? 4 : 5} className="px-6 py-8 text-center text-gray-500">
                                     No sessions found.
                                 </td>
                             </tr>
                         ) : (
-                            sessions.map((session) => (
+                            sessions.map((session, index) => (
                                 <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors">
+                                    <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white">
                                             <Clock className="w-4 h-4 text-gray-400" />

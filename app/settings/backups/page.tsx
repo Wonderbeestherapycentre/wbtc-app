@@ -82,6 +82,7 @@ export default function BackupsPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="text-xs uppercase tracking-wider text-gray-400 font-bold border-b border-gray-50 dark:border-neutral-900">
+                                <th className="px-3 py-4 w-px whitespace-nowrap">#</th>
                                 <th className="px-8 py-4">Filename</th>
                                 <th className="px-8 py-4">Created At</th>
                                 <th className="px-8 py-4">Size</th>
@@ -92,6 +93,7 @@ export default function BackupsPage() {
                             {loading ? (
                                 Array(3).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
+                                        <td className="px-3 py-6 w-px whitespace-nowrap"><div className="h-4 bg-gray-100 dark:bg-neutral-800 rounded w-6" /></td>
                                         <td className="px-8 py-6"><div className="h-4 bg-gray-100 dark:bg-neutral-800 rounded w-48" /></td>
                                         <td className="px-8 py-6"><div className="h-4 bg-gray-100 dark:bg-neutral-800 rounded w-32" /></td>
                                         <td className="px-8 py-6"><div className="h-4 bg-gray-100 dark:bg-neutral-800 rounded w-16" /></td>
@@ -100,7 +102,7 @@ export default function BackupsPage() {
                                 ))
                             ) : backups.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-8 py-12 text-center text-gray-400">
+                                    <td colSpan={5} className="px-8 py-12 text-center text-gray-400">
                                         <div className="flex flex-col items-center gap-3">
                                             <AlertCircle size={40} className="text-gray-200" />
                                             <p>No backups found. Trigger one to get started.</p>
@@ -108,8 +110,9 @@ export default function BackupsPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                backups.map((backup) => (
+                                backups.map((backup, index) => (
                                     <tr key={backup.name} className="hover:bg-gray-50/50 dark:hover:bg-neutral-800/20 transition-colors">
+                                        <td className="px-3 py-6 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                         <td className="px-8 py-6 text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {backup.name}
                                         </td>

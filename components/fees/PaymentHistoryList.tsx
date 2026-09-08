@@ -100,6 +100,7 @@ export default function PaymentHistoryList({ payments, child, summary, role }: P
                     <table className="w-full text-sm text-left">
                         <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 font-medium">
                             <tr>
+                                <th className="px-3 py-3 w-px whitespace-nowrap">#</th>
                                 <th className="px-6 py-3">Date</th>
                                 <th className="px-6 py-3">Mode</th>
                                 <th className="px-6 py-3">Remarks</th>
@@ -110,13 +111,14 @@ export default function PaymentHistoryList({ payments, child, summary, role }: P
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {payments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                         No payment records found.
                                     </td>
                                 </tr>
                             ) : (
-                                payments.map((payment) => (
+                                payments.map((payment, index) => (
                                     <tr key={payment.id} className="hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-colors group">
+                                        <td className="px-3 py-4 w-px whitespace-nowrap text-gray-500">{index + 1}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white font-medium">
                                             {new Date(payment.date).toLocaleDateString('en-IN', {
                                                 day: '2-digit',

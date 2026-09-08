@@ -35,7 +35,8 @@ export default function AppLayout({
                 {/* Unified Header */}
                 <Header
                     user={user}
-                    onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    mobileMenuOpen={mobileMenuOpen}
+                    setMobileMenuOpen={setMobileMenuOpen}
                 />
 
                 <main className="flex-1 overflow-y-auto p-2 md:px-4 md:py-2">

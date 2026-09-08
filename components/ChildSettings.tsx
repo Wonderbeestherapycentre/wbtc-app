@@ -145,6 +145,7 @@ export default function ChildSettings({
                     <table className="w-full md:min-w-[600px]">
                         <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
+                                <th className="text-left py-1 px-1 md:py-2 md:px-3 w-px whitespace-nowrap text-xs font-semibold text-gray-500 uppercase">#</th>
                                 <th className="text-left py-1 px-1 md:py-2 md:px-6 text-xs font-semibold text-gray-500 uppercase">Name</th>
                                 {
                                     role === "ADMIN" && (
@@ -164,11 +165,12 @@ export default function ChildSettings({
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {children.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-8 text-center text-gray-500">No children added yet.</td>
+                                    <td colSpan={5} className="py-8 text-center text-gray-500">No children added yet.</td>
                                 </tr>
                             ) : (
-                                children.map((child) => (
+                                children.map((child, index) => (
                                     <tr key={child.id} className="hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                                        <td className="py-1 px-1 md:py-2 md:px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                         <td className="py-1 px-1 md:py-2 md:px-6">
                                             <div className="flex items-center gap-3">
                                                 <div

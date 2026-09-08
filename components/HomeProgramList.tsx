@@ -145,6 +145,7 @@ export default function HomeProgramList({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
+                                <th className="px-3 py-4 w-px whitespace-nowrap text-xs font-bold text-gray-400 uppercase tracking-wider">#</th>
                                 <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[200px]">Activity Name</th>
                                 {userRole !== "PARENT" && (
                                     <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Child</th>
@@ -158,8 +159,11 @@ export default function HomeProgramList({
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {programs.length > 0 ? (
-                                programs.map((program) => (
+                                programs.map((program, index) => (
                                     <tr key={program.id} className="group hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                                        <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-500">
+                                            {(meta.page - 1) * meta.limit + index + 1}
+                                        </td>
                                         <td className="px-3 py-4" onClick={() => handleView(program)}>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-900 dark:text-white transition-colors capitalize">
@@ -235,7 +239,7 @@ export default function HomeProgramList({
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3 + (userRole !== "PARENT" ? 1 : 0) + (hideTherapyColumn ? 0 : 1)} className="px-6 py-20 text-center">
+                                    <td colSpan={4 + (userRole !== "PARENT" ? 1 : 0) + (hideTherapyColumn ? 0 : 1)} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center">
                                             <div className="bg-gray-100 dark:bg-neutral-800 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                                                 <Filter className="w-6 h-6 text-gray-400" />

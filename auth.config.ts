@@ -44,6 +44,10 @@ export const authConfig = {
                 token.id = user.id!;
                 // @ts-ignore - we know our schema
                 token.role = user.role;
+                // Persist name/email on the token so the UI never has to wait on
+                // (or fall back when) the per-request DB lookup in `session`.
+                if (user.name) token.name = user.name;
+                if (user.email) token.email = user.email;
             }
             return token;
         },

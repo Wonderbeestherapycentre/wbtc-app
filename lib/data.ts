@@ -432,6 +432,49 @@ export async function fetchSessionNotes() {
     }));
 }
 
+export async function fetchSessionNote(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const note: any = await db.query.sessionNotes.findFirst({
+        where: eq(sessionNotes.id, id),
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+        }
+    });
+
+    if (!note) return null;
+
+    // Role-based access control
+    if (session.user.role === "THERAPIST" && note.therapistId !== session.user.id) {
+        return null;
+    }
+    if (session.user.role === "PARENT") {
+        const child: any = await db.query.children.findFirst({
+            where: eq(children.id, note.childId),
+        });
+        if (!child || child.parentId !== session.user.id) return null;
+    }
+
+    // Track parent view
+    if (session.user.role === "PARENT" && !note.parentViewedAt) {
+        await db.update(sessionNotes)
+            .set({ parentViewedAt: new Date() })
+            .where(eq(sessionNotes.id, id));
+        note.parentViewedAt = new Date();
+    }
+
+    return {
+        ...note,
+        date: convertUTCToIST(note.date),
+        createdAt: convertUTCToIST(note.createdAt),
+        updatedAt: convertUTCToIST(note.updatedAt),
+        parentViewedAt: note.parentViewedAt ? convertUTCToIST(note.parentViewedAt) : null,
+    };
+}
+
 export async function fetchHomePrograms(childId?: string) {
     const session = await auth();
     if (!session?.user) return [];

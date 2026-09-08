@@ -147,6 +147,7 @@ export default async function ChildFeePage({
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 font-medium">
                                 <tr>
+                                    <th className="px-3 py-3 w-px whitespace-nowrap">#</th>
                                     <th className="px-6 py-3">Date</th>
                                     <th className="px-6 py-3">Therapy</th>
                                     <th className="px-6 py-3">Therapist</th>
@@ -158,13 +159,14 @@ export default async function ChildFeePage({
                             <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                                 {sessions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                                             No sessions found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    sessions.map((s) => (
+                                    sessions.map((s, index) => (
                                         <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
+                                            <td className="px-3 py-4 w-px whitespace-nowrap text-gray-500">{index + 1}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
                                                 {new Date(s.date).toLocaleDateString('en-IN', {
                                                     day: 'numeric',

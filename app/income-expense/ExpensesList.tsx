@@ -71,6 +71,7 @@ export default function ExpensesList({ expenses, selectedMonth, monthOptions, on
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 dark:bg-neutral-800/50">
                             <tr>
+                                <th className="px-3 py-3 w-px whitespace-nowrap text-xs font-medium text-gray-500 uppercase">#</th>
                                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
                                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Category</th>
                                 <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
@@ -78,8 +79,9 @@ export default function ExpensesList({ expenses, selectedMonth, monthOptions, on
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
-                            {expenses.map((expense) => (
+                            {expenses.map((expense, index) => (
                                 <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
+                                    <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</td>
                                     <td className="px-6 py-4 text-sm">
                                         <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs">

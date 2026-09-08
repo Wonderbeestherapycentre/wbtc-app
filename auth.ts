@@ -25,16 +25,29 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         ...authConfig.callbacks,
         async session({ session, token }) {
             if (token?.id) {
-                const user = await db.query.users.findFirst({
-                    where: eq(users.id, token.id as string),
-                });
-
-                if (!user || user.status !== "ACTIVE") {
-                    return null as any; // Force logout
-                }
-
+                // Hydrate from the JWT first so the header/sidebar always have the
+                // user, even when the verification query below is slow or fails.
                 session.user.id = token.id as string;
                 session.user.role = token.role as any;
+                if (token.name) session.user.name = token.name as string;
+                if (token.email) session.user.email = token.email as string;
+
+                try {
+                    const user = await db.query.users.findFirst({
+                        where: eq(users.id, token.id as string),
+                        columns: { name: true, status: true },
+                    });
+
+                    if (!user || user.status !== "ACTIVE") {
+                        return null as any; // Force logout for deactivated/removed users
+                    }
+
+                    session.user.name = user.name;
+                } catch (error) {
+                    // Transient DB error - keep the session alive using token data
+                    // instead of logging the user out / showing them as a guest.
+                    console.error("session callback: user verification failed, using token data", error);
+                }
             }
             return session;
         },

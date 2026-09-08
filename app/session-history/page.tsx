@@ -110,6 +110,7 @@ export default async function SessionHistoryPage(props: {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-100 dark:border-neutral-800">
                                 <tr>
+                                    <th className="px-3 py-3 w-px whitespace-nowrap">#</th>
                                     <th className="px-6 py-3 whitespace-nowrap">Date</th>
                                     <th className="px-6 py-3 whitespace-nowrap">Child</th>
                                     <th className="px-6 py-3 whitespace-nowrap">Therapy</th>
@@ -122,13 +123,16 @@ export default async function SessionHistoryPage(props: {
                             <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                                 {sessions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                                             No sessions found.
                                         </td>
                                     </tr>
                                 ) : (
-                                    sessions.map((session: any) => (
+                                    sessions.map((session: any, index: number) => (
                                         <tr key={session.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
+                                            <td className="px-3 py-4 w-px whitespace-nowrap text-gray-500">
+                                                {(pagination.current - 1) * 20 + index + 1}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">
                                                 {new Date(session.date).toLocaleDateString('en-IN', {
                                                     day: 'numeric', month: 'short', year: 'numeric',

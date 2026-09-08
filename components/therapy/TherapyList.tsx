@@ -85,6 +85,7 @@ export default function TherapyList({ therapies, currentUserRole }: TherapyListP
                 <table className="w-full">
                     <thead className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                         <tr>
+                            <th className="text-left py-4 px-3 w-px whitespace-nowrap text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service Name</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Default Charge</th>
@@ -97,11 +98,12 @@ export default function TherapyList({ therapies, currentUserRole }: TherapyListP
                     <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                         {therapies.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-8 text-center text-gray-500">No therapy services defined.</td>
+                                <td colSpan={6} className="py-8 text-center text-gray-500">No therapy services defined.</td>
                             </tr>
                         ) : (
-                            therapies.map((therapy) => (
+                            therapies.map((therapy, index) => (
                                 <tr key={therapy.id} className="hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                                    <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                     <td className="py-4 px-6">
                                         <div>
                                             <p className="font-medium text-gray-900 dark:text-white">{therapy.name}</p>

@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Plus, Calendar, FileText, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import SessionNoteModal from "./SessionNoteModal";
-import SessionNoteViewModal from "./SessionNoteViewModal";
 import { format, isToday } from "date-fns";
-import { deleteSessionNote, markSessionNoteAsViewed } from "@/lib/actions";
+import { deleteSessionNote } from "@/lib/actions";
 import { toast } from "sonner";
 
 interface SessionNotesClientProps {
@@ -29,14 +28,10 @@ export default function SessionNotesClient({
 }: SessionNotesClientProps) {
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [editingNote, setEditingNote] = useState<any>(null);
-    const [viewingNote, setViewingNote] = useState<any>(null);
-    // Parents have no date-filter UI, so they always see all their notes;
-    // staff default to today's notes.
-    const [filterDate, setFilterDate] = useState(() =>
-        role === "PARENT" ? "" : format(new Date(), "yyyy-MM-dd")
-    );
+    // No date selected by default -> show all notes. Filtering only kicks in
+    // once the user picks a date, and clearing the date returns to the full list.
+    const [filterDate, setFilterDate] = useState("");
     const [pageSize, setPageSize] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -50,14 +45,8 @@ export default function SessionNotesClient({
         setIsModalOpen(true);
     };
 
-    const handleView = async (note: any) => {
-        setViewingNote(note);
-        setIsViewModalOpen(true);
-
-        if (role === "PARENT" && !note.parentViewedAt) {
-            await markSessionNoteAsViewed(note.id);
-            router.refresh();
-        }
+    const handleView = (note: any) => {
+        router.push(`/session-notes/${note.id}`);
     };
 
     const handleDelete = async (note: any) => {
@@ -77,10 +66,14 @@ export default function SessionNotesClient({
         ? initialNotes.filter(note => format(new Date(note.date), "yyyy-MM-dd") === filterDate)
         : initialNotes;
 
-    // Pagination Logic
+    // Pagination Logic — only admins get pagination; parents/therapists see all
+    // notes for the selected date.
+    const isPaginated = role === "ADMIN";
     const totalPages = Math.max(1, Math.ceil(filteredNotes.length / pageSize));
     const page = Math.min(currentPage, totalPages);
-    const paginatedNotes = filteredNotes.slice((page - 1) * pageSize, page * pageSize);
+    const paginatedNotes = isPaginated
+        ? filteredNotes.slice((page - 1) * pageSize, page * pageSize)
+        : filteredNotes;
 
     // Reset to first page when the filter or page size changes
     useEffect(() => {
@@ -89,7 +82,7 @@ export default function SessionNotesClient({
 
     return (
         <>
-            {role !== "PARENT" && (
+         
                 <div className="flex flex-row  gap-4 mb-6">
                     <div className="relative flex-1">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -110,6 +103,7 @@ export default function SessionNotesClient({
                             </button>
                         )}
                     </div>
+                       {role !== "PARENT" && (
                     <button
                         onClick={handleCreate}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 whitespace-nowrap"
@@ -117,18 +111,19 @@ export default function SessionNotesClient({
                         <Plus className="w-4 h-4" />
                         <span className=" sm:inline">New Note</span>
                     </button>
+                      )}
                 </div>
-            )}
+          
             <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium">
-                                <th className="px-6 py-4">Date</th>
+                                <th className="px-3 py-4 w-px whitespace-nowrap">#</th>
                                 {
                                     role != "PARENT" && <th className="px-6 py-4">Child</th>
                                 }
-                               
+
                                 <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Activities</th>
                                 {role !== "PARENT" && <th className="px-6 py-4">Status</th>}
@@ -136,7 +131,7 @@ export default function SessionNotesClient({
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {paginatedNotes.length > 0 ? (
-                                paginatedNotes.map((note) => {
+                                paginatedNotes.map((note, index) => {
                                     const noteDate = new Date(note.date);
                                     const isCurrentDate = isToday(noteDate);
 
@@ -145,14 +140,11 @@ export default function SessionNotesClient({
                                             key={note.id}
                                             className="group hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
                                         >
-                                            <td className="px-6 py-4 align-top" onClick={() => handleView(note)}>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                                    <Calendar className="hidden md:block w-4 h-4 text-gray-400" />
-                                                    {format(noteDate, "MMM d, yyyy")}
-                                                </div>
+                                            <td className="px-3 py-4 w-px whitespace-nowrap align-top text-sm text-gray-700 dark:text-gray-200">
+                                                {(isPaginated ? (page - 1) * pageSize : 0) + index + 1}
                                             </td>
                                              {
-                                    role != "PARENT" && 
+                                    role != "PARENT" &&
                                     <td className="px-6 py-4 align-top" onClick={() => handleView(note)}>
                                                 <div className="font-medium text-sm text-gray-900 dark:text-white flex items-center gap-2">
                                                     {/* <Eye className="w-4 h-4 md:hidden" />  */}
@@ -167,14 +159,20 @@ export default function SessionNotesClient({
                                             </td>
                                             <td className="px-6 py-4 align-top">
                                                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                                    {(() => {
-                                                        try {
-                                                            const activities = JSON.parse(note.activities);
-                                                            return Array.isArray(activities) ? `${activities.length} activities` : "-";
-                                                        } catch (e) {
-                                                            return "-";
-                                                        }
-                                                    })()}
+                                                    <button
+                                                        onClick={() => handleView(note)}
+                                                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:underline transition-colors"
+                                                        title="View"
+                                                    >
+                                                        {(() => {
+                                                            try {
+                                                                const activities = JSON.parse(note.activities);
+                                                                return Array.isArray(activities) ? `${activities.length} activities` : "-";
+                                                            } catch (e) {
+                                                                return "-";
+                                                            }
+                                                        })()}
+                                                    </button>
                                                     <button
                                                         onClick={() => handleView(note)}
                                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -220,7 +218,7 @@ export default function SessionNotesClient({
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={role !== "PARENT" ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={role !== "PARENT" ? 5 : 3} className="px-6 py-12 text-center text-gray-500">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <FileText className="w-6 h-6 text-gray-400" />
                                         </div>
@@ -233,7 +231,7 @@ export default function SessionNotesClient({
                 </div>
             </div>
 
-            {filteredNotes.length > 0 && (
+            {isPaginated && filteredNotes.length > 0 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-2">
                         <span>Rows per page</span>
@@ -285,13 +283,6 @@ export default function SessionNotesClient({
                 therapies={therapies}
                 goals={goals}
                 therapistSpecialization={therapistSpecialization}
-            />
-
-            <SessionNoteViewModal
-                isOpen={isViewModalOpen}
-                onClose={() => setIsViewModalOpen(false)}
-                note={viewingNote}
-                goals={goals}
             />
         </>
     );

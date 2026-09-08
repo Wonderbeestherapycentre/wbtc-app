@@ -108,6 +108,7 @@ export default function HomeProgramDetails({
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-gray-50 dark:bg-neutral-800/50">
+                                        <th className="px-3 py-4 w-px whitespace-nowrap text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Date</th>
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Tasks Completed</th>
                                         <th className="px-3 md:px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center whitespace-nowrap">Total Score</th>
@@ -117,13 +118,14 @@ export default function HomeProgramDetails({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
-                                    {program.submissions.map((sub: any) => {
+                                    {program.submissions.map((sub: any, index: number) => {
                                         const subTasks = sub.submissionTasks || [];
                                         const score = Number(sub.overallScore || 0);
                                         const taskScore = Number(sub.taskScore || 0);
                                         const supportScore = Number(sub.supportScore || 0);
                                         return (
                                             <tr key={sub.id} className="hover:bg-gray-50/50 dark:hover:bg-neutral-800/30 transition-colors">
+                                                <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                                 <td className="px-3 md:px-6 py-4">
                                                     <div className="flex flex-col">
                                                         <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">

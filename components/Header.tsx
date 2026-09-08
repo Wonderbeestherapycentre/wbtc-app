@@ -8,10 +8,11 @@ import { useRouter } from "next/navigation";
 
 interface HeaderProps {
     user?: any;
-    onMobileMenuToggle: () => void;
+    mobileMenuOpen: boolean;
+    setMobileMenuOpen: (open: boolean) => void;
 }
 
-export default function Header({ user, onMobileMenuToggle }: HeaderProps) {
+export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: HeaderProps) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [greeting, setGreeting] = useState("Welcome back");
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,12 +40,26 @@ export default function Header({ user, onMobileMenuToggle }: HeaderProps) {
         router.push("/api/auth/force-signout");
     };
 
+    // Only one panel open at a time — the last clicked wins.
+    const handleMobileMenuToggle = () => {
+        setIsProfileOpen(false);
+        setMobileMenuOpen(!mobileMenuOpen);
+    };
+
+    const handleProfileToggle = () => {
+        setIsProfileOpen((prev) => {
+            const next = !prev;
+            if (next) setMobileMenuOpen(false);
+            return next;
+        });
+    };
+
     return (
         <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 h-16 px-4 flex items-center justify-between sticky top-0 z-40">
             {/* Left Side: Mobile Menu Toggle & Brand (Mobile only) / Breadcrumbs (Desktop) */}
             <div className="flex items-center gap-4">
                 <button
-                    onClick={onMobileMenuToggle}
+                    onClick={handleMobileMenuToggle}
                     className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 md:hidden text-gray-600 dark:text-gray-300"
                 >
                     <Menu className="w-6 h-6" />
@@ -76,7 +91,7 @@ export default function Header({ user, onMobileMenuToggle }: HeaderProps) {
                 {/* Profile Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                     <button
-                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                        onClick={handleProfileToggle}
                         className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
                     >
                         <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-medium shadow-md">

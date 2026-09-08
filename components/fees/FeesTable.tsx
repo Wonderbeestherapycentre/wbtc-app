@@ -42,6 +42,7 @@ export default function FeesTable({ data, role }: FeesTableProps) {
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 dark:bg-neutral-800 border-b border-gray-100 dark:border-neutral-800">
                             <tr>
+                                <th className="px-3 py-4 w-px whitespace-nowrap text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Child Name</th>
                                 {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Parent</th> */}
                                 {/* <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Therapist(s)</th> */}
@@ -62,11 +63,12 @@ export default function FeesTable({ data, role }: FeesTableProps) {
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((item) => {
+                                data.map((item, index) => {
                                     // Pending = Total Bill (Assigned) - Paid
                                     const pending = Number(item.totalAssignedFee) - Number(item.paidFee);
                                     return (
                                         <tr key={item.childId} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors group">
+                                            <td className="px-3 py-4 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                             <td className="px-6 py-4">
                                                 <div className="font-medium text-gray-900 dark:text-white">{item.childName}</div>
                                                 {/* <div className="text-xs text-gray-400">{item.caseNumber}</div> */}
