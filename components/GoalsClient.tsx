@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Search, Calendar, CheckCircle2, Circle, Archive, Eye, EyeOff, Edit2, ChevronLeft, ChevronRight } from "lucide-react";
-import GoalModal from "./GoalModal";
 import { format } from "date-fns";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
@@ -17,6 +16,9 @@ interface GoalsClientProps {
     childrenList: { id: string; name: string; caseNumber?: string; assignedTherapies: string[] }[];
     therapies: { id: string; name: string }[];
     role: "ADMIN" | "THERAPIST" | "PARENT";
+    hideChildColumn?: boolean;
+    hideSearch?: boolean;
+    preselectChildId?: string;
 }
 
 export default function GoalsClient({
@@ -24,14 +26,17 @@ export default function GoalsClient({
     meta,
     childrenList,
     therapies,
-    role
+    role,
+    hideChildColumn = false,
+    hideSearch = false,
+    preselectChildId
 }: GoalsClientProps) {
+    const showChildColumn = !hideChildColumn;
+    const showTherapyColumn = role !== "THERAPIST";
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingGoal, setEditingGoal] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
     const [filterStatus, setFilterStatus] = useState<string>(searchParams.get("status") || "ALL");
     const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
@@ -63,14 +68,18 @@ export default function GoalsClient({
         updateFilters(searchTerm, status);
     };
 
+    const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const returnToParam = `returnTo=${encodeURIComponent(currentUrl)}`;
+
     const handleCreate = () => {
-        setEditingGoal(null);
-        setIsModalOpen(true);
+        const params = new URLSearchParams();
+        if (preselectChildId) params.set("childId", preselectChildId);
+        params.set("returnTo", currentUrl);
+        router.push(`/goals/new?${params.toString()}`);
     };
 
     const handleEdit = (goal: any) => {
-        setEditingGoal(goal);
-        setIsModalOpen(true);
+        router.push(`/goals/${goal.id}/edit?${returnToParam}`);
     };
 
     const toggleExpand = (goalId: string, e: React.MouseEvent) => {
@@ -97,17 +106,19 @@ export default function GoalsClient({
     return (
         <>
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by child name..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                    />
-                </div>
-                <div className="flex gap-2">
+                {!hideSearch && (
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search by child name..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                        />
+                    </div>
+                )}
+                <div className="flex gap-2 sm:ml-auto">
                     <select
                         value={filterStatus}
                         onChange={(e) => handleStatusChange(e.target.value)}
@@ -138,8 +149,8 @@ export default function GoalsClient({
                             <tr className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-800 text-xs uppercase text-gray-500 font-medium whitespace-nowrap">
                                 <th className="px-3 py-4 w-px whitespace-nowrap">#</th>
                                 <th className="px-6 py-4 min-w-[200px]">Goal Description</th>
-                                <th className="px-6 py-4">Child Name</th>
-                                <th className="px-6 py-4">Therapy</th>
+                                {showChildColumn && <th className="px-6 py-4">Child Name</th>}
+                                {showTherapyColumn && <th className="px-6 py-4">Therapy</th>}
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
                                 {
@@ -164,6 +175,7 @@ export default function GoalsClient({
                                                 {goal.title || "No goal description"}
                                             </p>
                                         </td>
+                                        {showChildColumn && (
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <div className="flex flex-col min-w-0">
@@ -173,6 +185,8 @@ export default function GoalsClient({
                                                 </div>
                                             </div>
                                         </td>
+                                        )}
+                                        {showTherapyColumn && (
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-[10px] bg-gray-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 font-bold tracking-wide w-fit uppercase">
@@ -185,6 +199,7 @@ export default function GoalsClient({
                                                 )}
                                             </div>
                                         </td>
+                                        )}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
                                                 <Calendar className="w-3.5 h-3.5 text-gray-400" />
@@ -218,7 +233,7 @@ export default function GoalsClient({
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={4 + (showChildColumn ? 1 : 0) + (showTherapyColumn ? 1 : 0) + (role !== "PARENT" ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <CheckCircle2 className="w-6 h-6 text-gray-400" />
                                         </div>
@@ -265,14 +280,6 @@ export default function GoalsClient({
                 )}
             </div>
 
-            <GoalModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                goal={editingGoal}
-                childrenList={childrenList}
-                therapies={therapies}
-                role={role}
-            />
         </>
     );
 }

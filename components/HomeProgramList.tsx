@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import HomeProgramModal from "./HomeProgramModal";
+import React, { useState } from "react";
 import HomeProgramViewModal from "./HomeProgramViewModal";
 import { Plus, Search, Filter, Edit2, Trash2, Eye } from "lucide-react";
 import Pagination from "./Pagination";
@@ -24,6 +23,10 @@ interface HomeProgramListProps {
     canAdd?: boolean;
     userRole?: string;
     hideTherapyColumn?: boolean;
+    hideChildColumn?: boolean;
+    hideSearch?: boolean;
+    preselectChildId?: string;
+    preselectTherapyId?: string;
 }
 
 export default function HomeProgramList({
@@ -33,17 +36,23 @@ export default function HomeProgramList({
     therapies,
     canAdd = true,
     userRole,
-    hideTherapyColumn = false
+    hideTherapyColumn = false,
+    hideChildColumn = false,
+    hideSearch = false,
+    preselectChildId,
+    preselectTherapyId
 }: HomeProgramListProps) {
+    const showChildColumn = userRole !== "PARENT" && !hideChildColumn;
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [viewModalOpen, setViewModalOpen] = useState(false);
-    const [editingProgram, setEditingProgram] = useState<any>(null);
     const [viewingProgram, setViewingProgram] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+    const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const returnToParam = `returnTo=${encodeURIComponent(currentUrl)}`;
 
     const handleSearch = (term: string) => {
         const params = new URLSearchParams(searchParams);
@@ -68,8 +77,7 @@ export default function HomeProgramList({
     };
 
     const handleEdit = (program: any) => {
-        setEditingProgram(program);
-        setIsModalOpen(true);
+        router.push(`/home-programs/${program.id}/edit?${returnToParam}`);
     };
 
     const handleView = (program: any) => {
@@ -82,8 +90,11 @@ export default function HomeProgramList({
     };
 
     const handleAdd = () => {
-        setEditingProgram(null);
-        setIsModalOpen(true);
+        const params = new URLSearchParams();
+        if (preselectChildId) params.set("childId", preselectChildId);
+        if (preselectTherapyId) params.set("therapyId", preselectTherapyId);
+        params.set("returnTo", currentUrl);
+        router.push(`/home-programs/new?${params.toString()}`);
     };
 
     const handleDelete = async (id: string) => {
@@ -107,16 +118,18 @@ export default function HomeProgramList({
         <div className="space-y-6">
             {/* Filters Header */}
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm">
-                <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by activity name or child..."
-                        defaultValue={searchParams.get("search") || ""}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                </div>
+                {!hideSearch && (
+                    <div className="relative flex-1 w-full">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search by activity name or child..."
+                            defaultValue={searchParams.get("search") || ""}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                    </div>
+                )}
                 <div className="flex gap-2 w-full md:w-auto">
                     <select
                         defaultValue={searchParams.get("status") || "ALL"}
@@ -147,7 +160,7 @@ export default function HomeProgramList({
                             <tr className="bg-gray-50/50 dark:bg-neutral-800/50 border-b border-gray-100 dark:border-neutral-800">
                                 <th className="px-3 py-4 w-px whitespace-nowrap text-xs font-bold text-gray-400 uppercase tracking-wider">#</th>
                                 <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[200px]">Activity Name</th>
-                                {userRole !== "PARENT" && (
+                                {showChildColumn && (
                                     <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Child</th>
                                 )}
                                 {!hideTherapyColumn && (
@@ -174,7 +187,7 @@ export default function HomeProgramList({
                                                 </span>
                                             </div>
                                         </td>
-                                        {userRole !== "PARENT" && (
+                                        {showChildColumn && (
                                             <td className="px-3 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
@@ -239,7 +252,7 @@ export default function HomeProgramList({
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4 + (userRole !== "PARENT" ? 1 : 0) + (hideTherapyColumn ? 0 : 1)} className="px-6 py-20 text-center">
+                                    <td colSpan={4 + (showChildColumn ? 1 : 0) + (hideTherapyColumn ? 0 : 1)} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center">
                                             <div className="bg-gray-100 dark:bg-neutral-800 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                                                 <Filter className="w-6 h-6 text-gray-400" />
@@ -256,17 +269,6 @@ export default function HomeProgramList({
             </div>
 
             <Pagination currentPage={meta.page} totalPages={meta.totalPages} />
-
-            <HomeProgramModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditingProgram(null);
-                }}
-                program={editingProgram}
-                childrenList={childrenList}
-                therapies={therapies}
-            />
 
             <HomeProgramViewModal
                 isOpen={viewModalOpen}

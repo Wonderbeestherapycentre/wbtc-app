@@ -4,45 +4,33 @@ import { useRouter } from "next/navigation";
 
 import { useState, useEffect } from "react";
 import { Plus, Calendar, FileText, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
-import SessionNoteModal from "./SessionNoteModal";
 import { format, isToday } from "date-fns";
+import { getTodayIST } from "@/lib/utils/timezone";
 import { deleteSessionNote } from "@/lib/actions";
 import { toast } from "sonner";
 
 interface SessionNotesClientProps {
     initialNotes: any[];
-    childrenList: { id: string; name: string; caseNumber?: string; assignedTherapies: string[] }[];
-    therapies: { id: string; name: string }[];
-    goals: any[];
     role: "ADMIN" | "THERAPIST" | "PARENT";
-    therapistSpecialization?: string | null;
 }
 
 export default function SessionNotesClient({
     initialNotes,
-    childrenList,
-    therapies,
-    goals,
     role,
-    therapistSpecialization
 }: SessionNotesClientProps) {
     const router = useRouter();
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingNote, setEditingNote] = useState<any>(null);
-    // No date selected by default -> show all notes. Filtering only kicks in
-    // once the user picks a date, and clearing the date returns to the full list.
-    const [filterDate, setFilterDate] = useState("");
+    // Defaults to today. Notes are only listed for the picked date; clearing the
+    // date empties the list until another date is chosen.
+    const [filterDate, setFilterDate] = useState(getTodayIST());
     const [pageSize, setPageSize] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
 
     const handleCreate = () => {
-        setEditingNote(null);
-        setIsModalOpen(true);
+        router.push("/session-notes/new");
     };
 
     const handleEdit = (note: any) => {
-        setEditingNote(note);
-        setIsModalOpen(true);
+        router.push(`/session-notes/${note.id}/edit`);
     };
 
     const handleView = (note: any) => {
@@ -61,10 +49,10 @@ export default function SessionNotesClient({
         }
     };
 
-    // Filter Logic
+    // Filter Logic — no date picked means no notes are shown.
     const filteredNotes = filterDate
         ? initialNotes.filter(note => format(new Date(note.date), "yyyy-MM-dd") === filterDate)
-        : initialNotes;
+        : [];
 
     // Pagination Logic — only admins get pagination; parents/therapists see all
     // notes for the selected date.
@@ -124,9 +112,10 @@ export default function SessionNotesClient({
                                     role != "PARENT" && <th className="px-6 py-4">Child</th>
                                 }
 
-                                <th className="px-6 py-4">Therapy</th>
+                                {role !== "THERAPIST" && <th className="px-6 py-4">Therapy</th>}
                                 <th className="px-6 py-4">Activities</th>
                                 {role !== "PARENT" && <th className="px-6 py-4">Status</th>}
+                                <th className="px-6 py-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -154,25 +143,42 @@ export default function SessionNotesClient({
                                             </td>
                                 }
                                             
+                                            {role !== "THERAPIST" && (
                                             <td className="px-6 py-4 align-top">
                                                 <div className="text-sm text-gray-700 dark:text-gray-200">{note.therapy.name}</div>
                                             </td>
+                                            )}
+                                            <td className="px-6 py-4 align-top">
+                                                <button
+                                                    onClick={() => handleView(note)}
+                                                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:underline transition-colors"
+                                                    title="View"
+                                                >
+                                                    {(() => {
+                                                        try {
+                                                            const activities = JSON.parse(note.activities);
+                                                            return Array.isArray(activities) ? `${activities.length} activities` : "-";
+                                                        } catch (e) {
+                                                            return "-";
+                                                        }
+                                                    })()}
+                                                </button>
+                                            </td>
+                                            {role !== "PARENT" && (
+                                                <td className="px-6 py-4 align-top">
+                                                    {note.parentViewedAt ? (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" title={`Viewed at ${new Date(note.parentViewedAt).toLocaleString()}`}>
+                                                            Viewed
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            )}
                                             <td className="px-6 py-4 align-top">
                                                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                                    <button
-                                                        onClick={() => handleView(note)}
-                                                        className="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 hover:underline transition-colors"
-                                                        title="View"
-                                                    >
-                                                        {(() => {
-                                                            try {
-                                                                const activities = JSON.parse(note.activities);
-                                                                return Array.isArray(activities) ? `${activities.length} activities` : "-";
-                                                            } catch (e) {
-                                                                return "-";
-                                                            }
-                                                        })()}
-                                                    </button>
                                                     <button
                                                         onClick={() => handleView(note)}
                                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
@@ -200,29 +206,16 @@ export default function SessionNotesClient({
                                                     )}
                                                 </div>
                                             </td>
-                                            {role !== "PARENT" && (
-                                                <td className="px-6 py-4 align-top">
-                                                    {note.parentViewedAt ? (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" title={`Viewed at ${new Date(note.parentViewedAt).toLocaleString()}`}>
-                                                            Viewed
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                                                            Pending
-                                                        </span>
-                                                    )}
-                                                </td>
-                                            )}
                                         </tr>
                                     );
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={role !== "PARENT" ? 5 : 3} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={role === "ADMIN" ? 6 : role === "THERAPIST" ? 5 : 4} className="px-6 py-12 text-center text-gray-500">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <FileText className="w-6 h-6 text-gray-400" />
                                         </div>
-                                        <p>{filterDate ? `No session notes for ${format(new Date(filterDate), "MMM d, yyyy")}` : "No session notes found"}</p>
+                                        <p>{filterDate ? `No session notes for ${format(new Date(filterDate), "MMM d, yyyy")}` : "Select a date to view session notes"}</p>
                                     </td>
                                 </tr>
                             )}
@@ -275,15 +268,6 @@ export default function SessionNotesClient({
                 </div>
             )}
 
-            <SessionNoteModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                note={editingNote}
-                childrenList={childrenList}
-                therapies={therapies}
-                goals={goals}
-                therapistSpecialization={therapistSpecialization}
-            />
         </>
     );
 }

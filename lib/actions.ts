@@ -1357,7 +1357,7 @@ export async function createHomeProgram(formData: FormData) {
 
         revalidatePath("/home-programs");
         revalidatePath(`/childrens/${childId}`);
-        return { message: "Home program created successfully" };
+        return { message: "Home program created successfully", id: newProgram?.id };
     } catch (error) {
         console.error("createHomeProgram error:", error);
         return { message: "Failed to create home program" };

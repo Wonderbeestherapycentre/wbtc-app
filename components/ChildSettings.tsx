@@ -92,15 +92,6 @@ export default function ChildSettings({
         return parts.join(' ') || "0m";
     };
 
-    const generateAvatarColor = (name: string) => {
-        const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'];
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return colors[Math.abs(hash) % colors.length];
-    };
-
     return (
         <>
             <ChildModal
@@ -173,12 +164,6 @@ export default function ChildSettings({
                                         <td className="py-1 px-1 md:py-2 md:px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                         <td className="py-1 px-1 md:py-2 md:px-6">
                                             <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs text-white font-bold shadow-sm"
-                                                    style={{ backgroundColor: generateAvatarColor(child.name) }}
-                                                >
-                                                    {child.name[0]?.toUpperCase()}
-                                                </div>
                                                 <div className="flex flex-col">
                                                     <span className="font-medium text-gray-900 dark:text-white">
                                                         {child.name}

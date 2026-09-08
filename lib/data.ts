@@ -348,7 +348,8 @@ export async function fetchGoalsPaginated(page: number, limit: number, childId?:
                 AND "children"."parent_id" = ${session.user.id}
 )`
         );
-    } else if (session.user.role === "THERAPIST" && !childId) {
+    } else if (session.user.role === "THERAPIST") {
+        // Therapists only ever see their own goals (their therapy) for a child.
         conditions.push(eq(goals.therapistId, session.user.id));
     }
 
@@ -396,6 +397,80 @@ export async function fetchGoalsPaginated(page: number, limit: number, childId?:
             totalPages: Math.ceil(totalCount / limit)
         }
     };
+}
+
+export async function fetchGoalById(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const goal: any = await db.query.goals.findFirst({
+        where: eq(goals.id, id),
+        with: {
+            child: true,
+            therapy: true,
+            therapist: true,
+        }
+    });
+
+    if (!goal) return null;
+
+    // Role-based access control
+    if (session.user.role === "THERAPIST" && goal.therapistId !== session.user.id) {
+        return null;
+    }
+    if (session.user.role === "PARENT") {
+        const child: any = await db.query.children.findFirst({
+            where: eq(children.id, goal.childId),
+        });
+        if (!child || child.parentId !== session.user.id) return null;
+    }
+
+    return {
+        ...goal,
+        startDate: convertUTCToIST(goal.startDate),
+        endDate: convertUTCToIST(goal.endDate),
+        createdAt: convertUTCToIST(goal.createdAt),
+        updatedAt: convertUTCToIST(goal.updatedAt),
+    };
+}
+
+export async function fetchGoalChildGroups() {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const childConditions = [eq(children.status, "ACTIVE")];
+
+    if (session.user.role === "PARENT") {
+        childConditions.push(eq(children.parentId, session.user.id));
+    } else if (session.user.role === "THERAPIST") {
+        childConditions.push(
+            sql`EXISTS(
+                SELECT 1 FROM "child_therapies"
+                WHERE "child_therapies"."child_id" = ${children.id}
+                AND "child_therapies"."therapist_id" = ${session.user.id}
+            )`
+        );
+    }
+
+    // When a therapist views, only count the goals they own.
+    const joinCondition = session.user.role === "THERAPIST"
+        ? and(eq(goals.childId, children.id), eq(goals.therapistId, session.user.id))
+        : eq(goals.childId, children.id);
+
+    const rows = await db
+        .select({
+            childId: children.id,
+            childName: children.name,
+            total: sql<number>`count(${goals.id})::int`,
+            activeCount: sql<number>`count(${goals.id}) FILTER (WHERE ${goals.status} <> 'ACHIEVED')::int`,
+        })
+        .from(children)
+        .leftJoin(goals, joinCondition)
+        .where(and(...childConditions))
+        .groupBy(children.id, children.name)
+        .orderBy(asc(children.name));
+
+    return rows;
 }
 
 export async function fetchSessionNotes() {
@@ -538,7 +613,47 @@ export async function fetchHomeProgramTherapyGroups() {
     return rows;
 }
 
-export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL", therapyId = "") {
+// Assigned/visible children (role-scoped) with home-program counts, for the therapist child card view
+export async function fetchHomeProgramChildGroups() {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const childConditions = [eq(children.status, "ACTIVE")];
+
+    if (session.user.role === "PARENT") {
+        childConditions.push(eq(children.parentId, session.user.id));
+    } else if (session.user.role === "THERAPIST") {
+        childConditions.push(
+            sql`EXISTS(
+                SELECT 1 FROM "child_therapies"
+                WHERE "child_therapies"."child_id" = ${children.id}
+                AND "child_therapies"."therapist_id" = ${session.user.id}
+            )`
+        );
+    }
+
+    // When a therapist views, only count the programs they own.
+    const joinCondition = session.user.role === "THERAPIST"
+        ? and(eq(homePrograms.childId, children.id), eq(homePrograms.therapistId, session.user.id))
+        : eq(homePrograms.childId, children.id);
+
+    const rows = await db
+        .select({
+            childId: children.id,
+            childName: children.name,
+            total: sql<number>`count(${homePrograms.id})::int`,
+            activeCount: sql<number>`count(${homePrograms.id}) FILTER (WHERE ${homePrograms.status} = 'ACTIVE')::int`,
+        })
+        .from(children)
+        .leftJoin(homePrograms, joinCondition)
+        .where(and(...childConditions))
+        .groupBy(children.id, children.name)
+        .orderBy(asc(children.name));
+
+    return rows;
+}
+
+export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL", therapyId = "", childId = "") {
     const session = await auth();
     if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
 
@@ -551,6 +666,10 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
 
     if (therapyId) {
         conditions.push(eq(homePrograms.therapyId, therapyId));
+    }
+
+    if (childId) {
+        conditions.push(eq(homePrograms.childId, childId));
     }
 
     if (session.user.role === "PARENT") {
@@ -668,11 +787,19 @@ export async function fetchHomeProgram(id: string) {
             child: true,
             therapy: true,
             therapist: true,
-            tasks: true,
+            tasks: {
+                orderBy: [asc(homeProgramTasks.createdAt)],
+            },
         }
     });
 
-    return program || null;
+    if (!program) return null;
+
+    // Access check: ADMIN can see all, THERAPIST only their own, PARENT cannot edit
+    if (session.user.role === "PARENT") return null;
+    if (session.user.role === "THERAPIST" && program.therapistId !== session.user.id) return null;
+
+    return program;
 }
 
 export async function fetchChildFeeDetails(
