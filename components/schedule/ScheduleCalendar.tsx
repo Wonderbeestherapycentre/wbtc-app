@@ -9,7 +9,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays, Table as TableIcon, Trash2 } from "lucide-react";
 import ScheduleModal from "./ScheduleModal";
-import { deleteSession } from "@/lib/actions";
+import { deleteSession, deleteSessions } from "@/lib/actions";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableDropdown from "../ui/SearchableDropdown";
 import { convertUTCToIST } from "@/lib/utils/timezone";
@@ -63,6 +63,11 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
     // Delete State
     const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Bulk selection / delete State (ADMIN, TABLE view)
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     // Ensure therapist filter stays locked to current user for THERAPIST role
     useEffect(() => {
@@ -212,6 +217,62 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
         }
     };
 
+    const isBulkEnabled = currentUserRole === "ADMIN" && view === "TABLE";
+
+    const toggleSelected = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = (ids: string[]) => {
+        setSelectedIds(prev => {
+            const allSelected = ids.length > 0 && ids.every(id => prev.has(id));
+            return allSelected ? new Set() : new Set(ids);
+        });
+    };
+
+    const clearSelection = () => setSelectedIds(new Set());
+
+    const confirmBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+
+        setIsBulkDeleting(true);
+        try {
+            await deleteSessions(Array.from(selectedIds));
+            clearSelection();
+            setIsBulkConfirmOpen(false);
+            router.refresh();
+        } catch (error) {
+            console.error("Failed to delete sessions", error);
+        } finally {
+            setIsBulkDeleting(false);
+        }
+    };
+
+    // Drop selections that are no longer visible under the current filters/view.
+    useEffect(() => {
+        if (!isBulkEnabled) {
+            if (selectedIds.size > 0) clearSelection();
+            return;
+        }
+        setSelectedIds(prev => {
+            if (prev.size === 0) return prev;
+            const visible = new Set(filteredSessions.map(s => s.id));
+            let changed = false;
+            const next = new Set<string>();
+            prev.forEach(id => {
+                if (visible.has(id)) next.add(id);
+                else changed = true;
+            });
+            return changed ? next : prev;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isBulkEnabled, filterTherapistId, filterChildId, currentDate, view, sessions]);
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -314,6 +375,30 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                 </div>
             </div>
 
+            {/* Bulk Action Bar */}
+            {isBulkEnabled && selectedIds.size > 0 && (
+                <div className="flex items-center justify-between gap-3 px-5 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/40 rounded-2xl">
+                    <span className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                        {selectedIds.size} selected
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={clearSelection}
+                            className="px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                        >
+                            Clear
+                        </button>
+                        <button
+                            onClick={() => setIsBulkConfirmOpen(true)}
+                            className="flex items-center gap-2 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Calendar Body */}
             <div className="bg-white dark:bg-neutral-900 rounded-[2.5rem] border border-gray-100 dark:border-neutral-800 overflow-hidden shadow-2xl shadow-blue-100/20 dark:shadow-none min-h-[500px]">
 
@@ -324,6 +409,17 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-gray-50/50 dark:bg-neutral-900/50 border-b border-gray-100 dark:border-neutral-800 sticky top-0 z-10 backdrop-blur-sm">
                                     <tr>
+                                        {currentUserRole === "ADMIN" && (
+                                            <th className="py-4 px-3 w-px whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label="Select all sessions"
+                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                    checked={filteredSessions.length > 0 && filteredSessions.every(s => selectedIds.has(s.id))}
+                                                    onChange={() => toggleSelectAll(filteredSessions.map(s => s.id))}
+                                                />
+                                            </th>
+                                        )}
                                         <th className="py-4 px-3 w-px whitespace-nowrap text-[10px] font-black uppercase tracking-widest text-gray-400">#</th>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Date & Time</th>
                                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Child</th>
@@ -342,7 +438,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                 <tbody className="divide-y divide-gray-50 dark:divide-neutral-800/50">
                                     {filteredSessions.length === 0 && holidays.length === 0 ? (
                                         <tr>
-                                            <td colSpan={currentUserRole === "ADMIN" ? 7 : 5} className="py-12 text-center text-gray-400 text-sm">
+                                            <td colSpan={currentUserRole === "ADMIN" ? 8 : 5} className="py-12 text-center text-gray-400 text-sm">
                                                 No sessions or holidays found for the selected filters.
                                             </td>
                                         </tr>
@@ -357,6 +453,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     const holiday = item.data;
                                                     return (
                                                         <tr key={`holiday-${holiday.id}`} className="bg-red-50/50 dark:bg-red-900/10 border-l-4 border-l-red-400">
+                                                            {currentUserRole === "ADMIN" && <td className="py-4 px-3 w-px" />}
                                                             <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                                             <td className="py-4 px-6 whitespace-nowrap">
                                                                 <div className="flex flex-col">
@@ -388,8 +485,19 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                                                     <tr
                                                         key={session.id}
                                                         onClick={() => currentUserRole == "ADMIN" && handleEditSession(session)}
-                                                        className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""}`}
+                                                        className={`group transition-all hover:bg-blue-50/30 dark:hover:bg-blue-900/10 ${currentUserRole !== "PARENT" ? "cursor-pointer" : ""} ${selectedIds.has(session.id) ? "bg-blue-50/50 dark:bg-blue-900/20" : ""}`}
                                                     >
+                                                        {currentUserRole === "ADMIN" && (
+                                                            <td className="py-4 px-3 w-px whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    aria-label={`Select session for ${session.child.name}`}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                                                    checked={selectedIds.has(session.id)}
+                                                                    onChange={() => toggleSelected(session.id)}
+                                                                />
+                                                            </td>
+                                                        )}
                                                         <td className="py-4 px-3 w-px whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                                         <td className="py-4 px-6 whitespace-nowrap">
                                                             <div className="flex flex-col">
@@ -653,6 +761,16 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                 description="Are you sure you want to delete this session? This action cannot be undone."
                 confirmLabel="Delete Session"
                 isPending={isDeleting}
+            />
+
+            <ConfirmModal
+                isOpen={isBulkConfirmOpen}
+                onClose={() => setIsBulkConfirmOpen(false)}
+                onConfirm={confirmBulkDelete}
+                title="Delete Selected Sessions"
+                description={`Are you sure you want to delete ${selectedIds.size} selected session${selectedIds.size > 1 ? "s" : ""}? This action cannot be undone.`}
+                confirmLabel="Delete Selected"
+                isPending={isBulkDeleting}
             />
         </div>
     );

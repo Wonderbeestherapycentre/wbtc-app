@@ -85,8 +85,8 @@ export default async function GoalsPage({
                     childrenList={childrenOptions}
                     therapies={therapyOptions}
                     role={role}
-                    hideChildColumn={isTherapist}
-                    hideSearch={isTherapist}
+                    hideChildColumn={isTherapist || role === "PARENT"}
+                    hideSearch={isTherapist || role === "PARENT"}
                     preselectChildId={child}
                 />
             </div>

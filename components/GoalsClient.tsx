@@ -118,7 +118,7 @@ export default function GoalsClient({
                         />
                     </div>
                 )}
-                <div className="flex gap-2 sm:ml-auto">
+                <div className={`flex gap-2 ${hideSearch ? "" : "sm:ml-auto"}`}>
                     <select
                         value={filterStatus}
                         onChange={(e) => handleStatusChange(e.target.value)}

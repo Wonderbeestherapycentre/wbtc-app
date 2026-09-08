@@ -551,6 +551,18 @@ export async function deleteSession(id: string) {
     return { message: "Session deleted" };
 }
 
+export async function deleteSessions(ids: string[]) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    const validIds = (ids || []).filter(Boolean);
+    if (validIds.length === 0) return { message: "No sessions selected" };
+
+    await db.delete(sessions).where(inArray(sessions.id, validIds));
+    revalidatePath("/schedule");
+    return { message: `${validIds.length} session${validIds.length > 1 ? "s" : ""} deleted` };
+}
+
 export async function updateAttendance(sessionId: string, status: "PRESENT" | "ABSENT" | "EXCUSED") {
     const session = await auth();
     if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "THERAPIST")) {
