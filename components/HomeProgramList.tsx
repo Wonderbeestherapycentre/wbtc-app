@@ -23,6 +23,7 @@ interface HomeProgramListProps {
     therapies: any[];
     canAdd?: boolean;
     userRole?: string;
+    hideTherapyColumn?: boolean;
 }
 
 export default function HomeProgramList({
@@ -31,7 +32,8 @@ export default function HomeProgramList({
     childrenList,
     therapies,
     canAdd = true,
-    userRole
+    userRole,
+    hideTherapyColumn = false
 }: HomeProgramListProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -147,7 +149,9 @@ export default function HomeProgramList({
                                 {userRole !== "PARENT" && (
                                     <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Child</th>
                                 )}
-                                <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Therapy</th>
+                                {!hideTherapyColumn && (
+                                    <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Therapy</th>
+                                )}
                                 <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="px-3 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
@@ -180,11 +184,13 @@ export default function HomeProgramList({
                                                 </div>
                                             </td>
                                         )}
-                                        <td className="px-3 py-4">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
-                                                {program.therapy?.name}
-                                            </span>
-                                        </td>
+                                        {!hideTherapyColumn && (
+                                            <td className="px-3 py-4">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                                    {program.therapy?.name}
+                                                </span>
+                                            </td>
+                                        )}
                                         <td className="px-3 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${program.status === 'ACTIVE'
                                                 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
@@ -229,7 +235,7 @@ export default function HomeProgramList({
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center">
+                                    <td colSpan={3 + (userRole !== "PARENT" ? 1 : 0) + (hideTherapyColumn ? 0 : 1)} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center">
                                             <div className="bg-gray-100 dark:bg-neutral-800 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                                                 <Filter className="w-6 h-6 text-gray-400" />

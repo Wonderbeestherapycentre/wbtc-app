@@ -466,7 +466,36 @@ export async function fetchHomePrograms(childId?: string) {
     }));
 }
 
-export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL") {
+// Group home programs by therapy (role-scoped) for the therapy card view
+export async function fetchHomeProgramTherapyGroups() {
+    const session = await auth();
+    if (!session?.user) return [];
+
+    const conditions = [];
+
+    if (session.user.role === "PARENT") {
+        conditions.push(sql`${homePrograms.childId} IN (SELECT id FROM ${children} WHERE parent_id = ${session.user.id})`);
+    } else if (session.user.role === "THERAPIST") {
+        conditions.push(eq(homePrograms.therapistId, session.user.id));
+    }
+
+    const rows = await db
+        .select({
+            therapyId: homePrograms.therapyId,
+            therapyName: therapies.name,
+            total: sql<number>`count(*)::int`,
+            activeCount: sql<number>`count(*) FILTER (WHERE ${homePrograms.status} = 'ACTIVE')::int`,
+        })
+        .from(homePrograms)
+        .innerJoin(therapies, eq(therapies.id, homePrograms.therapyId))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .groupBy(homePrograms.therapyId, therapies.name)
+        .orderBy(asc(therapies.name));
+
+    return rows;
+}
+
+export async function fetchHomeProgramsPaginated(page: number, limit: number, search = "", status = "ALL", therapyId = "") {
     const session = await auth();
     if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } };
 
@@ -475,6 +504,10 @@ export async function fetchHomeProgramsPaginated(page: number, limit: number, se
 
     if (status && status !== "ALL") {
         conditions.push(eq(homePrograms.status, status as any));
+    }
+
+    if (therapyId) {
+        conditions.push(eq(homePrograms.therapyId, therapyId));
     }
 
     if (session.user.role === "PARENT") {
