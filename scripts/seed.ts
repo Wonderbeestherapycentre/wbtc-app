@@ -22,7 +22,7 @@ async function seedDatabase() {
         console.log("👤 Creating default admin user...");
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash("Admin@2025", 10);
+        const hashedPassword = await bcrypt.hash("Wonderbees@021224", 10);
 
         // Create admin user
         await sql`
