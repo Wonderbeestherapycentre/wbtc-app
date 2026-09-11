@@ -118,7 +118,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
 
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-50 bg-gray-100 dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transform transition-all duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col",
+                    "fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-amber-50 via-white to-sky-50 dark:bg-neutral-900 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900 border-r border-amber-100 dark:border-neutral-800 transform transition-all duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col",
                     isOpen ? "translate-x-0" : "-translate-x-full",
                     isCollapsed ? "md:w-20" : "md:w-64"
                 )}
@@ -127,7 +127,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                     {/* Toggle Button (Desktop Only) */}
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="hidden md:flex absolute -right-3 top-9 z-[60] bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-1 shadow-md hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                        className="hidden md:flex absolute -right-3 top-9 z-[60] bg-white dark:bg-neutral-800 border border-amber-200 dark:border-neutral-700 rounded-full p-1 shadow-md hover:bg-amber-50 dark:hover:bg-neutral-700 transition-colors"
                     >
                         {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
                     </button>
@@ -146,15 +146,16 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                                 />
                                 {/* </div> */}
                                 <div className={cn("transition-all duration-300 overflow-hidden", isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100")}>
-                                    <h1 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent leading-none whitespace-nowrap">
-                                        Wonderbees
+                                    <h1 className="text-xl font-bold leading-none whitespace-nowrap">
+                                        <span className="text-amber-500">Wonder</span>
+                                        <span className="text-blue-900">Bees</span>
                                     </h1>
                                     <span className="text-xs font-medium text-gray-400 tracking-wide whitespace-nowrap">Therapy Centre</span>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="md:hidden p-2 text-gray-500 hover:bg-amber-50 rounded-lg transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -201,16 +202,16 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                                                             "group flex items-center w-full rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
                                                             isCollapsed ? "justify-center p-2.5" : "px-4 py-2.5",
                                                             isActive
-                                                                ? "text-blue-600 bg-blue-50 dark:bg-blue-900/10"
-                                                                : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-200"
+                                                                ? "text-amber-700 bg-amber-50 dark:bg-amber-900/10"
+                                                                : "text-gray-600 hover:bg-amber-50/60 dark:text-gray-400 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-gray-200"
                                                         )}
                                                     >
                                                         {isActive && (
-                                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full" />
+                                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-amber-500 rounded-r-full" />
                                                         )}
                                                         <item.icon className={cn(
                                                             "w-5 h-5 transition-colors flex-shrink-0",
-                                                            isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300",
+                                                            isActive ? "text-amber-600" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300",
                                                             !isCollapsed && "mr-3"
                                                         )} />
                                                         <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
