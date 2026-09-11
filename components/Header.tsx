@@ -5,6 +5,7 @@ import { Bell, Menu, User, LogOut, Settings, ChevronDown } from "lucide-react";
 import NextImage from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import logo from "@/app/assets/logo.png";
 
 interface HeaderProps {
     user?: any;
@@ -55,27 +56,31 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
     };
 
     return (
-        <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 h-16 px-4 flex items-center justify-between sticky top-0 z-40">
+        <header className="bg-gradient-to-r from-amber-50/70 via-white to-sky-50/70 dark:bg-neutral-900 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-900 border-b border-amber-100 dark:border-neutral-800 h-16 px-4 flex items-center justify-between sticky top-0 z-40">
             {/* Left Side: Mobile Menu Toggle & Brand (Mobile only) / Breadcrumbs (Desktop) */}
             <div className="flex items-center gap-4">
                 <button
                     onClick={handleMobileMenuToggle}
-                    className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 md:hidden text-gray-600 dark:text-gray-300"
+                    className="p-2 -ml-2 rounded-lg hover:bg-amber-50 dark:hover:bg-neutral-800 md:hidden text-gray-600 dark:text-gray-300"
                 >
                     <Menu className="w-6 h-6" />
                 </button>
 
                 {/* Mobile Brand */}
                 <div className="md:hidden flex items-center gap-2">
-                    <span className="font-bold text-lg bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
-                        Wonderbees
+                    <div className="relative w-7 h-7 shrink-0">
+                        <NextImage src={logo} alt="WonderBees Logo" fill className="object-contain" placeholder="blur" />
+                    </div>
+                    <span className="font-bold text-lg tracking-tight leading-none">
+                        <span className="text-amber-500">Wonder</span>
+                        <span className="text-blue-900">Bees</span>
                     </span>
                 </div>
 
                 {/* Desktop Welcome/Context - Optional */}
                 <div className="hidden md:block">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                        {greeting}, {user?.name?.split(' ')[0] || 'User'}
+                        {greeting}, <span className="text-amber-600">{user?.name?.split(' ')[0] || 'User'}</span>
                     </h2>
                 </div>
             </div>
@@ -83,7 +88,7 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
             {/* Right Side: Actions */}
             <div className="flex items-center gap-4">
                 {/* Notifications */}
-                <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-500 relative">
+                <button className="p-2 rounded-full hover:bg-amber-50 dark:hover:bg-neutral-800 text-gray-500 hover:text-amber-600 relative transition-colors">
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-neutral-900"></span>
                 </button>
@@ -92,9 +97,9 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={handleProfileToggle}
-                        className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
+                        className="flex items-center gap-3 p-1.5 rounded-full hover:bg-amber-50 dark:hover:bg-neutral-800 transition-colors border border-transparent hover:border-amber-200 dark:hover:border-neutral-700"
                     >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white font-medium shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 flex items-center justify-center text-blue-950 font-semibold shadow-md shadow-amber-400/30">
                             {user?.name?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
                         </div>
                         <div className="hidden md:block text-left mr-1">
@@ -110,8 +115,8 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
 
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
-                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-gray-100 dark:border-neutral-700 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <div className="px-4 py-2 border-b border-gray-100 dark:border-neutral-800 md:hidden">
+                        <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-amber-100 dark:border-neutral-700 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="px-4 py-2 border-b border-amber-100 dark:border-neutral-800 md:hidden">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.name}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role?.toLowerCase()}</p>
                             </div>
@@ -120,7 +125,7 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
                                 <Link
                                     href="/profile"
                                     onClick={() => setIsProfileOpen(false)}
-                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-amber-50 dark:hover:bg-neutral-800 hover:text-amber-700"
                                 >
                                     <User className="w-4 h-4" />
                                     Profile Settings
