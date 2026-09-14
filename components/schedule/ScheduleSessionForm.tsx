@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { format, startOfWeek, addDays } from "date-fns";
-import { X, Calendar, Clock, RotateCcw, User, Baby, Activity } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { Calendar, Clock, RotateCcw, User, Baby, Activity, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { createSession, createMonthlySchedule, updateSession } from "@/lib/actions";
-import { parseISTDateTime, getISTDateString, getISTTimeString } from "@/lib/utils/timezone";
+import { getISTDateString, getISTTimeString } from "@/lib/utils/timezone";
 
 interface Child {
     id: string;
@@ -18,77 +19,47 @@ interface Child {
     }[];
 }
 
-interface ScheduleModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface ScheduleSessionFormProps {
     children: Child[];
     allTherapists?: any[];
-    initialDate?: Date;
     sessionToEdit?: any;
 }
 
-export default function ScheduleModal({ isOpen, onClose, children, allTherapists, initialDate, sessionToEdit }: ScheduleModalProps) {
+export default function ScheduleSessionForm({ children, allTherapists, sessionToEdit }: ScheduleSessionFormProps) {
+    const router = useRouter();
+
     const [mode, setMode] = useState<"SINGLE" | "MONTHLY">("SINGLE");
-    const [selectedChildId, setSelectedChildId] = useState("");
-    const [selectedTherapyId, setSelectedTherapyId] = useState("");
-    const [selectedTherapistId, setSelectedTherapistId] = useState("");
-    const [date, setDate] = useState(format(initialDate || new Date(), "yyyy-MM-dd"));
-    const [startTime, setStartTime] = useState("09:00");
-    const [duration, setDuration] = useState("45");
-    const [status, setStatus] = useState<"SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED">("SCHEDULED");
+    const [selectedChildId, setSelectedChildId] = useState(sessionToEdit ? sessionToEdit.child.id : "");
+    const [selectedTherapyId, setSelectedTherapyId] = useState(sessionToEdit ? sessionToEdit.therapy.id : "");
+    const [selectedTherapistId, setSelectedTherapistId] = useState(sessionToEdit ? sessionToEdit.therapist.id : "");
+    const [date, setDate] = useState(sessionToEdit ? getISTDateString(new Date(sessionToEdit.date)) : format(new Date(), "yyyy-MM-dd"));
+    const [startTime, setStartTime] = useState(sessionToEdit ? getISTTimeString(new Date(sessionToEdit.date)) : "09:00");
+    const [duration, setDuration] = useState(String(sessionToEdit?.durationMinutes || "45"));
+    const [status, setStatus] = useState<"SCHEDULED" | "COMPLETED" | "CANCELLED" | "RESCHEDULED">(sessionToEdit?.status || "SCHEDULED");
     const [weeks, setWeeks] = useState("4");
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
     const [isPending, setIsPending] = useState(false);
     const [message, setMessage] = useState("");
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    // Populate when editing
-    useEffect(() => {
-        if (sessionToEdit) {
-            setMode("SINGLE");
-            setSelectedChildId(sessionToEdit.child.id);
-            setSelectedTherapyId(sessionToEdit.therapy.id);
-            setSelectedTherapistId(sessionToEdit.therapist.id);
-            setStatus(sessionToEdit.status || "SCHEDULED");
-            const sDate = new Date(sessionToEdit.date);
-            // Extract date and time in IST
-            setDate(getISTDateString(sDate));
-            setStartTime(getISTTimeString(sDate));
-            setDuration(String(sessionToEdit.durationMinutes || "45"));
-        } else {
-            // Reset for new
-            setSelectedChildId("");
-            setSelectedTherapyId("");
-            setSelectedTherapistId("");
-            setStatus("SCHEDULED");
-            setDate(format(initialDate || new Date(), "yyyy-MM-dd"));
-            setStartTime("09:00");
-        }
-    }, [sessionToEdit, initialDate]);
-
-    // Reset when child changes (only for new session)
-    useEffect(() => {
-        if (selectedChildId && !sessionToEdit) {
-            const child = children.find(c => c.id === selectedChildId);
-            if (child?.therapyTypes?.length) {
-                const first = child.therapyTypes[0];
-                setSelectedTherapyId(first.therapyId);
-                setSelectedTherapistId(first.therapistId);
-            }
-        }
-    }, [selectedChildId, children, sessionToEdit]);
-
-    // Update therapist when therapy changes
     const handleTherapyChange = (therapyId: string) => {
         setSelectedTherapyId(therapyId);
         const child = children.find(c => c.id === selectedChildId);
         const therapyType = child?.therapyTypes?.find(t => t.therapyId === therapyId);
         if (therapyType) {
             setSelectedTherapistId(therapyType.therapistId);
+        }
+    };
+
+    const handleChildChange = (childId: string) => {
+        setSelectedChildId(childId);
+        const child = children.find(c => c.id === childId);
+        if (child?.therapyTypes?.length) {
+            const first = child.therapyTypes[0];
+            setSelectedTherapyId(first.therapyId);
+            setSelectedTherapistId(first.therapistId);
+        } else {
+            setSelectedTherapyId("");
+            setSelectedTherapistId("");
         }
     };
 
@@ -113,19 +84,14 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
         try {
             let res;
             if (sessionToEdit) {
-                // Send date and time separately
                 formData.append("date", date);
                 formData.append("time", startTime);
-                console.log('Updating session:', { date, time: startTime });
                 res = await updateSession(sessionToEdit.id, formData);
             } else if (mode === "SINGLE") {
-                // Send date and time separately
                 formData.append("date", date);
                 formData.append("time", startTime);
-                console.log('Creating session:', { date, time: startTime });
                 res = await createSession(formData);
             } else {
-                console.log('Creating monthly schedule:', { date, startTime, weeks, selectedDays });
                 formData.append("startTime", startTime);
                 formData.append("startDate", date);
                 formData.append("weeks", weeks);
@@ -133,12 +99,11 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                 res = await createMonthlySchedule(formData);
             }
 
-            console.log('Server response:', res);
             if (res.message.toLowerCase().includes("success") || res.message.toLowerCase().includes("updated") || res.message.toLowerCase().includes("scheduled")) {
-                onClose();
+                router.push("/schedule");
+                router.refresh();
             } else {
                 setMessage(res.message);
-                // Log errors if present
                 if ('errors' in res) {
                     console.error('Validation errors:', res.errors);
                 }
@@ -151,29 +116,29 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
         }
     };
 
-    if (!isOpen) return null;
-    if (!mounted) return null;
-
     const selectedChild = children.find(c => c.id === selectedChildId);
 
-    return createPortal(
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800">
-                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-gray-50/50 dark:bg-neutral-900">
-                    <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {sessionToEdit ? "Reschedule Session" : "Schedule Sessions"}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {sessionToEdit ? "Modify appointment details" : "Create therapy appointments"}
-                        </p>
-                    </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
+    return (
+        <div className="max-w-lg mx-auto animate-fade-in">
+            <Link
+                href="/schedule"
+                className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Schedule
+            </Link>
+
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800">
+                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {sessionToEdit ? "Reschedule Session" : "Schedule Sessions"}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {sessionToEdit ? "Modify appointment details" : "Create therapy appointments"}
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-4 space-y-2">
                     {/* Mode Toggle */}
                     {!sessionToEdit && (
                         <div className="flex p-1 bg-gray-100 dark:bg-neutral-800 rounded-xl">
@@ -212,7 +177,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                                     required
                                     disabled={!!sessionToEdit}
                                     value={selectedChildId}
-                                    onChange={(e) => setSelectedChildId(e.target.value)}
+                                    onChange={(e) => handleChildChange(e.target.value)}
                                     className={`w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all appearance-none ${sessionToEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 >
                                     <option value="">Select Child</option>
@@ -268,20 +233,17 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                                             {/* Show other eligible therapists */}
                                             <optgroup label="Other Qualified Therapists">
                                                 {allTherapists?.filter(t => {
-                                                    // Check if specialization matches selected therapy
                                                     try {
                                                         const spec = t.specialization;
                                                         if (!spec) return false;
-                                                        // Check if it's the specific therapy ID
                                                         if (spec === selectedTherapyId) return true;
-                                                        // Check if it's a JSON array containing the ID
                                                         const parsed = JSON.parse(spec);
                                                         return Array.isArray(parsed) && parsed.includes(selectedTherapyId);
                                                     } catch (e) {
                                                         return t.specialization === selectedTherapyId;
                                                     }
                                                 })
-                                                    .filter(t => !selectedChild.therapyTypes?.some(st => st.therapistId === t.id && st.therapyId === selectedTherapyId)) // Exclude already shown
+                                                    .filter(t => !selectedChild.therapyTypes?.some(st => st.therapistId === t.id && st.therapyId === selectedTherapyId))
                                                     .map(t => (
                                                         <option key={`other-${t.id}`} value={t.id}>{t.name}</option>
                                                     ))}
@@ -319,16 +281,15 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                                         {(() => {
                                             const options = [];
                                             let current = new Date();
-                                            current.setHours(9, 0, 0, 0); // Start at 9:00 AM
+                                            current.setHours(9, 0, 0, 0);
 
                                             const endTime = new Date();
-                                            endTime.setHours(19, 45, 0, 0); // End at 8:30 PM
+                                            endTime.setHours(19, 45, 0, 0);
 
                                             while (current <= endTime) {
                                                 const hour = current.getHours();
                                                 const minute = current.getMinutes();
 
-                                                // Specific adjustment: if 11:15, shift to 11:30
                                                 if (hour === 11 && minute === 15) {
                                                     current.setMinutes(30);
                                                 }
@@ -344,7 +305,6 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                                                     </option>
                                                 );
 
-                                                // Add 45 minutes
                                                 current.setMinutes(current.getMinutes() + 45);
                                             }
                                             return options;
@@ -433,7 +393,7 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                         </div>
                     )}
 
-                    <div className="pt-4 sticky bottom-0 bg-white dark:bg-neutral-900 pb-2">
+                    <div className="pt-4">
                         <button
                             type="submit"
                             disabled={isPending || !selectedChildId || (mode === "MONTHLY" && selectedDays.length === 0)}
@@ -444,7 +404,6 @@ export default function ScheduleModal({ isOpen, onClose, children, allTherapists
                     </div>
                 </form>
             </div>
-        </div>,
-        document.body
+        </div>
     );
 }

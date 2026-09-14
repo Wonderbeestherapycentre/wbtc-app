@@ -64,3 +64,11 @@ body {
   @apply bg-gray-400 dark:bg-gray-600;
 }
 
+/* Hide native clear (x) icon on date inputs */
+input[type="date"]::-webkit-clear-button {
+  display: none;
+}
+input[type="date"] {
+  -moz-appearance: textfield;
+}
+

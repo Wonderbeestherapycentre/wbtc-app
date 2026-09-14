@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
     format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks,
     startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth,
     addMonths, subMonths, isToday, startOfDay, addHours, differenceInMinutes, getHours, setHours
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, MapPin, User, Baby, Clock, Filter, Calendar as CalendarIcon, LayoutList, CalendarDays, Table as TableIcon, Trash2 } from "lucide-react";
-import ScheduleModal from "./ScheduleModal";
 import { deleteSession, deleteSessions } from "@/lib/actions";
 import ConfirmModal from "@/components/ConfirmModal";
 import SearchableDropdown from "../ui/SearchableDropdown";
@@ -53,8 +53,6 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
 
     const [view, setView] = useState<"DAY" | "WEEK" | "MONTH" | "TABLE">("TABLE");
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [sessionToEdit, setSessionToEdit] = useState<any>(null);
     // Auto-filter to logged-in therapist if role is THERAPIST
     const [filterTherapistId, setFilterTherapistId] = useState(currentUserRole === "THERAPIST" ? userId : "");
     const [filterChildId, setFilterChildId] = useState("");
@@ -189,13 +187,7 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
 
     const handleEditSession = (session: Session) => {
         if (currentUserRole === "PARENT") return;
-        setSessionToEdit(session);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSessionToEdit(null);
+        router.push(`/schedule/session/${session.id}`);
     };
 
     const handleDelete = (sessionId: string) => {
@@ -336,10 +328,10 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                         Today
                     </button>
                     {currentUserRole === "ADMIN" && (
-                        <button onClick={() => setIsModalOpen(true)} className=" flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-500/25 transition-all font-bold text-xs">
+                        <Link href="/schedule/session" className=" flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-500/25 transition-all font-bold text-xs">
                             <Plus className="w-4 h-4" />
                             <span className="sr-only">New Schedule</span>
-                        </button>
+                        </Link>
                     )}
                 </div>
 
@@ -743,15 +735,6 @@ export default function ScheduleCalendar({ sessions, childrenData, allTherapists
                     </div>
                 )}
             </div>
-
-            <ScheduleModal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                children={childrenData}
-                allTherapists={allTherapists}
-                initialDate={currentDate}
-                sessionToEdit={sessionToEdit}
-            />
 
             <ConfirmModal
                 isOpen={!!sessionToDelete}

@@ -299,9 +299,8 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                         className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${errors.gender ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                                     >
                                         <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
+                                        <option value="Male">Boy</option>
+                                        <option value="Female">Girl</option>
                                     </select>
                                     {errors.gender && <p className="text-xs text-red-500 mt-1">{errors.gender[0]}</p>}
                                 </div>

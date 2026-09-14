@@ -251,6 +251,28 @@ export async function fetchTherapies(includeInactive = false) {
     return data;
 }
 
+export async function fetchSessionById(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const data = await db.query.sessions.findFirst({
+        where: eq(sessions.id, id),
+        with: {
+            child: true,
+            therapist: true,
+            therapy: true
+        }
+    });
+
+    if (!data) return null;
+
+    if (session.user.role === "PARENT" && data.child.parentId !== session.user.id) {
+        return null; // Unauthorized
+    }
+
+    return { ...data, date: convertUTCToIST(data.date) };
+}
+
 export async function fetchSessions(startDate?: Date, endDate?: Date, therapistId?: string) {
     const session = await auth();
     if (!session?.user) return [];
