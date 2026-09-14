@@ -236,6 +236,7 @@ export async function createTherapy(formData: FormData) {
     const name = formData.get("name") as string;
     const description = (formData.get("description") as string) || "";
     const price = (formData.get("price") as string) || "0";
+    const paymentType = (formData.get("paymentType") as "SESSION" | "MONTH") || "SESSION";
     const status = (formData.get("status") as "ACTIVE" | "INACTIVE") || "ACTIVE";
     const duration = (formData.get("defaultDurationMinutes") as string) || "45";
 
@@ -245,6 +246,7 @@ export async function createTherapy(formData: FormData) {
         name,
         description,
         chargePerSession: price,
+        paymentType,
         status,
         defaultDurationMinutes: parseInt(duration),
     });
@@ -260,6 +262,7 @@ export async function updateTherapy(id: string, formData: FormData) {
     const name = formData.get("name") as string;
     const description = (formData.get("description") as string) || "";
     const price = (formData.get("price") as string) || "0";
+    const paymentType = (formData.get("paymentType") as "SESSION" | "MONTH") || "SESSION";
     const status = (formData.get("status") as "ACTIVE" | "INACTIVE") || "ACTIVE";
     const duration = (formData.get("defaultDurationMinutes") as string) || "45";
 
@@ -269,6 +272,7 @@ export async function updateTherapy(id: string, formData: FormData) {
         name,
         description,
         chargePerSession: price,
+        paymentType,
         status,
         defaultDurationMinutes: parseInt(duration),
     }).where(eq(therapies.id, id));

@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createChild, updateChild } from "@/lib/actions";
 import { toast } from "sonner";
-import { X, Save, AlertCircle, Calendar, User, Stethoscope, Activity, Check } from "lucide-react";
-import { createPortal } from "react-dom";
+import { Save, AlertCircle, User, Stethoscope, Activity, Check, ArrowLeft } from "lucide-react";
 import { intervalToDuration } from "date-fns";
 
-interface ChildModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface ChildFormProps {
     child?: {
         id: string;
         name: string;
@@ -28,10 +27,12 @@ interface ChildModalProps {
     } | null;
     parents?: { id: string; name: string }[];
     therapists?: { id: string; name: string; specialization?: string | null }[];
-    therapies?: { id: string; name: string; chargePerSession?: string | null }[];
+    therapies?: { id: string; name: string; chargePerSession?: string | null; paymentType?: "SESSION" | "MONTH" }[];
 }
 
-export default function ChildModal({ isOpen, onClose, child, parents = [], therapists = [], therapies = [] }: ChildModalProps) {
+export default function ChildForm({ child, parents = [], therapists = [], therapies = [] }: ChildFormProps) {
+    const router = useRouter();
+
     // Helper function to get therapists that specialize in a specific therapy
     const getTherapistsForTherapy = (therapyId: string) => {
         return therapists.filter(therapist => {
@@ -51,19 +52,33 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
             return therapist.specialization === therapyId;
         });
     };
-    const [mounted, setMounted] = useState(false);
+
     const [isPending, startTransition] = useTransition();
 
     // Form State
-    const [name, setName] = useState("");
-    const [status, setStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
-    const [dob, setDob] = useState("");
-    const [gender, setGender] = useState("");
-    const [diagnosis, setDiagnosis] = useState("");
-    const [parentId, setParentId] = useState("");
-    const [assignedTherapies, setAssignedTherapies] = useState<Record<string, string>>({}); // therapyId -> therapistId
-    const [therapyFees, setTherapyFees] = useState<Record<string, string>>({}); // therapyId -> feePerSession
-    const [selectedTherapyIds, setSelectedTherapyIds] = useState<string[]>([]); // Keep this for easier UI toggling
+    const [name, setName] = useState(child?.name || "");
+    const [status, setStatus] = useState<"ACTIVE" | "INACTIVE">(child?.status || "ACTIVE");
+    const [dob, setDob] = useState(child?.dob || "");
+    const [gender, setGender] = useState(child?.gender || "");
+    const [diagnosis, setDiagnosis] = useState(child?.diagnosis || "");
+    const [parentId, setParentId] = useState(child?.parentId || "");
+    const [assignedTherapies, setAssignedTherapies] = useState<Record<string, string>>(() => {
+        const assignments: Record<string, string> = {};
+        child?.therapyTypes?.forEach(t => {
+            assignments[t.therapyId] = t.therapistId || "";
+        });
+        return assignments;
+    }); // therapyId -> therapistId
+    const [therapyFees, setTherapyFees] = useState<Record<string, string>>(() => {
+        const fees: Record<string, string> = {};
+        child?.therapyTypes?.forEach(t => {
+            fees[t.therapyId] = t.feePerSession ? String(t.feePerSession) : "";
+        });
+        return fees;
+    }); // therapyId -> feePerSession
+    const [selectedTherapyIds, setSelectedTherapyIds] = useState<string[]>(
+        child?.therapyTypes?.map(t => t.therapyId) || []
+    ); // Keep this for easier UI toggling
     const [age, setAge] = useState<string>("");
     const [errors, setErrors] = useState<Record<string, string[]>>({});
 
@@ -82,46 +97,6 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
             setAge("");
         }
     }, [dob]);
-
-    // Initialize/Reset form
-    useEffect(() => {
-        if (isOpen) {
-            if (child) {
-                setName(child.name);
-                setStatus(child.status);
-                setDob(child.dob || "");
-                setGender(child.gender || "");
-                setDiagnosis(child.diagnosis || "");
-                setParentId(child.parentId || "");
-                const assignments: Record<string, string> = {};
-                const fees: Record<string, string> = {};
-                child.therapyTypes?.forEach(t => {
-                    assignments[t.therapyId] = t.therapistId || "";
-                    // Use custom fee if set, otherwise empty (will show placeholder with default)
-                    fees[t.therapyId] = t.feePerSession ? String(t.feePerSession) : "";
-                });
-                setAssignedTherapies(assignments);
-                setTherapyFees(fees);
-                setSelectedTherapyIds(child.therapyTypes?.map(t => t.therapyId) || []);
-                setErrors({});
-            } else {
-                setName("");
-                setStatus("ACTIVE");
-                setDob("");
-                setGender("");
-                setDiagnosis("");
-                setParentId("");
-                setAssignedTherapies({});
-                setTherapyFees({});
-                setSelectedTherapyIds([]);
-                setErrors({});
-            }
-        }
-    }, [isOpen, child]);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -189,7 +164,8 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
 
             if (result.message.includes("created") || result.message.includes("updated")) {
                 toast.success(result.message);
-                onClose();
+                router.push("/childrens");
+                router.refresh();
             } else if (result.errors) {
                 setErrors(result.errors);
                 toast.error("Please fix the errors in the form");
@@ -231,32 +207,30 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
         setAssignedTherapies(prev => ({ ...prev, [therapyId]: therapistId }));
     };
 
-    if (!mounted || !isOpen) return null;
+    return (
+        <div className="max-w-2xl mx-auto animate-fade-in">
+            <Link
+                href="/childrens"
+                className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Children
+            </Link>
 
-    return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-neutral-800 flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-2 border-b border-gray-100 dark:border-neutral-800">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            {child ? "Edit Child Profile" : "Add New Child"}
-                        </h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {child ? "Update personal and therapy details" : "Register a new child for therapy services"}
-                        </p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {child ? "Edit Child Profile" : "Add New Child"}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {child ? "Update personal and therapy details" : "Register a new child for therapy services"}
+                    </p>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-2 overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-4 md:p-6">
                     <div className="space-y-3">
 
                         {/* Basic Info Section */}
@@ -326,8 +300,6 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                 <p className="text-xs text-gray-400 mt-1">Separate multiple diagnoses with commas</p>
                             </div>
 
-
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Therapy Types</label>
                                 <div className="space-y-3">
@@ -372,12 +344,12 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                                                                 <span className="text-xs text-gray-500 dark:text-gray-400">₹</span>
                                                                 <input
                                                                     type="number"
-                                                                    placeholder={`Fee per session (default: ${t.chargePerSession || 'N/A'})`}
+                                                                    placeholder={`Fee per ${t.paymentType === 'MONTH' ? 'month' : 'session'} (default: ${t.chargePerSession || 'N/A'})`}
                                                                     value={therapyFees[t.id] || ""}
                                                                     onChange={(e) => setTherapyFees(prev => ({ ...prev, [t.id]: e.target.value }))}
                                                                     className="flex-1 px-3 py-1.5 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg text-xs focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
                                                                 />
-                                                                <span className="text-xs text-gray-500 dark:text-gray-400">per session</span>
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">per {t.paymentType === 'MONTH' ? 'month' : 'session'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -425,13 +397,12 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
 
                     {/* Actions */}
                     <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
+                        <Link
+                            href="/childrens"
+                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
                         >
                             Cancel
-                        </button>
+                        </Link>
                         <button
                             type="submit"
                             disabled={isPending}
@@ -449,7 +420,6 @@ export default function ChildModal({ isOpen, onClose, child, parents = [], thera
                     </div>
                 </form>
             </div>
-        </div>,
-        document.body
+        </div>
     );
 }

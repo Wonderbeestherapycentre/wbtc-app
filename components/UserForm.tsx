@@ -1,10 +1,11 @@
 "use client";
 
-import { X, Check, ChevronsUpDown } from "lucide-react";
-import { useState, useTransition, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { updateUser, createUser } from "@/lib/actions";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createUser, updateUser } from "@/lib/actions";
 import { toast } from "sonner";
+import { Save, ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
 
 interface User {
     id: string;
@@ -22,64 +23,34 @@ interface User {
     children?: { id: string; name: string }[];
 }
 
-interface UserModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+interface UserFormProps {
     user?: User | null;
     currentUserRole: "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER";
     allChildren?: { id: string; name: string; caseNumber?: string; parent?: { id: string; name: string } | null }[];
     therapies?: { id: string; name: string; status: string }[];
 }
 
-export default function UserModal({ isOpen, onClose, user, currentUserRole, allChildren = [], therapies = [] }: UserModalProps) {
+export default function UserForm({ user, currentUserRole, allChildren = [], therapies = [] }: UserFormProps) {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [mounted, setMounted] = useState(false);
 
     const [selectedRole, setSelectedRole] = useState<"ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER" | "">(user?.role || "");
     const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-    const [selectedChildIds, setSelectedChildIds] = useState<string[]>([]);
-    const [selectedTherapyId, setSelectedTherapyId] = useState("");
+    const [selectedChildIds, setSelectedChildIds] = useState<string[]>(
+        user?.children?.map(c => c.id) || []
+    );
+    const [selectedTherapyId, setSelectedTherapyId] = useState(() => {
+        if (!user?.specialization) return "";
+        try {
+            const parsed = JSON.parse(user.specialization);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+            return "";
+        } catch (e) {
+            return user.specialization;
+        }
+    });
     const [isChildSelectOpen, setIsChildSelectOpen] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        setFieldErrors({});
-        if (user?.role) {
-            setSelectedRole(user.role);
-        } else {
-            setSelectedRole("");
-        }
-
-        if (user?.children) {
-            setSelectedChildIds(user.children.map(c => c.id));
-        } else {
-            setSelectedChildIds([]);
-        }
-
-        // Initialize therapy ID from user's specialization
-        if (user?.specialization) {
-            // Could be JSON array (old multi-select) or single ID
-            try {
-                const parsed = JSON.parse(user.specialization);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setSelectedTherapyId(parsed[0]); // Take first one
-                } else {
-                    setSelectedTherapyId("");
-                }
-            } catch (e) {
-                // If not JSON, treat as direct ID or leave empty
-                setSelectedTherapyId(user.specialization);
-            }
-        } else {
-            setSelectedTherapyId("");
-        }
-    }, [user, isOpen]);
-
-    if (!isOpen) return null;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -102,7 +73,8 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
 
             if (result?.message?.includes("User updated") || result?.message?.includes("User created")) {
                 toast.success(result.message);
-                onClose();
+                router.push("/users");
+                router.refresh();
             } else {
                 if (result?.errors) {
                     setFieldErrors(result.errors);
@@ -112,26 +84,36 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
         });
     };
 
-    if (!mounted) return null;
+    return (
+        <div className="max-w-2xl mx-auto animate-fade-in">
+            <Link
+                href="/users"
+                className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Users
+            </Link>
 
-    return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800 animate-slide-up">
-                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-neutral-800">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user ? "Edit User" : "Add New User"}</h2>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col">
+
+                {/* Header */}
+                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        {user ? "Edit User" : "Add New User"}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {user ? "Update user account details" : "Create a new user account"}
+                    </p>
                 </div>
 
-                <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                <form onSubmit={handleSubmit} noValidate className="p-4 md:p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
                             <input
                                 name="name"
                                 defaultValue={user?.name || ""}
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.name ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                                 placeholder="vellies"
                             />
                             {fieldErrors.name && (
@@ -144,7 +126,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 name="email"
                                 type="email"
                                 defaultValue={user?.email || ""}
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.email ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.email ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                                 placeholder="vellies@example.com"
                             />
                             {fieldErrors.email && (
@@ -159,7 +141,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                     name="role"
                                     value={selectedRole}
                                     onChange={(e) => setSelectedRole(e.target.value as any)}
-                                    className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.role ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                    className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.role ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                                 >
                                     <option value="" disabled>Select Role</option>
                                     <option value="ADMIN">Admin</option>
@@ -179,7 +161,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 <button
                                     type="button"
                                     onClick={() => setIsChildSelectOpen(!isChildSelectOpen)}
-                                    className={`w-full px-4 py-2 bg-white dark:bg-neutral-800 border ${fieldErrors.children ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all flex items-center justify-between text-left`}
+                                    className={`w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border ${fieldErrors.children ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all flex items-center justify-between text-left`}
                                 >
                                     <span className={`block truncate ${selectedChildIds.length === 0 ? "text-gray-400" : "text-gray-900 dark:text-white"}`}>
                                         {selectedChildIds.length === 0
@@ -244,7 +226,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                         name="qualification"
                                         defaultValue={user?.qualification || ""}
                                         placeholder="e.g. B.Sc, M.Sc, PhD"
-                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.qualification ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.qualification ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                                     />
                                     {fieldErrors.qualification && (
                                         <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.qualification[0]}</p>
@@ -256,7 +238,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                         name="specialization"
                                         value={selectedTherapyId}
                                         onChange={(e) => setSelectedTherapyId(e.target.value)}
-                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.specialization ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                        className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.specialization ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                                     >
                                         <option value="">Select Therapy</option>
                                         {therapies
@@ -279,7 +261,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 name="mobile1"
                                 defaultValue={user?.mobile1 || ""}
                                 placeholder="PhoneNumber"
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile1 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile1 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                             />
                             {fieldErrors.mobile1 && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.mobile1[0]}</p>
@@ -291,7 +273,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 name="mobile2"
                                 defaultValue={user?.mobile2 || ""}
                                 placeholder="PhoneNumber"
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile2 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.mobile2 ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                             />
                             {fieldErrors.mobile2 && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.mobile2[0]}</p>
@@ -305,7 +287,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 defaultValue={user?.address || ""}
                                 rows={2}
                                 placeholder="Full Address"
-                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
                             />
                         </div>
 
@@ -316,7 +298,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 type="date"
                                 defaultValue={user?.doj || ""}
                                 max={new Date().toISOString().split('T')[0]}
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.doj ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.doj ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all`}
                             />
                             {fieldErrors.doj && (
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.doj[0]}</p>
@@ -328,7 +310,7 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                             <select
                                 name="status"
                                 defaultValue={user?.status || "ACTIVE"}
-                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.status ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                className={`w-full px-4 py-2 rounded-xl border ${fieldErrors.status ? 'border-red-500' : 'border-gray-200 dark:border-neutral-700'} bg-gray-50 dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none`}
                             >
                                 <option value="ACTIVE">Active</option>
                                 <option value="INACTIVE">Inactive</option>
@@ -337,28 +319,33 @@ export default function UserModal({ isOpen, onClose, user, currentUserRole, allC
                                 <p className="text-xs text-red-500 mt-1 ml-1">{fieldErrors.status[0]}</p>
                             )}
                         </div>
-
                     </div>
 
-                    <div className="pt-4 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl font-medium transition-colors"
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                        <Link
+                            href="/users"
+                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
                         >
                             Cancel
-                        </button>
+                        </Link>
                         <button
                             type="submit"
                             disabled={isPending}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50"
+                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isPending ? "Saving..." : (user ? "Save Changes" : "Create User")}
+                            {isPending ? (
+                                "Saving..."
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" />
+                                    {user ? "Save Changes" : "Create User"}
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>
             </div>
-        </div>,
-        document.body
+        </div>
     );
 }

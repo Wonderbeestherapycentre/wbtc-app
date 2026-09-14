@@ -11,6 +11,7 @@ interface Therapy {
     name: string;
     description: string | null;
     chargePerSession: string | null;
+    paymentType: "SESSION" | "MONTH";
     status: "ACTIVE" | "INACTIVE";
     defaultDurationMinutes: number;
 }
@@ -29,6 +30,7 @@ export default function TherapyModal({ isOpen, onClose, therapy }: TherapyModalP
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
+    const [paymentType, setPaymentType] = useState<"SESSION" | "MONTH">("SESSION");
     const [status, setStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
     const [duration, setDuration] = useState("45");
 
@@ -39,12 +41,14 @@ export default function TherapyModal({ isOpen, onClose, therapy }: TherapyModalP
                 setName(therapy.name);
                 setDescription(therapy.description || "");
                 setPrice(therapy.chargePerSession || "");
+                setPaymentType(therapy.paymentType || "SESSION");
                 setStatus(therapy.status);
                 setDuration(therapy.defaultDurationMinutes.toString());
             } else {
                 setName("");
                 setDescription("");
                 setPrice("");
+                setPaymentType("SESSION");
                 setStatus("ACTIVE");
                 setDuration("45");
             }
@@ -67,8 +71,9 @@ export default function TherapyModal({ isOpen, onClose, therapy }: TherapyModalP
         formData.append("name", name.trim());
         formData.append("description", description);
         formData.append("price", price);
+        formData.append("paymentType", paymentType);
         formData.append("status", status);
-        formData.append("defaultDurationMinutes", duration);
+        formData.append("defaultDurationMinutes", paymentType === "MONTH" ? "45" : duration);
 
         startTransition(async () => {
             let result;
@@ -143,7 +148,22 @@ export default function TherapyModal({ isOpen, onClose, therapy }: TherapyModalP
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* Payment Type */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Payment Type
+                            </label>
+                            <select
+                                value={paymentType}
+                                onChange={(e) => setPaymentType(e.target.value as "SESSION" | "MONTH")}
+                                className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none"
+                            >
+                                <option value="SESSION">Session</option>
+                                <option value="MONTH">Monthly</option>
+                            </select>
+                        </div>
+
+                        <div className={paymentType === "SESSION" ? "grid grid-cols-2 gap-4" : ""}>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Default Price (₹)
@@ -158,20 +178,22 @@ export default function TherapyModal({ isOpen, onClose, therapy }: TherapyModalP
                                     step="0.01"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Duration (Minutes)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={duration}
-                                    onChange={(e) => setDuration(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
-                                    placeholder="45"
-                                    min="5"
-                                    step="5"
-                                />
-                            </div>
+                            {paymentType === "SESSION" && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Duration (Minutes)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={duration}
+                                        onChange={(e) => setDuration(e.target.value)}
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                                        placeholder="45"
+                                        min="5"
+                                        step="5"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Status Select */}

@@ -5,7 +5,6 @@ import { Edit2, Trash2, Plus, Eye } from "lucide-react";
 import Link from "next/link";
 import { deleteUser } from "@/lib/actions";
 import { intervalToDuration } from "date-fns";
-import UserModal from "./UserModal";
 import ConfirmModal from "@/components/ConfirmModal";
 
 interface User {
@@ -34,8 +33,6 @@ interface UserListProps {
 }
 
 export default function UserList({ users, currentUserRole, currentUserId, allChildren = [], therapies = [] }: UserListProps) {
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const calculateAge = (dob: string | null) => {
@@ -93,28 +90,16 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                     <option value="ATTENDER">Attenders</option>
                 </select>
                 {currentUserRole === "ADMIN" && (
-                    <button
-                        onClick={() => {
-                            setEditingUser(null);
-                            setIsModalOpen(true);
-                        }}
+                    <Link
+                        href="/users/new"
                         className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4 mx-2" />
                         <span className="hidden md:block">Add User</span>
-                    </button>
+                    </Link>
                 )}
             </div>
             <div className="glass-card rounded-2xl overflow-hidden animate-fade-in animate-delay-100">
-                <UserModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    user={editingUser}
-                    currentUserRole={currentUserRole}
-                    allChildren={allChildren}
-                    therapies={therapies}
-                />
-
                 <ConfirmModal
                     isOpen={deleteConfirmOpen}
                     onClose={() => {
@@ -227,15 +212,13 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingUser(user);
-                                                        setIsModalOpen(true);
-                                                    }}
+                                                <Link
+                                                    href={`/users/${user.id}/edit`}
                                                     className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
+                                                    title="Edit"
                                                 >
                                                     <Edit2 className="w-4 h-4" />
-                                                </button>
+                                                </Link>
                                                 {currentUserRole === "ADMIN" && currentUserId !== user.id && (
                                                     <button
                                                         onClick={() => handleDeleteClick(user.id)}

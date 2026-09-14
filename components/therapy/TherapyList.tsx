@@ -11,6 +11,7 @@ interface Therapy {
     name: string;
     description: string | null;
     chargePerSession: string | null;
+    paymentType: "SESSION" | "MONTH";
     status: "ACTIVE" | "INACTIVE";
     defaultDurationMinutes: number;
 }
@@ -87,6 +88,7 @@ export default function TherapyList({ therapies, currentUserRole }: TherapyListP
                         <tr>
                             <th className="text-left py-4 px-3 w-px whitespace-nowrap text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service Name</th>
+                            <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Type</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Default Charge</th>
                             <th className="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -98,7 +100,7 @@ export default function TherapyList({ therapies, currentUserRole }: TherapyListP
                     <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                         {therapies.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="py-8 text-center text-gray-500">No therapy services defined.</td>
+                                <td colSpan={7} className="py-8 text-center text-gray-500">No therapy services defined.</td>
                             </tr>
                         ) : (
                             therapies.map((therapy, index) => (
@@ -113,15 +115,30 @@ export default function TherapyList({ therapies, currentUserRole }: TherapyListP
                                         </div>
                                     </td>
                                     <td className="py-4 px-6">
-                                        <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
-                                            <Clock className="w-3 h-3 mr-1.5" />
-                                            {therapy.defaultDurationMinutes} mins
-                                        </div>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${therapy.paymentType === 'MONTH'
+                                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+                                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                                            }`}>
+                                            {therapy.paymentType === 'MONTH' ? 'Monthly' : 'Per Session'}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-6">
+                                        {therapy.paymentType === 'MONTH' ? (
+                                            <span className="text-sm text-gray-400 dark:text-gray-500">—</span>
+                                        ) : (
+                                            <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+                                                <Clock className="w-3 h-3 mr-1.5" />
+                                                {therapy.defaultDurationMinutes} mins
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center text-gray-900 dark:text-white font-medium">
                                             <IndianRupee className="w-3 h-3 mr-1" />
                                             {therapy.chargePerSession || "0.00"}
+                                            <span className="text-xs text-gray-400 font-normal ml-1">
+                                                {therapy.paymentType === 'MONTH' ? '/month' : '/session'}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="py-4 px-6">

@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition, useState } from "react";
 import { toast } from "sonner";
 import { deleteChild } from "@/lib/actions";
 import { Plus, Pencil, Trash2, Eye, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { intervalToDuration } from "date-fns";
-import ChildModal from "./ChildModal";
 import ConfirmModal from "./ConfirmModal";
 import SearchInput from "@/components/SearchInput";
 
@@ -45,9 +44,6 @@ export default function ChildSettings({
 }: ChildSettingsProps) {
     const [isPending, startTransition] = useTransition();
 
-    // Modal states
-    const [isChildModalOpen, setIsChildModalOpen] = useState(false);
-    const [editingChild, setEditingChild] = useState<Child | null>(null);
     const [deletingChild, setDeletingChild] = useState<string | null>(null);
 
     const handleDeleteClick = (id: string) => {
@@ -68,18 +64,6 @@ export default function ChildSettings({
         });
     };
 
-    const handleEditClick = (child: Child) => {
-        setEditingChild(child);
-        setIsChildModalOpen(true);
-    };
-
-    const handleAddClick = () => {
-        setEditingChild(null);
-        setIsChildModalOpen(true);
-    };
-
-
-
     const calculateAge = (dob: string | null) => {
         if (!dob) return null;
         const duration = intervalToDuration({
@@ -94,15 +78,6 @@ export default function ChildSettings({
 
     return (
         <>
-            <ChildModal
-                isOpen={isChildModalOpen}
-                onClose={() => setIsChildModalOpen(false)}
-                child={editingChild}
-                parents={parents}
-                therapists={therapists}
-                therapies={therapies}
-            />
-
             <ConfirmModal
                 isOpen={!!deletingChild}
                 onClose={() => setDeletingChild(null)}
@@ -119,13 +94,13 @@ export default function ChildSettings({
                 </div>
                 {role !== "PARENT" && <SearchInput placeholder="Search by name..." />}
                 {role === "ADMIN" && (
-                    <button
-                        onClick={handleAddClick}
+                    <Link
+                        href="/childrens/session"
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
                         <span>Add Child</span>
-                    </button>
+                    </Link>
                 )}
             </div>
 
@@ -249,13 +224,13 @@ export default function ChildSettings({
                                                 </Link>
                                                 {role === "ADMIN" && (
                                                     <>
-                                                        <button
-                                                            onClick={() => handleEditClick(child)}
+                                                        <Link
+                                                            href={`/childrens/session/${child.id}`}
                                                             className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-500 hover:text-blue-600 transition-colors"
                                                             title="Edit"
                                                         >
                                                             <Pencil className="w-4 h-4" />
-                                                        </button>
+                                                        </Link>
                                                         <button
                                                             onClick={() => handleDeleteClick(child.id)}
                                                             className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-500 hover:text-red-600 transition-colors"

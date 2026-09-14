@@ -7,6 +7,7 @@ export const transactionTypeEnum = pgEnum("transaction_type", ["EXPENSE", "INCOM
 export const sessionStatusEnum = pgEnum("session_status", ["SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED"]);
 export const attendanceStatusEnum = pgEnum("attendance_status", ["PRESENT", "ABSENT", "EXCUSED"]);
 export const paymentModeEnum = pgEnum("payment_mode", ["CASH", "UPI", "BANK_TRANSFER"]);
+export const therapyPaymentTypeEnum = pgEnum("therapy_payment_type", ["SESSION", "MONTH"]);
 
 // 2. Users Table (Admin, Therapist, Parent)
 export const users = pgTable("users", {
@@ -45,6 +46,7 @@ export const therapies = pgTable("therapies", {
     name: text("name").notNull(), // e.g., "Occupational Therapy"
     description: text("description"),
     chargePerSession: decimal("charge_per_session", { precision: 10, scale: 2 }), // Default charge
+    paymentType: therapyPaymentTypeEnum("payment_type").default("SESSION").notNull(), // SESSION = per-session charge, MONTH = flat monthly charge
     status: text("status", { enum: ["ACTIVE", "INACTIVE"] }).default("ACTIVE").notNull(),
     defaultDurationMinutes: integer("default_duration_minutes").default(45).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),

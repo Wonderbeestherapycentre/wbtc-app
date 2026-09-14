@@ -936,6 +936,12 @@ export async function fetchChildFeeDetails(
     const therapyFees: Record<string, number> = {};
     const assignedTherapyBreakdown: Record<string, number> = {};
 
+    // For MONTH payment-type therapies, the flat fee is charged once per calendar
+    // month rather than once per session. These sets track which (therapy, month)
+    // combos have already been billed / earned so we don't double count.
+    const monthlyAssignedCounted = new Set<string>();
+    const monthlyPresentCounted = new Set<string>();
+
     const sessionData = detailedSessions.map(s => {
         let fee = 0;
         // Logic: Fee applicable only if PRESENT?
@@ -958,13 +964,31 @@ export async function fetchChildFeeDetails(
         therapyFees[shortName] = feePerSession;
         assignedTherapyBreakdown[shortName] = (assignedTherapyBreakdown[shortName] || 0) + 1;
 
+        const isMonthly = s.therapy.paymentType === "MONTH";
+        const monthDedupKey = `${s.therapyId}|${s.date.getFullYear()}-${s.date.getMonth()}`;
+
         // All assigned sessions count towards Total Assigned Fee
-        totalAssignedFee += feePerSession;
+        if (isMonthly) {
+            if (!monthlyAssignedCounted.has(monthDedupKey)) {
+                monthlyAssignedCounted.add(monthDedupKey);
+                totalAssignedFee += feePerSession;
+            }
+        } else {
+            totalAssignedFee += feePerSession;
+        }
 
         if (s.attendance === "PRESENT") {
-            fee = feePerSession;
             presentCount++;
-            totalFee += fee;
+            if (isMonthly) {
+                if (!monthlyPresentCounted.has(monthDedupKey)) {
+                    monthlyPresentCounted.add(monthDedupKey);
+                    fee = feePerSession;
+                    totalFee += fee;
+                }
+            } else {
+                fee = feePerSession;
+                totalFee += fee;
+            }
         } else if (s.attendance === "ABSENT") {
             absentCount++;
         } else if (s.attendance === "EXCUSED") {
@@ -1174,6 +1198,11 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
     });
 
     // Fill Session Data
+    // For MONTH payment-type therapies, the flat fee is charged once per calendar
+    // month per child rather than once per session.
+    const monthlyAssignedCounted = new Set<string>();
+    const monthlyPresentCounted = new Set<string>();
+
     childSessions.forEach(session => {
         const entry = fullSummaryMap.get(session.childId);
         if (entry) {
@@ -1182,8 +1211,18 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
             const customFeeObj = session.child.therapyTypes.find(ct => ct.therapyId === session.therapyId);
             const feePerSession = customFeeObj?.feePerSession ? Number(customFeeObj.feePerSession) : Number(session.therapy.chargePerSession || 0);
 
+            const isMonthly = session.therapy.paymentType === "MONTH";
+            const monthDedupKey = `${session.childId}|${session.therapyId}|${session.date.getFullYear()}-${session.date.getMonth()}`;
+
             // Total Assigned Fee includes EVERY session in the period
-            entry.totalAssignedFee += feePerSession;
+            if (isMonthly) {
+                if (!monthlyAssignedCounted.has(monthDedupKey)) {
+                    monthlyAssignedCounted.add(monthDedupKey);
+                    entry.totalAssignedFee += feePerSession;
+                }
+            } else {
+                entry.totalAssignedFee += feePerSession;
+            }
 
             // Therapy short name calculation
             const shortName = session.therapy.name
@@ -1198,7 +1237,14 @@ export async function fetchChildrenFeeSummary(startDate?: Date, endDate?: Date, 
 
             if (session.attendance === "PRESENT") {
                 entry.present++;
-                entry.totalFee += feePerSession;
+                if (isMonthly) {
+                    if (!monthlyPresentCounted.has(monthDedupKey)) {
+                        monthlyPresentCounted.add(monthDedupKey);
+                        entry.totalFee += feePerSession;
+                    }
+                } else {
+                    entry.totalFee += feePerSession;
+                }
 
                 // Update present breakdown (already calculated shortName above)
                 const shortName = session.therapy.name
@@ -1375,6 +1421,10 @@ export async function fetchGlobalSessionHistory(
     let totalFee = 0;
     let totalPresent = 0;
 
+    // For MONTH payment-type therapies, the flat fee is earned once per calendar
+    // month (per child) that had a PRESENT session, rather than once per session.
+    const monthlyPresentCounted = new Set<string>();
+
     const enrichedSessions = history.map(s => {
         let fee = 0;
         let feePerSession = s.therapy.chargePerSession ? Number(s.therapy.chargePerSession) : 0;
@@ -1384,9 +1434,19 @@ export async function fetchGlobalSessionHistory(
         }
 
         if (s.attendance === "PRESENT") {
-            fee = feePerSession;
             totalPresent++;
-            totalFee += fee;
+            if (s.therapy.paymentType === "MONTH") {
+                const sessionDate = new Date(s.date);
+                const monthDedupKey = `${s.childId}|${s.therapyId}|${sessionDate.getFullYear()}-${sessionDate.getMonth()}`;
+                if (!monthlyPresentCounted.has(monthDedupKey)) {
+                    monthlyPresentCounted.add(monthDedupKey);
+                    fee = feePerSession;
+                    totalFee += fee;
+                }
+            } else {
+                fee = feePerSession;
+                totalFee += fee;
+            }
         }
 
         return {
