@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import HomeProgramViewModal from "./HomeProgramViewModal";
 import { Plus, Search, Filter, Edit2, Trash2, Eye } from "lucide-react";
 import Pagination from "./Pagination";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -47,8 +46,6 @@ export default function HomeProgramList({
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const [viewModalOpen, setViewModalOpen] = useState(false);
-    const [viewingProgram, setViewingProgram] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
     const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
@@ -81,12 +78,7 @@ export default function HomeProgramList({
     };
 
     const handleView = (program: any) => {
-        if (userRole === "PARENT") {
-            router.push(`/home-programs/${program.id}`);
-        } else {
-            setViewingProgram(program);
-            setViewModalOpen(true);
-        }
+        router.push(`/home-programs/${program.id}?${returnToParam}`);
     };
 
     const handleAdd = () => {
@@ -269,15 +261,6 @@ export default function HomeProgramList({
             </div>
 
             <Pagination currentPage={meta.page} totalPages={meta.totalPages} />
-
-            <HomeProgramViewModal
-                isOpen={viewModalOpen}
-                onClose={() => {
-                    setViewModalOpen(false);
-                    setViewingProgram(null);
-                }}
-                program={viewingProgram}
-            />
         </div>
     );
 }

@@ -28,7 +28,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<(typeof ROLES)[number]["key"]>("THERAPIST");
 
   return (
     <div className="lg:flex lg:h-dvh">
@@ -147,21 +146,16 @@ export default function LoginPage() {
             <div className="grid grid-cols-3 gap-2">
               {ROLES.map((role) => {
                 const Icon = role.icon;
-                const active = selectedRole === role.key;
                 return (
-                  <button
+                  <div
                     key={role.key}
-                    type="button"
-                    onClick={() => setSelectedRole(role.key)}
-                    className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl border transition-all ${role.bg} ${
-                      active ? `ring-2 ${role.ring} border-transparent` : "border-slate-100"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl border border-slate-100 ${role.bg}`}
                   >
                     <Icon className={`w-4 h-4 ${role.text}`} />
                     <span className="text-[8.5px] font-semibold text-slate-600 text-center leading-tight">
                       {role.label}
                     </span>
-                  </button>
+                  </div>
                 );
               })}
             </div>

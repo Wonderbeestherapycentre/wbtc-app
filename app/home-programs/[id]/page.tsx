@@ -7,11 +7,14 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
 export default async function HomeProgramViewPage({
-    params
+    params,
+    searchParams
 }: {
     params: Promise<{ id: string }>;
+    searchParams: Promise<{ returnTo?: string }>;
 }) {
     const { id } = await params;
+    const { returnTo } = await searchParams;
     const session = await auth();
     if (!session?.user) redirect("/login");
 
@@ -32,7 +35,7 @@ export default async function HomeProgramViewPage({
         >
             <div className="w-full mx-auto space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <Link
-                    href="/home-programs"
+                    href={returnTo || "/home-programs"}
                     className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors group"
                 >
                     <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />

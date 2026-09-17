@@ -4,10 +4,7 @@ import React from "react";
 import { User, Stethoscope, Activity, CheckSquare, Calendar, History, ClipboardCheck, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, isToday } from "date-fns";
-
-import HomeProgramReportForm from "./HomeProgramReportForm";
-
-import HomeProgramReportModal from "./HomeProgramReportModal";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 interface HomeProgramDetailsProps {
     program: any;
@@ -20,16 +17,22 @@ export default function HomeProgramDetails({
     showTitle = true,
     isParent = false
 }: HomeProgramDetailsProps) {
-    const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
     if (!program) return null;
+
+    const currentUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const handleReportClick = () => {
+        router.push(`/home-programs/${program.id}/report?returnTo=${encodeURIComponent(currentUrl)}`);
+    };
 
     const todaySubmission = program.submissions?.find((s: any) => isToday(new Date(s.date)));
     const historySubmissions = program.submissions?.filter((s: any) => !isToday(new Date(s.date))) || [];
 
     return (
-        <>
-            <div className="space-y-3 animate-in fade-in duration-500">
+        <div className="space-y-3 animate-in fade-in duration-500">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     {showTitle && (
                         <div className="space-y-1">
@@ -63,7 +66,7 @@ export default function HomeProgramDetails({
                             </div>
                         ) : (
                             <button
-                                onClick={() => setIsReportModalOpen(true)}
+                                onClick={handleReportClick}
                                 className={cn(
                                     "group flex items-center gap-3 px-4 py-2 rounded-xl text-base font-black transition-all shadow-xl hover:-translate-y-1 active:scale-95 uppercase tracking-widest",
                                     todaySubmission
@@ -86,6 +89,46 @@ export default function HomeProgramDetails({
                         )
                     )}
                 </div>
+
+                {/* Tasks Checklist (Visible to everyone) */}
+                {program.tasks?.length > 0 && (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3 pb-3 border-b border-gray-100 dark:border-neutral-800">
+                            <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-600/20">
+                                <CheckSquare className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="text-md font-black text-gray-900 dark:text-white uppercase tracking-wider text-blue-600">Tasks Checklist</h3>
+                        </div>
+
+                        <div className="grid gap-2">
+                            {program.tasks.map((task: any, index: number) => (
+                                <div
+                                    key={task.id}
+                                    className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-50 dark:bg-neutral-800/40 rounded-2xl border border-gray-100 dark:border-neutral-800"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black">
+                                            {index + 1}
+                                        </span>
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {task.description}
+                                        </span>
+                                    </div>
+                                    <span className={cn(
+                                        "text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest whitespace-nowrap",
+                                        task.status === "COMPLETED" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" :
+                                            task.status === "IN_PROGRESS" ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" :
+                                                task.status === "BORED" ? "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400" :
+                                                    task.status === "REFUSED" ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400" :
+                                                        "bg-gray-100 text-gray-500 dark:bg-neutral-800"
+                                    )}>
+                                        {task.status?.replace("_", " ")}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* History Section (Visible to everyone) */}
                 {
@@ -183,15 +226,6 @@ export default function HomeProgramDetails({
                     </div>
                 )}
             </div>
-
-            <HomeProgramReportModal
-                isOpen={isReportModalOpen}
-                onClose={() => setIsReportModalOpen(false)}
-                programId={program.id}
-                childId={program.childId}
-                tasks={program.tasks || []}
-                initialData={todaySubmission?.submissionTasks}
-            />
-        </>
     );
 }
+
