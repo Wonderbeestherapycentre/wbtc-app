@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses, payments, holidays } from "./db/schema";
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, staffAttendance, expenses, payments, holidays, notifications, notificationRecipients } from "./db/schema";
 
 import { eq, desc, and, asc, sql, count, gte, lte, ilike, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -1721,4 +1721,177 @@ export async function fetchChildMonthlyAttendance(startDate: Date, endDate: Date
         ...s,
         date: convertUTCToIST(s.date)
     }));
+}
+
+// --- Notification Data ---
+
+export async function fetchRecipientOptions() {
+    const session = await auth();
+    if (!session?.user || session.user.role === "PARENT" || session.user.role === "ATTENDER") {
+        return { parents: [] as any[], therapists: [] as any[] };
+    }
+
+    if (session.user.role === "ADMIN") {
+        const [parents, therapists] = await Promise.all([
+            db.query.users.findMany({
+                where: and(eq(users.role, "PARENT"), eq(users.status, "ACTIVE")),
+                orderBy: [asc(users.name)],
+                with: { children: true },
+            }),
+            db.query.users.findMany({
+                where: and(eq(users.role, "THERAPIST"), eq(users.status, "ACTIVE")),
+                orderBy: [asc(users.name)],
+            }),
+        ]);
+        return { parents, therapists };
+    }
+
+    // THERAPIST: only parents of children they are assigned to
+    const assigned = await db.query.childTherapies.findMany({
+        where: eq(childTherapies.therapistId, session.user.id),
+        with: { child: { with: { parent: true } } },
+    });
+
+    const parentMap = new Map<string, any>();
+    assigned.forEach(a => {
+        const parent = a.child.parent;
+        if (!parent || parent.status !== "ACTIVE") return;
+        if (!parentMap.has(parent.id)) {
+            parentMap.set(parent.id, { ...parent, children: [] });
+        }
+        parentMap.get(parent.id).children.push({ id: a.child.id, name: a.child.name });
+    });
+
+    return {
+        parents: Array.from(parentMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
+        therapists: [] as any[],
+    };
+}
+
+export async function fetchNotificationsPaginated(page: number, limit: number, view: "sent" | "received" = "received") {
+    const session = await auth();
+    if (!session?.user) return { data: [], meta: { total: 0, page: 1, limit, totalPages: 0 } };
+
+    const offset = (page - 1) * limit;
+
+    if (view === "received") {
+        const [countResult] = await db.select({ value: count() })
+            .from(notificationRecipients)
+            .innerJoin(notifications, eq(notificationRecipients.notificationId, notifications.id))
+            .where(eq(notificationRecipients.userId, session.user.id));
+        const total = Number(countResult?.value || 0);
+
+        const rows = await db.select({
+            id: notifications.id,
+            title: notifications.title,
+            createdAt: notifications.createdAt,
+            senderName: users.name,
+            isRead: notificationRecipients.isRead,
+        })
+            .from(notificationRecipients)
+            .innerJoin(notifications, eq(notificationRecipients.notificationId, notifications.id))
+            .innerJoin(users, eq(notifications.senderId, users.id))
+            .where(eq(notificationRecipients.userId, session.user.id))
+            .orderBy(desc(notifications.createdAt))
+            .limit(limit)
+            .offset(offset);
+
+        return {
+            data: rows,
+            meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+        };
+    }
+
+    // view === "sent": ADMIN sees all notifications, THERAPIST sees only their own
+    const conditions = [];
+    if (session.user.role === "THERAPIST") {
+        conditions.push(eq(notifications.senderId, session.user.id));
+    } else if (session.user.role !== "ADMIN") {
+        return { data: [], meta: { total: 0, page: 1, limit, totalPages: 0 } };
+    }
+
+    const [countResult] = await db.select({ value: count() })
+        .from(notifications)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+    const total = Number(countResult?.value || 0);
+
+    const rows = await db.query.notifications.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        orderBy: [desc(notifications.createdAt)],
+        limit,
+        offset,
+        with: {
+            sender: true,
+            recipients: true,
+        },
+    });
+
+    return {
+        data: rows.map(n => {
+            const readCount = n.recipients.filter(r => r.isRead).length;
+            return {
+                id: n.id,
+                title: n.title,
+                createdAt: n.createdAt,
+                senderName: n.sender?.name || "-",
+                recipientCount: n.recipients.length,
+                readCount,
+                unreadCount: n.recipients.length - readCount,
+            };
+        }),
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+}
+
+export async function fetchNotificationById(id: string) {
+    const session = await auth();
+    if (!session?.user) return null;
+
+    const notification = await db.query.notifications.findFirst({
+        where: eq(notifications.id, id),
+        with: {
+            sender: true,
+            recipients: { with: { user: true } },
+        },
+    });
+
+    if (!notification) return null;
+
+    if (session.user.role === "PARENT") {
+        const recipient = notification.recipients.find(r => r.userId === session.user.id);
+        if (!recipient) return null;
+
+        if (!recipient.isRead) {
+            await db.update(notificationRecipients)
+                .set({ isRead: true, readAt: new Date() })
+                .where(eq(notificationRecipients.id, recipient.id));
+        }
+    } else if (session.user.role === "THERAPIST") {
+        const recipient = notification.recipients.find(r => r.userId === session.user.id);
+        const isSender = notification.senderId === session.user.id;
+        if (!recipient && !isSender) return null;
+
+        if (recipient && !recipient.isRead) {
+            await db.update(notificationRecipients)
+                .set({ isRead: true, readAt: new Date() })
+                .where(eq(notificationRecipients.id, recipient.id));
+        }
+    }
+    // ADMIN can view any notification
+
+    return notification;
+}
+
+export async function fetchUnreadNotificationCount() {
+    const session = await auth();
+    if (!session?.user) return 0;
+
+    const [result] = await db.select({ value: count() })
+        .from(notificationRecipients)
+        .where(and(
+            eq(notificationRecipients.userId, session.user.id),
+            eq(notificationRecipients.isRead, false)
+        ));
+
+    return Number(result?.value || 0);
 }

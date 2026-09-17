@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // 1. Enums
@@ -292,6 +292,35 @@ export const holidays = pgTable("holidays", {
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (t) => ({
     unq: uniqueIndex("holidays_date_idx").on(t.date),
+}));
+
+// 15. Notifications
+export const notifications = pgTable("notifications", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    description: text("description").notNull(), // Rich text HTML
+    senderId: uuid("sender_id").references(() => users.id).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationRecipients = pgTable("notification_recipients", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    notificationId: uuid("notification_id").references(() => notifications.id, { onDelete: "cascade" }).notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    isRead: boolean("is_read").default(false).notNull(),
+    readAt: timestamp("read_at"),
+}, (t) => ({
+    unq: uniqueIndex("notification_recipients_notification_user_idx").on(t.notificationId, t.userId),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one, many }) => ({
+    sender: one(users, { fields: [notifications.senderId], references: [users.id] }),
+    recipients: many(notificationRecipients),
+}));
+
+export const notificationRecipientsRelations = relations(notificationRecipients, ({ one }) => ({
+    notification: one(notifications, { fields: [notificationRecipients.notificationId], references: [notifications.id] }),
+    user: one(users, { fields: [notificationRecipients.userId], references: [users.id] }),
 }));
 
 // Relations

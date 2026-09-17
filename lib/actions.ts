@@ -7,7 +7,7 @@ import path from "path";
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments, holidays } from "./db/schema"; // Added reporting tables
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments, holidays, notifications, notificationRecipients } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
 import { eq, desc, asc, and, isNotNull, like, inArray, gte, lte, or } from "drizzle-orm"; // Added inArray
@@ -20,6 +20,7 @@ import { GoalSchema, UpdateGoalSchema } from "./validations/goal";
 import { SessionNoteSchema, UpdateSessionNoteSchema } from "./validations/session-note";
 import { SessionSchema, UpdateSessionSchema, MonthlyScheduleSchema } from "./validations/session";
 import { HomeProgramSchema, UpdateHomeProgramSchema } from "./validations/home-program";
+import { NotificationSchema } from "./validations/notification";
 import { generateSecurePassword } from "./utils/password";
 import { ZodError } from "zod";
 
@@ -1877,5 +1878,98 @@ export async function deleteHoliday(id: string) {
     } catch (error) {
         console.error("Failed to delete holiday:", error);
         return { message: "Failed to delete holiday" };
+    }
+}
+
+// --- Notification Actions ---
+export async function createNotification(formData: FormData) {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role === "PARENT" || session.user.role === "ATTENDER") {
+            return { message: "Unauthorized" };
+        }
+
+        const rawRecipientIdsStr = (formData.get("recipientIds") as string) || "[]";
+        let rawRecipientIds: string[] = [];
+        try {
+            rawRecipientIds = JSON.parse(rawRecipientIdsStr);
+        } catch (e) {
+            rawRecipientIds = [];
+        }
+
+        const rawDescription = ((formData.get("description") as string) || "").replace(/<script[\s\S]*?<\/script>/gi, "");
+
+        const validatedFields = NotificationSchema.safeParse({
+            title: formData.get("title") as string,
+            description: rawDescription,
+            recipientIds: rawRecipientIds,
+        });
+
+        if (!validatedFields.success) {
+            return {
+                message: "Validation Error",
+                errors: validatedFields.error.flatten().fieldErrors,
+            };
+        }
+
+        const { title, description, recipientIds } = validatedFields.data;
+
+        // Enforce role-based recipient restrictions server-side, never trust client selection
+        const allowedRecipientIds = new Set<string>();
+
+        if (session.user.role === "ADMIN") {
+            const eligible = await db.query.users.findMany({
+                where: or(eq(users.role, "PARENT"), eq(users.role, "THERAPIST")),
+                columns: { id: true },
+            });
+            eligible.forEach(u => allowedRecipientIds.add(u.id));
+        } else if (session.user.role === "THERAPIST") {
+            const assigned = await db.query.childTherapies.findMany({
+                where: eq(childTherapies.therapistId, session.user.id),
+                with: { child: true },
+            });
+            assigned.forEach(a => {
+                if (a.child.parentId) allowedRecipientIds.add(a.child.parentId);
+            });
+        }
+
+        const filteredRecipientIds = recipientIds.filter(id => allowedRecipientIds.has(id));
+
+        if (filteredRecipientIds.length === 0) {
+            return { message: "No valid recipients selected" };
+        }
+
+        const [newNotification] = await db.insert(notifications).values({
+            title,
+            description,
+            senderId: session.user.id,
+        }).returning({ id: notifications.id });
+
+        await db.insert(notificationRecipients).values(
+            filteredRecipientIds.map(userId => ({
+                notificationId: newNotification.id,
+                userId,
+            }))
+        );
+
+        revalidatePath("/notifications");
+        return { message: "Notification sent" };
+    } catch (error) {
+        console.error("createNotification error:", error);
+        return { message: "Failed to send notification" };
+    }
+}
+
+export async function deleteNotification(id: string) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { message: "Unauthorized" };
+
+    try {
+        await db.delete(notifications).where(eq(notifications.id, id));
+        revalidatePath("/notifications");
+        return { message: "Notification deleted" };
+    } catch (error) {
+        console.error("deleteNotification error:", error);
+        return { message: "Failed to delete notification" };
     }
 }

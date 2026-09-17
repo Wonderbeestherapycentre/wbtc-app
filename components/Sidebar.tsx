@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database, Bell } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.png";
 
@@ -32,6 +32,26 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
         }));
     };
 
+    const [unreadCount, setUnreadCount] = React.useState(0);
+
+    React.useEffect(() => {
+        let active = true;
+        const fetchCount = async () => {
+            try {
+                const res = await fetch("/api/notifications/count");
+                if (!res.ok) return;
+                const data = await res.json();
+                if (active) setUnreadCount(data.count || 0);
+            } catch { }
+        };
+        fetchCount();
+        const interval = setInterval(fetchCount, 30000);
+        return () => {
+            active = false;
+            clearInterval(interval);
+        };
+    }, []);
+
     const ADMIN_NAV = [
         {
             items: [
@@ -40,6 +60,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
                 { icon: FileText, label: "Session Notes", href: "/session-notes" },
                 { icon: Home, label: "Home Programs", href: "/home-programs" },
+                { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         },
         {
@@ -74,6 +95,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Calendar, label: "Schedule", href: "/schedule" },
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
+                { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         }
     ];
@@ -88,6 +110,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
                 { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
+                { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         }
     ];
@@ -214,9 +237,17 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                                                             isActive ? "text-amber-600" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300",
                                                             !isCollapsed && "mr-3"
                                                         )} />
-                                                        <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
+                                                        <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap flex items-center gap-2 flex-1", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
                                                             {item.label}
+                                                            {item.label === "Notifications" && unreadCount > 0 && (
+                                                                <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                                                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                                                </span>
+                                                            )}
                                                         </span>
+                                                        {isCollapsed && item.label === "Notifications" && unreadCount > 0 && (
+                                                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                                                        )}
                                                     </Link>
                                                 );
                                             })}

@@ -16,6 +16,7 @@ interface HeaderProps {
 export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: HeaderProps) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [greeting, setGreeting] = useState("Welcome back");
+    const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
@@ -24,6 +25,24 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
         if (hour >= 4 && hour < 12) setGreeting("Good Morning");
         else if (hour >= 12 && hour < 17) setGreeting("Good Afternoon");
         else if (hour >= 17 || hour < 4) setGreeting("Good Evening");
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        const fetchCount = async () => {
+            try {
+                const res = await fetch("/api/notifications/count");
+                if (!res.ok) return;
+                const data = await res.json();
+                if (active) setUnreadCount(data.count || 0);
+            } catch { }
+        };
+        fetchCount();
+        const interval = setInterval(fetchCount, 30000);
+        return () => {
+            active = false;
+            clearInterval(interval);
+        };
     }, []);
 
     // Close dropdown when clicking outside
@@ -88,10 +107,17 @@ export default function Header({ user, mobileMenuOpen, setMobileMenuOpen }: Head
             {/* Right Side: Actions */}
             <div className="flex items-center gap-4">
                 {/* Notifications */}
-                <button className="p-2 rounded-full hover:bg-amber-50 dark:hover:bg-neutral-800 text-gray-500 hover:text-amber-600 relative transition-colors">
+                <Link
+                    href="/notifications"
+                    className="p-2 rounded-full hover:bg-amber-50 dark:hover:bg-neutral-800 text-gray-500 hover:text-amber-600 relative transition-colors"
+                >
                     <Bell className="w-5 h-5" />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-neutral-900"></span>
-                </button>
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white dark:border-neutral-900">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                    )}
+                </Link>
 
                 {/* Profile Dropdown */}
                 <div className="relative" ref={dropdownRef}>
