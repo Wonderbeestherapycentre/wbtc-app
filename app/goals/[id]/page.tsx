@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit2, Calendar, User, Stethoscope, Target, ListChecks } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Edit2, Target } from "lucide-react";
 import { fetchGoalById } from "@/lib/data";
 import { auth } from "@/auth";
 import AppLayout from "@/components/AppLayout";
@@ -37,14 +36,6 @@ export default async function ViewGoalPage({
 
     const role = session.user.role as "ADMIN" | "THERAPIST" | "PARENT";
     const backHref = returnTo || "/goals";
-
-    let objectives: string[] = [];
-    try {
-        const parsed = JSON.parse(goal.objectives ?? "[]");
-        objectives = Array.isArray(parsed) && parsed.length > 0 ? parsed : [goal.title].filter(Boolean);
-    } catch {
-        objectives = [goal.title].filter(Boolean);
-    }
 
     return (
         <AppLayout role={session.user.role as any} user={session.user}>
@@ -86,55 +77,6 @@ export default async function ViewGoalPage({
                             {goal.status.toLowerCase().replace("_", " ")}
                         </span>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-neutral-800">
-                        <div className="flex items-start gap-3">
-                            <User className="w-4 h-4 text-gray-400 mt-0.5" />
-                            <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Child</p>
-                                <p className="text-sm text-gray-900 dark:text-white font-medium">{goal.child?.name}</p>
-                                {goal.child?.caseNumber && (
-                                    <p className="text-xs text-gray-400">{goal.child.caseNumber}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <Stethoscope className="w-4 h-4 text-gray-400 mt-0.5" />
-                            <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Therapy</p>
-                                <p className="text-sm text-gray-900 dark:text-white font-medium">{goal.therapy?.name}</p>
-                                {role !== "THERAPIST" && (
-                                    <p className="text-xs text-gray-400">By: {goal.therapist?.name || "Unknown"}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
-                            <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-1">Duration</p>
-                                <p className="text-sm text-gray-900 dark:text-white font-medium">
-                                    {format(new Date(goal.startDate), "MMM d, yyyy")} - {format(new Date(goal.endDate), "MMM d, yyyy")}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {objectives.length > 0 && (
-                        <div className="pt-4 border-t border-gray-100 dark:border-neutral-800">
-                            <div className="flex items-center gap-2 mb-3">
-                                <ListChecks className="w-4 h-4 text-gray-400" />
-                                <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">Objectives</p>
-                            </div>
-                            <ul className="space-y-2">
-                                {objectives.map((obj, index) => (
-                                    <li key={index} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
-                                        <span className="text-xs font-medium text-gray-400 mt-0.5">{index + 1}.</span>
-                                        <span className="leading-relaxed">{obj}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
                 </div>
             </div>
         </AppLayout>
