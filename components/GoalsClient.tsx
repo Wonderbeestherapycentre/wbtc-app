@@ -82,6 +82,10 @@ export default function GoalsClient({
         router.push(`/goals/${goal.id}/edit?${returnToParam}`);
     };
 
+    const handleView = (goal: any) => {
+        router.push(`/goals/${goal.id}?${returnToParam}`);
+    };
+
     const toggleExpand = (goalId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         setExpandedGoal(expandedGoal === goalId ? null : goalId);
@@ -153,11 +157,7 @@ export default function GoalsClient({
                                 {showTherapyColumn && <th className="px-6 py-4">Therapy</th>}
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
-                                {
-                                    role !== "PARENT" && (
-                                        <th className="px-6 py-4 text-center">Actions</th>
-                                    )
-                                }
+                                <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -215,9 +215,16 @@ export default function GoalsClient({
                                                 {goal.status.toLowerCase().replace("_", " ")}
                                             </span>
                                         </td>
-                                        {role !== "PARENT" && (
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-center gap-2">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleView(goal)}
+                                                    className="p-1.5 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
+                                                    title="View goal"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                                {role !== "PARENT" && (
                                                     <button
                                                         onClick={() => handleEdit(goal)}
                                                         className="p-1.5 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-neutral-700"
@@ -225,15 +232,14 @@ export default function GoalsClient({
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-
-                                                </div>
-                                            </td>
-                                        )}
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4 + (showChildColumn ? 1 : 0) + (showTherapyColumn ? 1 : 0) + (role !== "PARENT" ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={5 + (showChildColumn ? 1 : 0) + (showTherapyColumn ? 1 : 0)} className="px-6 py-12 text-center text-gray-500">
                                         <div className="w-12 h-12 bg-gray-50 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3">
                                             <CheckCircle2 className="w-6 h-6 text-gray-400" />
                                         </div>

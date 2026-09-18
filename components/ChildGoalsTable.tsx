@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Target, Calendar, Edit2, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Target, Calendar, Edit2, Eye, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import GoalModal from "./GoalModal";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -39,6 +39,10 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
         setIsModalOpen(true);
     };
 
+    const handleView = (goal: any) => {
+        router.push(`/goals/${goal.id}?returnTo=${encodeURIComponent(pathname)}`);
+    };
+
     return (
         <div className="glass-card rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-6 text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-4">
@@ -56,7 +60,7 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
                                 <th className="px-6 py-4">Therapy</th>
                                 <th className="px-6 py-4">Duration</th>
                                 <th className="px-6 py-4">Status</th>
-                                {role !== "PARENT" && <th className="px-6 py-4 text-right">Actions</th>}
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
@@ -86,17 +90,26 @@ export default function ChildGoalsTable({ goals, meta, role, childrenList, thera
                                             {goal.status.toLowerCase().replace("_", " ")}
                                         </span>
                                     </td>
-                                    {role !== "PARENT" && (
-                                        <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={() => handleEdit(goal)}
+                                                onClick={() => handleView(goal)}
                                                 className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                                                title="Edit goal"
+                                                title="View goal"
                                             >
-                                                <Edit2 className="w-4 h-4" />
+                                                <Eye className="w-4 h-4" />
                                             </button>
-                                        </td>
-                                    )}
+                                            {role !== "PARENT" && (
+                                                <button
+                                                    onClick={() => handleEdit(goal)}
+                                                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                    title="Edit goal"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
