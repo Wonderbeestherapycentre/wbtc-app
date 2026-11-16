@@ -15,6 +15,8 @@ import {
   Users,
   GraduationCap,
   Heart,
+  Smartphone,
+  Download,
 } from "lucide-react";
 
 const ROLES = [
@@ -159,6 +161,21 @@ export default function LoginPage() {
                 );
               })}
             </div>
+
+            {/* Android app download */}
+            <a
+              href="/download/android"
+              className="mt-3 flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 hover:bg-emerald-100 transition-colors"
+            >
+              <Smartphone className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-bold text-emerald-800">Get the Android app</span>
+                <span className="block text-[10px] text-emerald-700/80 leading-tight">
+                  For parents &amp; therapists. If asked, allow installing from your browser.
+                </span>
+              </span>
+              <Download className="w-4 h-4 text-emerald-600 shrink-0" />
+            </a>
           </div>
 
           {/* Bottom decoration */}
