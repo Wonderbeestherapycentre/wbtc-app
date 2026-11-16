@@ -11,19 +11,10 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Stethoscope,
-  Users,
-  GraduationCap,
   Heart,
   Smartphone,
   Download,
 } from "lucide-react";
-
-const ROLES = [
-  { key: "THERAPIST", label: "Therapist", icon: Stethoscope, bg: "bg-blue-50", ring: "ring-blue-200", text: "text-blue-600" },
-  { key: "PARENT", label: "Parent", icon: Users, bg: "bg-orange-50", ring: "ring-orange-200", text: "text-orange-500" },
-  { key: "ATTENDER", label: "Special Educator", icon: GraduationCap, bg: "bg-purple-50", ring: "ring-purple-200", text: "text-purple-600" },
-] as const;
 
 export default function LoginPage() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
@@ -138,29 +129,6 @@ export default function LoginPage() {
                 {!isPending && <ArrowRight className="w-4 h-4" />}
               </button>
             </form>
-
-            <div className="flex items-center gap-3 my-3">
-              <div className="h-px flex-1 bg-slate-100" />
-              <span className="text-[11px] font-medium text-slate-400">Login as</span>
-              <div className="h-px flex-1 bg-slate-100" />
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {ROLES.map((role) => {
-                const Icon = role.icon;
-                return (
-                  <div
-                    key={role.key}
-                    className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl border border-slate-100 ${role.bg}`}
-                  >
-                    <Icon className={`w-4 h-4 ${role.text}`} />
-                    <span className="text-[8.5px] font-semibold text-slate-600 text-center leading-tight">
-                      {role.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
 
             {/* Android app download */}
             <a
