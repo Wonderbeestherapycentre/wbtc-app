@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database, Bell } from "lucide-react";
+import { LayoutDashboard, IndianRupee, Tags, Users, Plus, X, Baby, Clock, Heart, Calendar, FileText, Home, ChevronLeft, ChevronRight, ChevronDown, Clipboard as ClipboardIcon, History as HistoryIcon, Database, Bell, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/assets/logo.png";
 
@@ -33,6 +33,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
     };
 
     const [unreadCount, setUnreadCount] = React.useState(0);
+    const [unreadMessages, setUnreadMessages] = React.useState(0);
 
     React.useEffect(() => {
         let active = true;
@@ -43,6 +44,13 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 const data = await res.json();
                 if (active) setUnreadCount(data.count || 0);
             } catch { }
+            if (role === "ATTENDER") return;
+            try {
+                const res = await fetch("/api/chat/unread");
+                if (!res.ok) return;
+                const data = await res.json();
+                if (active) setUnreadMessages(data.count || 0);
+            } catch { }
         };
         fetchCount();
         const interval = setInterval(fetchCount, 30000);
@@ -50,7 +58,10 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
             active = false;
             clearInterval(interval);
         };
-    }, []);
+    }, [role, pathname]);
+
+    const badgeFor = (label: string) =>
+        label === "Notifications" ? unreadCount : label === "Messages" ? unreadMessages : 0;
 
     const ADMIN_NAV = [
         {
@@ -60,6 +71,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: ClipboardIcon, label: "Attendance", href: "/attendance" },
                 { icon: FileText, label: "Session Notes", href: "/session-notes" },
                 { icon: Home, label: "Home Programs", href: "/home-programs" },
+                { icon: MessageCircle, label: "Messages", href: "/messages" },
                 { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         },
@@ -95,6 +107,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Calendar, label: "Schedule", href: "/schedule" },
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
+                { icon: MessageCircle, label: "Messages", href: "/messages" },
                 { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         }
@@ -110,6 +123,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Baby, label: "Childrens", href: "/childrens" },
                 { icon: Tags, label: "Goals", href: "/goals" },
                 { icon: IndianRupee, label: "Fee Reports", href: "/fees" },
+                { icon: MessageCircle, label: "Messages", href: "/messages" },
                 { icon: Bell, label: "Notifications", href: "/notifications" },
             ]
         }
@@ -239,13 +253,13 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                                                         )} />
                                                         <span className={cn("transition-all duration-300 overflow-hidden whitespace-nowrap flex items-center gap-2 flex-1", isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
                                                             {item.label}
-                                                            {item.label === "Notifications" && unreadCount > 0 && (
+                                                            {badgeFor(item.label) > 0 && (
                                                                 <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                                                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                                                    {badgeFor(item.label) > 99 ? "99+" : badgeFor(item.label)}
                                                                 </span>
                                                             )}
                                                         </span>
-                                                        {isCollapsed && item.label === "Notifications" && unreadCount > 0 && (
+                                                        {isCollapsed && badgeFor(item.label) > 0 && (
                                                             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
                                                         )}
                                                     </Link>

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, integer, decimal, pgEnum, date, uniqueIndex, index, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // 1. Enums
@@ -331,6 +331,30 @@ export const notificationsRelations = relations(notifications, ({ one, many }) =
 export const notificationRecipientsRelations = relations(notificationRecipients, ({ one }) => ({
     notification: one(notifications, { fields: [notificationRecipients.notificationId], references: [notifications.id] }),
     user: one(users, { fields: [notificationRecipients.userId], references: [users.id] }),
+}));
+
+// 16. Chat (one-to-one, not real-time; clients poll)
+// Each pair of users has at most one conversation. user_one_id is always the
+// smaller UUID so the pair is stored in one canonical order (see lib/chat.ts).
+export const chatConversations = pgTable("chat_conversations", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userOneId: uuid("user_one_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    userTwoId: uuid("user_two_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    lastMessageAt: timestamp("last_message_at"), // null until the first message is sent
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    unq: uniqueIndex("chat_conversations_pair_idx").on(t.userOneId, t.userTwoId),
+}));
+
+export const chatMessages = pgTable("chat_messages", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id").references(() => chatConversations.id, { onDelete: "cascade" }).notNull(),
+    senderId: uuid("sender_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    body: text("body").notNull(),
+    readAt: timestamp("read_at"), // set when the other participant opens the conversation
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    convCreatedIdx: index("chat_messages_conversation_created_idx").on(t.conversationId, t.createdAt),
 }));
 
 // Relations
