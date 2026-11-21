@@ -87,3 +87,59 @@ export async function sendCredentialsEmail(
         return { success: false, error };
     }
 }
+
+export async function sendPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+    expiresInMinutes: number
+) {
+    try {
+        const logoPath = path.join(process.cwd(), 'app/assets/logo.png');
+
+        await transporter.sendMail({
+            from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
+            to,
+            subject: 'Reset your password - Wonderbees Therapy Centre',
+            text: `Hello ${name},\n\nWe received a request to reset your Wonderbees password.\n\nOpen this link to set a new password (valid for ${expiresInMinutes} minutes):\n${resetUrl}\n\nIf you did not request this, you can ignore this email. Your password will not change.\n\nWonderbees Therapy Centre Team`,
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                        <img src="cid:logo" alt="Wonderbees Logo" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 16px; object-fit: cover; border: 3px solid rgba(255,255,255,0.3);" />
+                        <h1 style="color: white; margin: 0; font-size: 26px;">Reset Your Password</h1>
+                    </div>
+                    <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
+                        <p style="font-size: 16px;">Hello <strong>${name}</strong>,</p>
+                        <p style="font-size: 16px;">We received a request to reset the password for your Wonderbees account. Click the button below to choose a new password.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
+                                Reset Password
+                            </a>
+                        </div>
+                        <p style="font-size: 13px; color: #666;">Or copy this link into your browser:<br/><a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a></p>
+                        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin: 20px 0;">
+                            <p style="margin: 0; color: #856404; font-size: 14px;">
+                                This link expires in <strong>${expiresInMinutes} minutes</strong> and can be used only once. If you did not request a reset, ignore this email. Your password will not change.
+                            </p>
+                        </div>
+                        <p style="font-size: 14px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                            Best regards,<br/><strong>Wonderbees Therapy Centre Team</strong>
+                        </p>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+                        <p>This is an automated message. Please do not reply to this email.</p>
+                    </div>
+                </body>
+                </html>
+            `,
+            attachments: [{ filename: 'logo.png', path: logoPath, cid: 'logo' }],
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Password reset email failed:', error);
+        return { success: false, error };
+    }
+}

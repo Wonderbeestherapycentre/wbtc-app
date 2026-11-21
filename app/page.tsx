@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { authenticate } from "@/lib/actions";
 
 import NextImage from "next/image";
+import Link from "next/link";
 import logo from "./assets/logo.png";
 import {
   User,
@@ -112,6 +113,12 @@ export default function LoginPage() {
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
+              </div>
+
+              <div className="flex justify-end -mt-1">
+                <Link href="/forgot-password" className="text-[11px] font-semibold text-blue-900 hover:text-amber-600">
+                  Forgot password?
+                </Link>
               </div>
 
               {errorMessage && (

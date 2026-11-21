@@ -34,6 +34,36 @@ export default function BackupsPage() {
         setIsTriggering(false);
     };
 
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    // Generates a fresh backup and saves it to the admin's computer (Downloads folder).
+    const handleDownloadLocal = async () => {
+        setIsDownloading(true);
+        try {
+            const res = await fetch("/api/backups/export", { cache: "no-store" });
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            const disposition = res.headers.get("Content-Disposition") || "";
+            const match = disposition.match(/filename="([^"]+)"/);
+            const filename = match?.[1] || `wbtc_backup_${Date.now()}.sql`;
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            toast.success("Backup downloaded to your computer");
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to download backup");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     const handleDelete = async (fileName: string) => {
         if (!confirm("Are you sure you want to delete this backup?")) return;
         const res = await deleteBackupAction(fileName);
@@ -62,14 +92,24 @@ export default function BackupsPage() {
                     </h1>
                     <p className="text-gray-500 mt-2">Manage and monitor your system's data security.</p>
                 </div>
-                <button
-                    onClick={handleTrigger}
-                    disabled={isTriggering}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all font-semibold disabled:opacity-50 shadow-lg shadow-blue-500/20"
-                >
-                    <RefreshCw size={18} className={isTriggering ? "animate-spin" : ""} />
-                    {isTriggering ? "Creating Backup..." : "Trigger Manual Backup"}
-                </button>
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={handleDownloadLocal}
+                        disabled={isDownloading}
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all font-semibold disabled:opacity-50 shadow-lg shadow-blue-500/20"
+                    >
+                        <Download size={18} className={isDownloading ? "animate-bounce" : ""} />
+                        {isDownloading ? "Preparing Backup..." : "Download Backup to Computer"}
+                    </button>
+                    <button
+                        onClick={handleTrigger}
+                        disabled={isTriggering}
+                        className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-neutral-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-neutral-700 transition-all font-semibold disabled:opacity-50"
+                    >
+                        <RefreshCw size={18} className={isTriggering ? "animate-spin" : ""} />
+                        {isTriggering ? "Creating Backup..." : "Save Copy on Server"}
+                    </button>
+                </div>
             </div>
 
             <div className="glass-card rounded-3xl overflow-hidden shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-neutral-800">
@@ -152,7 +192,7 @@ export default function BackupsPage() {
                 <AlertCircle className="text-amber-600 flex-shrink-0" />
                 <div className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
                     <p className="font-bold mb-1">Backup Policy</p>
-                    <p>The system stores backups for a maximum of 7 days. Ensure you download critical copies for long-term archival. Each backup includes clinical notes, schedules, and financial records.</p>
+                    <p>Use <b>Download Backup to Computer</b> to save a complete copy of the database on this device. Copies saved on the server are temporary (kept up to 7 days and may be cleared on redeploy), so keep downloaded copies for long-term archival. Each backup includes clinical notes, schedules, and financial records.</p>
                 </div>
             </div>
         </div>

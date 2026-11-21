@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { updatePassword } from "@/lib/actions";
 import { KeyRound, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 export default function ChangePasswordForm() {
     const [state, dispatch, isPending] = useActionState(updatePassword, undefined);
+    const [newPassword, setNewPassword] = useState("");
 
     return (
         <form action={dispatch} className="space-y-4 max-w-md">
@@ -34,10 +36,15 @@ export default function ChangePasswordForm() {
                         name="newPassword"
                         type="password"
                         required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         placeholder="••••••••"
                     />
                     <KeyRound className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                </div>
+                <div className="mt-2">
+                    <PasswordRequirements password={newPassword} />
                 </div>
             </div>
 

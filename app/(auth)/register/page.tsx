@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { register } from "@/lib/actions";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 
 import { useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ export default function RegisterPage() {
         // router.replace('/'); // or router.push()
     }, [router]);
     const [state, dispatch, isPending] = useActionState(register, undefined);
+    const [password, setPassword] = useState("");
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4 relative overflow-hidden">
@@ -114,7 +116,10 @@ export default function RegisterPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Password</label>
-                        <input name="password" type="password" required placeholder="••••••••" className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                        <input name="password" type="password" required placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-1 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+                        <div className="mt-2">
+                            <PasswordRequirements password={password} />
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-1.5 dark:text-gray-300">Family Name</label>

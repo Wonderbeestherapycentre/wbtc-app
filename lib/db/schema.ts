@@ -27,6 +27,16 @@ export const users = pgTable("users", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 2b. Password Reset Tokens (forgot-password flow). Only a SHA-256 hash of the token is stored.
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // 3. Children Table
 export const children = pgTable("children", {
     id: uuid("id").defaultRandom().primaryKey(),

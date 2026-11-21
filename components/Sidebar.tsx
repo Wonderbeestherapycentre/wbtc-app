@@ -80,7 +80,7 @@ export default function Sidebar({ isOpen, onClose, role = "ADMIN", user }: Sideb
                 { icon: Users, label: "Users", href: "/users" },
                 { icon: Heart, label: "Services", href: "/therapies" },
                 { icon: Calendar, label: "Holidays", href: "/admin/holidays" },
-                // { icon: Database, label: "Backups", href: "/settings/backups" },
+                { icon: Database, label: "Backups", href: "/settings/backups" },
             ]
         }
     ];

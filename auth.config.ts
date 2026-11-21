@@ -18,7 +18,9 @@ export const authConfig = {
                 nextUrl.pathname.startsWith("/user-flow") ||
                 nextUrl.pathname.startsWith("/pricing") ||
                 nextUrl.pathname.startsWith("/admin-documentation") ||
-                nextUrl.pathname.startsWith("/competitors");
+                nextUrl.pathname.startsWith("/competitors") ||
+                nextUrl.pathname.startsWith("/forgot-password") ||
+                nextUrl.pathname.startsWith("/reset-password");
 
             if (isOnHome || isOnRegister || isPublicPage) {
                 if (isLoggedIn && isValidRole && isOnHome) return Response.redirect(new URL("/dashboard", nextUrl));

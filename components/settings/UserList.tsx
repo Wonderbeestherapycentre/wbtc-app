@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Edit2, Trash2, Plus, Eye } from "lucide-react";
+import { Edit2, Trash2, Plus, Eye, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { deleteUser } from "@/lib/actions";
 import { intervalToDuration } from "date-fns";
 import ConfirmModal from "@/components/ConfirmModal";
+import ChangePasswordModal from "@/components/settings/ChangePasswordModal";
 
 interface User {
     id: string;
@@ -66,6 +67,9 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
         });
     };
 
+    // Change password state (admin only, for therapists & parents)
+    const [passwordUser, setPasswordUser] = useState<User | null>(null);
+
     const [selectedRole, setSelectedRole] = useState<"ALL" | "ADMIN" | "THERAPIST" | "PARENT" | "ATTENDER">("ALL");
 
     // Filter users based on selected role
@@ -113,6 +117,11 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                     isPending={isPending}
                 />
 
+                <ChangePasswordModal
+                    isOpen={!!passwordUser}
+                    onClose={() => setPasswordUser(null)}
+                    user={passwordUser}
+                />
 
 
                 <div className="overflow-x-auto">
@@ -219,6 +228,15 @@ export default function UserList({ users, currentUserRole, currentUserId, allChi
                                                 >
                                                     <Edit2 className="w-4 h-4" />
                                                 </Link>
+                                                {currentUserRole === "ADMIN" && (user.role === "THERAPIST" || user.role === "PARENT") && (
+                                                    <button
+                                                        onClick={() => setPasswordUser(user)}
+                                                        className="p-2 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg text-gray-500 hover:text-amber-600 transition-colors"
+                                                        title="Change Password"
+                                                    >
+                                                        <KeyRound className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                                 {currentUserRole === "ADMIN" && currentUserId !== user.id && (
                                                     <button
                                                         onClick={() => handleDeleteClick(user.id)}

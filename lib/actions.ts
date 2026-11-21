@@ -1,16 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "./db";
-import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments, holidays, notifications, notificationRecipients } from "./db/schema"; // Added reporting tables
+import { users, children, therapies, sessions, childTherapies, goals, sessionNotes, homePrograms, homeProgramTasks, homeProgramSubmissions, homeProgramSubmissionTasks, staffAttendance, expenses, payments, holidays, notifications, notificationRecipients, passwordResetTokens } from "./db/schema"; // Added reporting tables
 
 import bcrypt from "bcryptjs";
-import { eq, desc, asc, and, isNotNull, like, inArray, gte, lte, or } from "drizzle-orm"; // Added inArray
+import { eq, desc, asc, and, isNotNull, isNull, like, inArray, gte, lte, or, sql } from "drizzle-orm"; // Added inArray
 import { addDays, isSameDay, setHours, setMinutes, getDay, startOfToday } from "date-fns";
 import { auth } from "@/auth";
 import { CreateUserSchema, UpdateUserSchema } from "./validations/user";
@@ -22,6 +24,7 @@ import { SessionSchema, UpdateSessionSchema, MonthlyScheduleSchema } from "./val
 import { HomeProgramSchema, UpdateHomeProgramSchema } from "./validations/home-program";
 import { NotificationSchema } from "./validations/notification";
 import { generateSecurePassword } from "./utils/password";
+import { validatePassword } from "./validations/password";
 import { ZodError } from "zod";
 
 // Utility function to format Zod errors
@@ -66,6 +69,9 @@ export async function register(prevState: string | undefined, formData: FormData
     const password = formData.get("password") as string;
 
     if (!email || !password || !name) return "Missing fields";
+
+    const passwordError = validatePassword(password);
+    if (passwordError) return passwordError;
 
     const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email),
@@ -710,9 +716,8 @@ export async function updatePassword(prevState: any, formData: FormData) {
         return "New passwords do not match";
     }
 
-    if (newPassword.length < 6) {
-        return "Password must be at least 6 characters";
-    }
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return passwordError;
 
     const user = await db.query.users.findFirst({
         where: eq(users.id, session.user.id),
@@ -732,6 +737,162 @@ export async function updatePassword(prevState: any, formData: FormData) {
         .where(eq(users.id, session.user.id));
 
     return "Success";
+}
+
+// Admin-only: set a new password for a THERAPIST or PARENT (no current password required)
+export async function adminResetPassword(userId: string, newPassword: string, confirmPassword: string) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { success: false, message: "Unauthorized" };
+
+    if (!userId || !newPassword || !confirmPassword) {
+        return { success: false, message: "All fields are required" };
+    }
+    if (newPassword !== confirmPassword) {
+        return { success: false, message: "Passwords do not match" };
+    }
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return { success: false, message: passwordError };
+
+    const target = await db.query.users.findFirst({ where: eq(users.id, userId) });
+    if (!target) return { success: false, message: "User not found" };
+    if (target.role !== "THERAPIST" && target.role !== "PARENT") {
+        return { success: false, message: "Password can only be changed for therapists and parents" };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.update(users)
+        .set({ passwordHash: hashedPassword })
+        .where(eq(users.id, userId));
+
+    return { success: true, message: `Password updated for ${target.name}` };
+}
+
+// --- Forgot Password Flow ---
+const RESET_TOKEN_TTL_MINUTES = 30;
+const RESET_REQUEST_COOLDOWN_MS = 60 * 1000;
+
+function hashResetToken(token: string) {
+    return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+async function getAppBaseUrl() {
+    if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+    const h = await headers();
+    const host = h.get("x-forwarded-host") || h.get("host") || "localhost:3000";
+    const proto = h.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https");
+    return `${proto}://${host}`;
+}
+
+export type ForgotPasswordState = { status: "idle" | "sent" | "error"; message: string };
+
+export async function requestPasswordReset(
+    _prevState: ForgotPasswordState,
+    formData: FormData
+): Promise<ForgotPasswordState> {
+    const email = ((formData.get("email") as string) || "").trim().toLowerCase();
+    if (!email) {
+        return { status: "error", message: "Please enter your email address." };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { status: "error", message: "Please enter a valid email address." };
+    }
+
+    const user = await db.query.users.findFirst({ where: sql`lower(${users.email}) = ${email}` });
+    if (!user) {
+        return { status: "error", message: "No account found with this email address. Please check and try again." };
+    }
+    if (user.status !== "ACTIVE") {
+        return { status: "error", message: "This account is inactive. Please contact the centre for help." };
+    }
+
+    // Cooldown: don't send a new mail if one was requested in the last minute
+    const recent = await db.query.passwordResetTokens.findFirst({
+        where: and(
+            eq(passwordResetTokens.userId, user.id),
+            gte(passwordResetTokens.createdAt, new Date(Date.now() - RESET_REQUEST_COOLDOWN_MS))
+        ),
+    });
+    if (recent) {
+        return { status: "error", message: "A reset link was just sent to this email. Please check your inbox or wait a minute before trying again." };
+    }
+
+    // Invalidate any previous links, then issue a fresh one
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
+
+    const token = crypto.randomBytes(32).toString("hex");
+    await db.insert(passwordResetTokens).values({
+        userId: user.id,
+        tokenHash: hashResetToken(token),
+        expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000),
+    });
+
+    const resetUrl = `${await getAppBaseUrl()}/reset-password?token=${token}`;
+    const { sendPasswordResetEmail } = await import("./email");
+    const result = await sendPasswordResetEmail(user.email, user.name, resetUrl, RESET_TOKEN_TTL_MINUTES);
+
+    if (!result.success) {
+        await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, user.id));
+        return { status: "error", message: "We couldn't send the reset email right now. Please try again later or contact the centre." };
+    }
+
+    return {
+        status: "sent",
+        message: `A password reset link has been sent to ${user.email}. Please check your inbox (and spam folder).`,
+    };
+}
+
+// Returns the token row if the token is valid, unused and not expired
+async function findValidResetToken(token: string) {
+    if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
+    const row = await db.query.passwordResetTokens.findFirst({
+        where: eq(passwordResetTokens.tokenHash, hashResetToken(token)),
+    });
+    if (!row || row.usedAt || row.expiresAt.getTime() < Date.now()) return null;
+    return row;
+}
+
+export async function verifyPasswordResetToken(token: string) {
+    const row = await findValidResetToken(token);
+    if (!row) return { valid: false as const };
+    const user = await db.query.users.findFirst({ where: eq(users.id, row.userId), columns: { email: true, status: true } });
+    if (!user || user.status !== "ACTIVE") return { valid: false as const };
+    return { valid: true as const, email: user.email };
+}
+
+export type ResetPasswordState = { status: "idle" | "success" | "error"; message: string };
+
+export async function resetPasswordWithToken(
+    _prevState: ResetPasswordState,
+    formData: FormData
+): Promise<ResetPasswordState> {
+    const token = (formData.get("token") as string) || "";
+    const newPassword = (formData.get("newPassword") as string) || "";
+    const confirmPassword = (formData.get("confirmPassword") as string) || "";
+
+    if (!newPassword || !confirmPassword) return { status: "error", message: "Both fields are required." };
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return { status: "error", message: passwordError };
+    if (newPassword !== confirmPassword) return { status: "error", message: "Passwords do not match." };
+
+    const row = await findValidResetToken(token);
+    if (!row) return { status: "error", message: "This reset link is invalid or has expired. Please request a new one." };
+
+    // Mark used first (only if still unused) so the same link can't be replayed concurrently
+    const claimed = await db.update(passwordResetTokens)
+        .set({ usedAt: new Date() })
+        .where(and(eq(passwordResetTokens.id, row.id), isNull(passwordResetTokens.usedAt)))
+        .returning({ id: passwordResetTokens.id });
+    if (claimed.length === 0) {
+        return { status: "error", message: "This reset link has already been used. Please request a new one." };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.update(users).set({ passwordHash: hashedPassword }).where(eq(users.id, row.userId));
+
+    // Clean up every token for this user
+    await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, row.userId));
+
+    return { status: "success", message: "Your password has been reset. You can now log in with your new password." };
 }
 
 // --- Child Actions ---

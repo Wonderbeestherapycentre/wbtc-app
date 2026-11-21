@@ -1,17 +1,9 @@
 import { z } from "zod";
+import { PasswordSchema } from "./password";
 
 const roleEnum = z.enum(["ADMIN", "THERAPIST", "PARENT", "ATTENDER"]);
 
 const emptyStringToNull = z.string().nullable().optional().transform(v => (v === "" || v === undefined ? null : v));
-
-const PasswordSchema = z
-    .string()
-    .min(1, 'Password is required')
-    .min(8, 'Password must have at least 8 characters')
-    .regex(
-        /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/,
-        'Password must contain at least 8 characters that includes at least 1 uppercase, 1 lowercase, 1 number and 1 special character.'
-    );
 
 export const UserSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100),
