@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
     children,
@@ -74,6 +74,30 @@ export async function listGoals(user: MobileUser, childId?: string) {
         therapy: ref(g.therapy),
         therapist: ref(g.therapist),
     }));
+}
+
+/**
+ * Children with goal counts — the therapist's first step on the Goals page
+ * (same as the website's fetchGoalChildGroups). Therapists only count the
+ * goals they own; parents count all goals of their children.
+ */
+export async function listGoalChildGroups(user: MobileUser) {
+    const joinCondition = user.role === "THERAPIST"
+        ? and(eq(goals.childId, children.id), eq(goals.therapistId, user.id))
+        : eq(goals.childId, children.id);
+
+    return db
+        .select({
+            childId: children.id,
+            childName: children.name,
+            total: sql<number>`count(${goals.id})::int`,
+            activeCount: sql<number>`count(${goals.id}) FILTER (WHERE ${goals.status} <> 'ACHIEVED')::int`,
+        })
+        .from(children)
+        .leftJoin(goals, joinCondition)
+        .where(and(eq(children.status, "ACTIVE"), childScope(user)))
+        .groupBy(children.id, children.name)
+        .orderBy(asc(children.name));
 }
 
 // ---------------------------------------------------------------- Session notes
