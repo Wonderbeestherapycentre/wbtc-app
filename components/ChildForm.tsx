@@ -208,7 +208,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
     };
 
     return (
-        <div className="max-w-2xl mx-auto animate-fade-in">
+        <div className="w-full animate-fade-in">
             <Link
                 href="/childrens"
                 className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
@@ -220,7 +220,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
             <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                <div className="p-4 md:p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                         {child ? "Edit Child Profile" : "Add New Child"}
                     </h2>
@@ -239,8 +239,8 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
                                 <User className="w-4 h-4 text-blue-500" /> Basic Information
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="col-span-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="md:col-span-2 lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                                     <input
                                         type="text"
@@ -302,7 +302,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Therapy Types</label>
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
                                     {therapies.map(t => {
                                         const isSelected = selectedTherapyIds.includes(t.id);
                                         return (
@@ -324,7 +324,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
                                                 </div>
 
                                                 {isSelected && (
-                                                    <div className="pl-8 pr-2 space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                                    <div className="pl-4 pr-1 space-y-2 animate-in slide-in-from-top-1 duration-200">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                                                             <select
@@ -358,7 +358,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
                                         );
                                     })}
                                     {errors.therapies && (
-                                        <div className="flex items-start gap-2 text-red-500 mt-2 bg-red-50 dark:bg-red-900/10 p-2 rounded-lg border border-red-100 dark:border-red-900/30">
+                                        <div className="md:col-span-2 xl:col-span-3 flex items-start gap-2 text-red-500 mt-2 bg-red-50 dark:bg-red-900/10 p-2 rounded-lg border border-red-100 dark:border-red-900/30">
                                             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                                             <p className="text-xs font-medium">{errors.therapies[0]}</p>
                                         </div>
@@ -374,7 +374,7 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
                                 <Activity className="w-4 h-4 text-purple-500" /> System Status
                             </h3>
-                            <div>
+                            <div className="md:max-w-sm">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Status
                                 </label>
@@ -396,17 +396,17 @@ export default function ChildForm({ child, parents = [], therapists = [], therap
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                    <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
                         <Link
                             href="/childrens"
-                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
+                            className="flex-1 md:flex-none md:min-w-[140px] px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={isPending}
-                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 md:flex-none md:min-w-[160px] px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isPending ? (
                                 "Saving..."

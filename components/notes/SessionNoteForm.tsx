@@ -179,10 +179,10 @@ export default function SessionNoteForm({
     };
 
     return (
-        <div className="bg-white dark:bg-neutral-900 max-w-2xl rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800">
-            <form onSubmit={handleSubmit} className="py-2 px-4 space-y-2">
+        <div className="w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-5">
                 {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Child</label>
                         <SearchableDropdown
@@ -273,7 +273,7 @@ export default function SessionNoteForm({
                                         key={goal.id}
                                         className="border-b border-gray-100 dark:border-neutral-800 pb-3 last:border-b-0 last:pb-0"
                                     >
-                                        <div className="space-y-1.5">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-1.5">
                                             {objectives.map((objective, idx) => (
                                                 <label
                                                     key={idx}
@@ -315,7 +315,8 @@ export default function SessionNoteForm({
                                 className="flex gap-2 items-start animate-in slide-in-from-left-2 duration-200"
                             >
                                 <div className="px-2 py-2 text-xs font-medium text-gray-400">{index + 1}.</div>
-                                <div className="flex-1 space-y-2">
+                                <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-2 items-start">
+                                    <div>
                                     <input
                                         type="text"
                                         value={activity.description}
@@ -328,6 +329,7 @@ export default function SessionNoteForm({
                                             {errors[`activities.${index}.description`]}
                                         </p>
                                     )}
+                                    </div>
                                     <div className="space-y-1">
                                         <select
                                             value={activity.prompt}
@@ -379,23 +381,23 @@ export default function SessionNoteForm({
                         value={littleWins}
                         onChange={(e) => setLittleWins(e.target.value)}
                         placeholder="Small achievements to celebrate..."
-                        rows={2}
-                        className="w-full px-4 py-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                        rows={3}
+                        className="w-full px-4 py-2 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
                     />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 pb-4 border-t border-gray-100 dark:border-neutral-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-neutral-800">
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                        className="flex-1 md:flex-none md:min-w-[140px] px-4 py-2 bg-gray-100 dark:bg-neutral-800 md:bg-transparent text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="flex-1 md:flex-none md:min-w-[160px] px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isPending ? "Saving..." : isEdit ? "Update Note" : "Create Note"}
                     </button>

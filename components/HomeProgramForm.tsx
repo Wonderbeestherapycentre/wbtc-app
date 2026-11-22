@@ -109,9 +109,9 @@ export default function HomeProgramForm({
     };
 
     return (
-        <div className="bg-white dark:bg-neutral-900 max-w-2xl rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800">
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+        <div className="w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-100 dark:border-neutral-800">
+            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Child</label>
                         <select
@@ -147,9 +147,6 @@ export default function HomeProgramForm({
                             ))}
                         </select>
                     </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Activity Name</label>
                         <input
@@ -187,7 +184,7 @@ export default function HomeProgramForm({
                             <Plus className="w-3 h-3" /> Add Task
                         </button>
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                         {tasks.map((task, index) => (
                             <div key={index} className="flex items-start gap-2 animate-in slide-in-from-left-2 duration-200">
                                 <div className="flex-1">
@@ -218,14 +215,14 @@ export default function HomeProgramForm({
                     <button
                         type="button"
                         onClick={() => router.push(returnTo)}
-                        className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
+                        className="flex-1 md:flex-none md:min-w-[140px] px-4 py-2 bg-gray-100 dark:bg-neutral-800 md:bg-transparent text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-xl transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="flex-1 md:flex-none md:min-w-[160px] px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isPending ? "Saving..." : isEdit ? "Update Program" : "Create Program"}
                     </button>

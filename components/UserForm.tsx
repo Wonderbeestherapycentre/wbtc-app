@@ -85,7 +85,7 @@ export default function UserForm({ user, currentUserRole, allChildren = [], ther
     };
 
     return (
-        <div className="max-w-2xl mx-auto animate-fade-in">
+        <div className="w-full animate-fade-in">
             <Link
                 href="/users"
                 className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
@@ -97,7 +97,7 @@ export default function UserForm({ user, currentUserRole, allChildren = [], ther
             <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-neutral-800 flex flex-col">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                <div className="p-4 md:p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                         {user ? "Edit User" : "Add New User"}
                     </h2>
@@ -107,7 +107,7 @@ export default function UserForm({ user, currentUserRole, allChildren = [], ther
                 </div>
 
                 <form onSubmit={handleSubmit} noValidate className="p-4 md:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Name</label>
                             <input
@@ -280,7 +280,7 @@ export default function UserForm({ user, currentUserRole, allChildren = [], ther
                             )}
                         </div>
 
-                        <div className="md:col-span-2">
+                        <div className="col-span-full">
                             <label className="block text-sm font-medium mb-1 dark:text-gray-300">Address</label>
                             <textarea
                                 name="address"
@@ -322,17 +322,17 @@ export default function UserForm({ user, currentUserRole, allChildren = [], ther
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
+                    <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-neutral-800">
                         <Link
                             href="/users"
-                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
+                            className="flex-1 md:flex-none md:min-w-[140px] px-4 py-2.5 text-sm font-semibold text-center text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl transition-colors"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
                             disabled={isPending}
-                            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 md:flex-none md:min-w-[160px] px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isPending ? (
                                 "Saving..."

@@ -119,7 +119,7 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
     const selectedChild = children.find(c => c.id === selectedChildId);
 
     return (
-        <div className="max-w-lg mx-auto animate-fade-in">
+        <div className="w-full animate-fade-in">
             <Link
                 href="/schedule"
                 className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4 transition-colors"
@@ -129,7 +129,7 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
             </Link>
 
             <div className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-100 dark:border-neutral-800">
-                <div className="p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
+                <div className="p-4 md:p-6 border-b border-gray-100 dark:border-neutral-800 bg-gray-50/50 dark:bg-neutral-900">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                         {sessionToEdit ? "Reschedule Session" : "Schedule Sessions"}
                     </h3>
@@ -138,10 +138,10 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-2">
+                <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4">
                     {/* Mode Toggle */}
                     {!sessionToEdit && (
-                        <div className="flex p-1 bg-gray-100 dark:bg-neutral-800 rounded-xl">
+                        <div className="flex p-1 bg-gray-100 dark:bg-neutral-800 rounded-xl md:max-w-md">
                             <button
                                 type="button"
                                 onClick={() => setMode("SINGLE")}
@@ -167,7 +167,7 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                         </div>
                     )}
 
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                         {/* Child Selection */}
                         <div>
                             <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Child</label>
@@ -255,7 +255,7 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                             </>
                         )}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4 md:contents">
                             <div>
                                 <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">
                                     {mode === "SINGLE" ? "Date" : "Start Date"}
@@ -314,7 +314,7 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4 md:contents">
                             <div>
                                 <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Duration</label>
                                 <div className="relative">
@@ -349,7 +349,8 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                         </div>
 
                         {mode === "MONTHLY" && !sessionToEdit && (
-                            <div className="space-y-4 pt-2 animate-slide-up">
+                            <div className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 animate-slide-up">
+                                <div>
                                 <div>
                                     <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Repeat For (Weeks)</label>
                                     <input
@@ -361,8 +362,9 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                                         className="w-full px-4 py-2.5 bg-gray-50 dark:bg-neutral-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">On Days</label>
+                                </div>
+                                <div className="lg:col-span-2">
+                                    <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">On Days</label>
                                     <div className="flex flex-wrap gap-2">
                                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label, i) => {
                                             const dayVal = (i + 1) % 7;
@@ -393,11 +395,11 @@ export default function ScheduleSessionForm({ children, allTherapists, sessionTo
                         </div>
                     )}
 
-                    <div className="pt-4">
+                    <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 flex justify-end">
                         <button
                             type="submit"
                             disabled={isPending || !selectedChildId || (mode === "MONTHLY" && selectedDays.length === 0)}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all transform active:scale-95"
+                            className="w-full md:w-auto md:min-w-[200px] px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 transition-all transform active:scale-95"
                         >
                             {isPending ? "Saving..." : sessionToEdit ? "Update Session" : "Schedule Session"}
                         </button>
