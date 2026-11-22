@@ -264,6 +264,7 @@ export default function HomeProgramReportForm({
                             {isSelected && (
                                 <div className="md:w-72 relative animate-in zoom-in-95 duration-200">
                                     <select
+                                        data-custom-chevron
                                         value={selectedTasks[task.id].supportLevelId}
                                         onChange={(e) => updateSupportLevel(task.id, parseInt(e.target.value))}
                                         className={cn(
