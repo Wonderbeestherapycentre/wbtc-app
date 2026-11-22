@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { HttpError, isUuid } from "@/lib/mobile/http";
 import {
-    getConversation, listContacts, listConversations, openConversation, sendMessage, unreadMessageCount,
+    deleteMessage, getConversation, listContacts, listConversations, openConversation, sendMessage,
+    unreadMessageCount,
     type ChatUser,
 } from "@/lib/chat";
 
@@ -47,6 +48,12 @@ export const chatHandlers = {
         if (!isUuid(id)) return null;
         const { body } = await readJson(request);
         return { message: await sendMessage(user, id, body) };
+    },
+
+    /** DELETE -> { id, deleted } (sender only) */
+    deleteMessage: async (_request: Request, user: ChatUser, id: string, messageId: string) => {
+        if (!isUuid(id) || !isUuid(messageId)) return null;
+        return deleteMessage(user, id, messageId);
     },
 
     contacts: async (_request: Request, user: ChatUser) => ({ contacts: await listContacts(user) }),

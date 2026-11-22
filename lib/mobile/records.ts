@@ -409,6 +409,8 @@ export async function getHomeProgram(user: MobileUser, id: string) {
         submissions: p.submissions.map((s) => ({
             id: s.id,
             date: s.date,
+            /** When it was submitted (the website shows this time under the date). */
+            createdAt: iso(s.createdAt),
             overallScore: Number(s.overallScore),
             taskScore: Number(s.taskScore),
             supportScore: Number(s.supportScore),

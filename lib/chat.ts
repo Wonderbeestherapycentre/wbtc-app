@@ -416,6 +416,34 @@ export async function sendMessage(me: ChatUser, conversationId: string, rawBody:
     };
 }
 
+/**
+ * Deletes one of `me`'s own messages (e.g. sent by mistake). Only the sender
+ * can delete, and only while they're still a participant. The message is
+ * removed for both people; the conversation's "last activity" falls back to
+ * the newest remaining message (or clears, hiding an emptied conversation).
+ */
+export async function deleteMessage(me: ChatUser, conversationId: string, messageId: string) {
+    const [message] = await db.select({ id: chatMessages.id, senderId: chatMessages.senderId })
+        .from(chatMessages)
+        .where(and(eq(chatMessages.id, messageId), eq(chatMessages.conversationId, conversationId)))
+        .limit(1);
+    if (!message) return null;
+    if (message.senderId !== me.id) throw new HttpError(403, "You can only delete your own messages.");
+
+    await db.delete(chatMessages).where(eq(chatMessages.id, messageId));
+
+    const [latest] = await db.select({ createdAt: chatMessages.createdAt })
+        .from(chatMessages)
+        .where(eq(chatMessages.conversationId, conversationId))
+        .orderBy(desc(chatMessages.createdAt))
+        .limit(1);
+    await db.update(chatConversations)
+        .set({ lastMessageAt: latest?.createdAt ?? null })
+        .where(eq(chatConversations.id, conversationId));
+
+    return { id: messageId, deleted: true };
+}
+
 /** Unread messages sent to `userId` across all their conversations. */
 export async function unreadMessageCount(userId: string) {
     const [result] = await db.select({ value: count() })
