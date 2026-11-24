@@ -375,6 +375,7 @@ export async function listHomePrograms(user: MobileUser, childId?: string) {
         therapist: ref(p.therapist),
         taskCount: p.tasks.length,
         lastSubmission: p.submissions[0]?.date ?? null,
+        createdAt: iso(p.createdAt),
     }));
 }
 

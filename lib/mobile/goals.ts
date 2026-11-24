@@ -47,8 +47,11 @@ function toMobileGoal(g: any) {
     };
 }
 
-/** Active children assigned to the therapist, each with the therapies it is enrolled in. */
-export async function getGoalFormOptions(user: MobileUser) {
+/**
+ * Active children assigned to the therapist, each with the therapies it is enrolled in.
+ * Shared by the goal and home-program forms (both default the therapy like the website).
+ */
+export async function getTherapistChildOptions(user: MobileUser) {
     const [kids, therapyRows] = await Promise.all([
         db.query.children.findMany({
             where: and(eq(children.status, "ACTIVE"), childScope(user)),
@@ -69,8 +72,11 @@ export async function getGoalFormOptions(user: MobileUser) {
             /** The therapy this therapist handles for the child — the default, like the website. */
             myTherapyId: c.therapyTypes.find((ct) => ct.therapistId === user.id)?.therapyId ?? null,
         })),
-        statuses: STATUSES,
     };
+}
+
+export async function getGoalFormOptions(user: MobileUser) {
+    return { ...(await getTherapistChildOptions(user)), statuses: STATUSES };
 }
 
 function readDates(body: any) {
